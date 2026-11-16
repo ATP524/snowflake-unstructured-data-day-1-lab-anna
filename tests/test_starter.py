@@ -1,0 +1,89 @@
+"""Fixture and starter-workflow checks, without network or Snowflake."""
+import ast
+import json
+from pathlib import Path
+import sys
+import unittest
+from unittest.mock import MagicMock, patch
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / 'python'))
+
+from load_starter import load_starter, read_fixture, reference_rows
+
+
+class StarterTests(unittest.TestCase):
+    def test_fixture_integrity_and_entity(self):
+        manifest, pdf, doc = read_fixture()
+        self.assertTrue(pdf.startswith(b"%PDF-"))
+        self.assertEqual(doc["entityName"], "Apple Inc.")
+        self.assertEqual(manifest["page_ranges"], [{"start": 30, "end": 36}])
+
+    def test_three_reference_values_and_exact_periods(self):
+        manifest, _, doc = read_fixture()
+        rows = reference_rows(manifest, doc)
+        concepts = {
+            "assets": "Assets",
+            "revenue": "RevenueFromContractWithCustomerExcludingAssessedTax",
+            "eps_diluted": "EarningsPerShareDiluted",
+        }
+        for metric, concept in concepts.items():
+            matching = [r for r in rows if r[2] == concept]
+            self.assertEqual({r[7] for r in matching}, {manifest["expected_values"][metric]})
+        for row in rows:
+            self.assertEqual(row[8], manifest["sec_accession"])
+            self.assertEqual(row[6], manifest["period_end"])
+            self.assertEqual(row[9], "10-K")
+            if row[2] not in {"Assets", "Liabilities", "StockholdersEquity"}:
+                self.assertEqual(row[5], manifest["period_start"])
+
+    def test_all_ten_concepts_available(self):
+        manifest, _, doc = read_fixture()
+        rows = reference_rows(manifest, doc)
+        self.assertEqual(len({r[2] for r in rows}), 10)
+
+    def test_loader_uploads_and_approves_reviewed_manifest(self):
+        session = MagicMock()
+        result = load_starter(session)
+        self.assertTrue(result["approved"])
+        self.assertGreaterEqual(result["sec_rows"], 10)
+        session.file.put_stream.assert_called_once()
+        self.assertEqual(session.file.put_stream.call_args.args[1],
+                         "@annual_report_pdfs/AAPL/2023.pdf")
+        merge = session.sql.call_args
+        self.assertIn("MERGE INTO report_manifest", merge.args[0])
+        self.assertIn("0000320193-23-000106", merge.kwargs["params"])
+        session.close.assert_not_called()
+
+    def test_integrity_failure_does_not_write(self):
+        session = MagicMock()
+        with patch("load_starter.read_fixture", side_effect=ValueError("hash mismatch")):
+            with self.assertRaises(ValueError):
+                load_starter(session)
+        session.sql.assert_not_called()
+        session.file.put_stream.assert_not_called()
+
+    def test_starter_scope_and_evaluation_match(self):
+        extraction = (ROOT / "sql" / "extract_reports.sql").read_text()
+        self.assertIn("SET include_all_metrics = FALSE;", extraction)
+        self.assertIn("c.metric_id IN ('assets', 'revenue', 'eps_diluted')", extraction)
+        evaluation = (ROOT / "sql" / "evaluate_results.sql").read_text()
+        self.assertEqual(evaluation.count(
+            "WHERE GET(r.response_format, c.metric_id || '__raw_value') IS NOT NULL"
+        ), 2)
+
+    def test_new_scripts_compile(self):
+        for name in ("load_starter.py", "build_starter_fixture.py"):
+            ast.parse((ROOT / "python" / name).read_text(), filename=name)
+
+    def test_local_document_links_exist(self):
+        import re
+        for name in ("README.md", "docs/INSTRUCTOR_SETUP.md", "docs/LOCAL_SETUP.md", "fixtures/README.md"):
+            path = ROOT / name
+            for link in re.findall(r"\]\(([^)]+)\)", path.read_text()):
+                if "://" not in link:
+                    self.assertTrue((path.parent / link).exists(), (name, link))
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -1,0 +1,31 @@
+{
+  "verified_on": "2026-11-16",
+  "ticker": "AAPL",
+  "cik": "0000320193",
+  "report_year": 2023,
+  "relative_path": "AAPL/2023.pdf",
+  "period_start": "2022-09-25",
+  "period_end": "2023-09-30",
+  "sec_accession": "0000320193-23-000106",
+  "filed_date": "2023-11-03",
+  "pdf_source": "https://www.annualreports.com/HostedData/AnnualReportArchive/a/NASDAQ_AAPL_2023.pdf",
+  "sec_source": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000320193.json",
+  "filing_source": "https://www.sec.gov/Archives/edgar/data/320193/000032019323000106/aapl-20230930.htm",
+  "pdf_sha256": "068176ab665682096a79859d73b805c7b2fda05331e503f26d893b582353464e",
+  "sec_sha256": "f085735b4d08fb116ade18d24247ffabe11df8eb52eae6556b165831f15ef1ad",
+  "pdf_page_count": 80,
+  "page_ranges": [{"start": 30, "end": 36}],
+  "statement_pages": {
+    "operations": 30,
+    "balance_sheet": 32,
+    "cash_flow": 34,
+    "fiscal_calendar_note": 35
+  },
+  "starter_metrics": ["assets", "revenue", "eps_diluted"],
+  "expected_values": {
+    "assets": 352583000000,
+    "revenue": 383285000000,
+    "eps_diluted": 6.13
+  },
+  "review_notes": "Verified PDF cover, statement headings and values, table scale, 53-week fiscal calendar note, and matching SEC Company Facts accession and periods. Page indexes are zero based; end is exclusive."
+}
