@@ -67,5 +67,25 @@ def main(session):
     return ingest_sec_facts(session, "AAPL", 2023, 2023)
 
 
+# Schema that holds the lab tables (see sql/ddls.sql) when run in a Workspace.
+WORKSPACE_DATABASE = "BOOTCAMP"
+WORKSPACE_SCHEMA = "PUBLIC"
+
+
+def _active_session():
+    """Return the Workspace kernel's session, or None when run from a CLI."""
+    try:
+        from snowflake.snowpark.context import get_active_session
+        return get_active_session()
+    except Exception:
+        return None
+
+
 if __name__ == "__main__":
-    run_cli(ingest_sec_facts)
+    active = _active_session()
+    if active is not None:
+        active.use_database(WORKSPACE_DATABASE)
+        active.use_schema(WORKSPACE_SCHEMA)
+        print(json.dumps(main(active), indent=2))
+    else:
+        run_cli(ingest_sec_facts)

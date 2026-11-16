@@ -1,5 +1,6 @@
 """Download AnnualReports.com PDFs and upload them through Snowpark."""
 import io
+import json
 import time
 
 from ingestion_common import fetch, log, run_cli, validate
@@ -57,5 +58,25 @@ def main(session):
     return ingest_annual_report_pdfs(session, "AAPL", 2023, 2023)
 
 
+# Schema that holds the lab tables and stage (see sql/ddls.sql) when run in a Workspace.
+WORKSPACE_DATABASE = "BOOTCAMP"
+WORKSPACE_SCHEMA = "PUBLIC"
+
+
+def _active_session():
+    """Return the Workspace kernel's session, or None when run from a CLI."""
+    try:
+        from snowflake.snowpark.context import get_active_session
+        return get_active_session()
+    except Exception:
+        return None
+
+
 if __name__ == "__main__":
-    run_cli(ingest_annual_report_pdfs)
+    active = _active_session()
+    if active is not None:
+        active.use_database(WORKSPACE_DATABASE)
+        active.use_schema(WORKSPACE_SCHEMA)
+        print(json.dumps(main(active), indent=2))
+    else:
+        run_cli(ingest_annual_report_pdfs)

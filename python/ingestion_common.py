@@ -74,8 +74,8 @@ def run_cli(job):
     parser = argparse.ArgumentParser(description=job.__doc__)
     parser.add_argument("--connection", required=True, help="Named Snowflake connection")
     parser.add_argument("--ticker", default="AAPL")
-    parser.add_argument("--first-year", type=int, default=2023)
-    parser.add_argument("--last-year", type=int, default=2023)
+    parser.add_argument("--first-year", type=int, default=2021)
+    parser.add_argument("--last-year", type=int, default=2025)
     args = parser.parse_args()
     validate(args.ticker, args.first_year, args.last_year)
 
