@@ -1,8 +1,4 @@
-# Annual reports versus SEC facts: student lab
-
-Date: 2026-11-16  
-POC: Course instructor  
-TL;DR: Create your own schema in `bootcamp`, load the verified Apple report, and compare direct PDF extraction with a parse-then-extract workflow.
+# Day 1 Unstructured Data Lab
 
 ## What you will learn
 
@@ -33,6 +29,55 @@ In Snowsight, select `all_users_role`, then open **Projects → Workspaces → F
 Use the course repository URL provided by your instructor, select the existing `dataexpert_github_api` integration, and use public-repository authentication if the course repository is public. If your account uses a differently named integration, use the instructor's supplied name. Select the course branch and open this lab's folder.
 
 Confirm you can see `python/load_starter.py`, `fixtures/`, `sql/first_extraction.sql`, and `sql/ddls.sql`. [Snowflake Workspace Git guide](https://docs.snowflake.com/en/user-guide/ui-snowsight/workspaces-git)
+
+### Optional: connect with a GitHub personal access token
+
+Skip this section when using public-repository authentication. For a private repository, Snowflake can store your GitHub personal access token (PAT) in a secret and use it through a Git API integration.
+
+Do not create a personal-token secret under `all_users_role` or in a shared student schema. Everyone using that role shares its privileges. Ask your instructor or Snowflake administrator to provide a private schema and a role restricted to you. Do not paste the token into chat, commit it to Git, or save it in a shared worksheet.
+
+1. In GitHub, open **Settings → Developer settings → Personal access tokens → Fine-grained tokens**. Select the repository owner and the repository you want to connect. Grant **Repository permissions → Contents → Read-only** to fetch files, or **Read and write** if you need to push changes. Generate and copy the token. Organization-owned repositories may require approval.
+
+2. Open a private SQL worksheet in Snowsight using your restricted role. Replace `YOUR_PRIVATE_DB`, `YOUR_PRIVATE_SCHEMA`, `YOUR_GITHUB_USERNAME`, and `YOUR_GITHUB_PAT`, then run:
+
+   ```sql
+   CREATE SECRET YOUR_PRIVATE_DB.YOUR_PRIVATE_SCHEMA.github_token
+     TYPE = PASSWORD
+     USERNAME = 'YOUR_GITHUB_USERNAME'
+     PASSWORD = 'YOUR_GITHUB_PAT';
+   ```
+
+3. Have an administrator, or a role with `CREATE INTEGRATION` and the required access to the secret, create a dedicated integration. Replace `YOUR_OWNER` with the GitHub username or organization that owns the repository. Leave the shared `dataexpert_github_api` integration unchanged.
+
+   ```sql
+   CREATE API INTEGRATION github_token_integration
+     API_PROVIDER = git_https_api
+     API_ALLOWED_PREFIXES = ('https://github.com/YOUR_OWNER/')
+     ALLOWED_AUTHENTICATION_SECRETS = (
+       YOUR_PRIVATE_DB.YOUR_PRIVATE_SCHEMA.github_token
+     )
+     ENABLED = TRUE;
+   ```
+
+   Your restricted role needs `USAGE` on the integration, `USAGE` on the secret, and access to its database and schema. Creating the secret requires `CREATE SECRET` on its schema. Ask the administrator to grant these permissions to your restricted role, not `all_users_role`.
+
+4. Return to **Projects → Workspaces → From Git repository**. Enter the repository's HTTPS URL, select `github_token_integration`, and select the personal access token authentication option with your secret.
+
+   If you need a SQL Git repository clone instead of a Workspace, run the following using your restricted role. It also needs `CREATE GIT REPOSITORY` on the target schema.
+
+   ```sql
+   CREATE GIT REPOSITORY YOUR_PRIVATE_DB.YOUR_PRIVATE_SCHEMA.my_repo
+     API_INTEGRATION = github_token_integration
+     GIT_CREDENTIALS = YOUR_PRIVATE_DB.YOUR_PRIVATE_SCHEMA.github_token
+     ORIGIN = 'https://github.com/YOUR_OWNER/YOUR_REPO.git';
+
+   -- Fetch the latest changes to the SQL Git repository clone:
+   ALTER GIT REPOSITORY YOUR_PRIVATE_DB.YOUR_PRIVATE_SCHEMA.my_repo FETCH;
+   ```
+
+Keep the private repository connection separate from the shared course role. Continue the lab's data setup below using `all_users_role`.
+
+See [Snowflake's token authentication guide](https://docs.snowflake.com/en/developer-guide/git/git-setting-up-public#configure-for-authenticating-with-a-token).
 
 ## 2. Create your schema and PDF stage
 

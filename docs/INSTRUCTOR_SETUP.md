@@ -24,6 +24,7 @@ Grant course privileges using a role authorized to manage them:
 ```sql
 GRANT USAGE ON DATABASE bootcamp TO ROLE all_users_role;
 GRANT CREATE SCHEMA ON DATABASE bootcamp TO ROLE all_users_role;
+GRANT CREATE INTEGRATION ON ACCOUNT TO ROLE all_users_role;
 GRANT USAGE ON INTEGRATION dataexpert_github_api TO ROLE all_users_role;
 GRANT USAGE ON INTEGRATION public_filing_access TO ROLE all_users_role;
 
@@ -34,6 +35,41 @@ GRANT USE AI FUNCTION AI_PARSE_DOCUMENT ON ACCOUNT TO ROLE all_users_role;
 -- Replace with the actual assigned warehouse.
 GRANT USAGE ON WAREHOUSE COURSE_WAREHOUSE TO ROLE all_users_role;
 ```
+
+### Integration permissions
+
+Students need to create integrations for pipeline exercises later in the bootcamp. Grant `CREATE INTEGRATION` to `all_users_role` as part of the standard course setup and keep it enabled throughout the bootcamp. Run this in a Snowsight SQL worksheet as `ACCOUNTADMIN` (these grants are also included above):
+
+```sql
+USE ROLE ACCOUNTADMIN;
+
+GRANT CREATE INTEGRATION ON ACCOUNT
+    TO ROLE all_users_role;
+
+GRANT USAGE ON INTEGRATION dataexpert_github_api
+    TO ROLE all_users_role;
+```
+
+The first grant lets students create integrations; the second lets them use the existing course Git integration. Students can run their integration creation SQL after selecting the course role:
+
+```sql
+USE ROLE all_users_role;
+```
+
+`CREATE INTEGRATION` is an account-level privilege that applies beyond GitHub integrations. Sharing this capability through `all_users_role` is intentional in this learning environment. Some integration types also require supporting objects and permissions; grant those as needed for each pipeline exercise. Use course-scoped credentials for shared exercises and keep personal GitHub tokens under a private role and in a private schema.
+
+At the end of the bootcamp, you can remove permission to create integrations:
+
+```sql
+USE ROLE ACCOUNTADMIN;
+
+REVOKE CREATE INTEGRATION ON ACCOUNT
+    FROM ROLE all_users_role;
+```
+
+Revoking this privilege does not remove integrations already created or their ownership privileges. Review those objects separately.
+
+### Student role assignment
 
 Assign `all_users_role` to students through your account's user provisioning process. Notebook/Workspace creation may require additional permissions for the account's enabled runtime. Test with an actual student account.
 
