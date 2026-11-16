@@ -50,6 +50,10 @@ class StarterTests(unittest.TestCase):
         session.file.put_stream.assert_called_once()
         self.assertEqual(session.file.put_stream.call_args.args[1],
                          "@annual_report_pdfs/AAPL/2023.pdf")
+        statements = [call.args[0] for call in session.sql.call_args_list]
+        self.assertTrue(any('MERGE INTO sec_facts' in sql for sql in statements))
+        self.assertFalse(any('DELETE FROM' in sql for sql in statements))
+        self.assertFalse(any('INSERT INTO sec_facts' in sql for sql in statements))
         merge = session.sql.call_args
         self.assertIn("MERGE INTO report_manifest", merge.args[0])
         self.assertIn("0000320193-23-000106", merge.kwargs["params"])

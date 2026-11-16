@@ -3,6 +3,7 @@ import json
 import time
 
 from ingestion_common import fetch, log, run_cli, validate
+from sec_facts import merge_sec_facts
 
 
 def ingest_sec_facts(session, target_ticker, first_year, last_year):
@@ -56,35 +57,7 @@ def ingest_sec_facts(session, target_ticker, first_year, last_year):
                     observation.get("fp"), observation.get("frame"),
                 ))
 
-    # Replace the requested filing-year window so reruns don't duplicate facts.
-    session.sql(
-        "DELETE FROM sec_facts WHERE ticker = ? AND fiscal_year BETWEEN ? AND ?",
-        params=[ticker, first_year, last_year + 1],
-    ).collect()
-    if rows:
-        # Explicit types support batches where an entire column is NULL.
-        from snowflake.snowpark.types import (
-            DoubleType, LongType, StringType, StructField, StructType,
-        )
-
-        columns = [
-            "TICKER", "CIK", "CONCEPT", "LABEL", "UNIT", "START_DATE", "END_DATE",
-            "FACT_VALUE", "ACCESSION", "FORM", "FILED_DATE", "FISCAL_YEAR",
-            "FISCAL_PERIOD", "FRAME",
-        ]
-        schema = StructType([
-            StructField(
-                name,
-                DoubleType() if name == "FACT_VALUE"
-                else LongType() if name == "FISCAL_YEAR"
-                else StringType(),
-            )
-            for name in columns
-        ])
-        # ISO date strings are cast to the destination's DATE columns on insert.
-        session.create_dataframe(rows, schema=schema).write.mode("append").save_as_table(
-            "sec_facts", column_order="name",
-        )
+    merge_sec_facts(session, rows)
     log(session, ticker, None, "SEC_XBRL", facts_url, "SUCCESS", f"{len(rows)} facts loaded")
     return {"ticker": ticker, "cik": cik, "xbrl_fact_rows": len(rows)}
 

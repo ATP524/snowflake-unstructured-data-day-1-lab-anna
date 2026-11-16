@@ -93,7 +93,10 @@ class IngestionTests(unittest.TestCase):
              patch.dict(sys.modules, snowpark_stubs()):
             result = module.ingest_sec_facts(session, 'AAPL', 2023, 2023)
         self.assertEqual(result['xbrl_fact_rows'], 2)
-        rows = session.create_dataframe.call_args.args[0]
+        merge = session.sql.call_args
+        self.assertIn('MERGE INTO sec_facts', merge.args[0])
+        self.assertNotIn('DELETE', merge.args[0])
+        rows = json.loads(merge.kwargs['params'][0])
         self.assertEqual({r[8] for r in rows}, {'original', 'later-comparative'})
         self.assertTrue(all(r[1] == '0000320193' for r in rows))
 

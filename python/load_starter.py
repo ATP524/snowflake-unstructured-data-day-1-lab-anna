@@ -4,6 +4,8 @@ import io
 import json
 from pathlib import Path
 
+from sec_facts import merge_sec_facts
+
 
 CONCEPTS = {
     "Assets", "EarningsPerShareBasic", "EarningsPerShareDiluted", "GrossProfit",
@@ -65,18 +67,7 @@ def load_starter(session, fixture_dir=None):
         auto_compress=False, overwrite=True,
     )
     session.sql("ALTER STAGE annual_report_pdfs REFRESH").collect()
-    session.sql(
-        "DELETE FROM sec_facts WHERE ticker = ? AND accession = ?",
-        params=[manifest["ticker"], manifest["sec_accession"]],
-    ).collect()
-    for row in rows:
-        session.sql(
-            """INSERT INTO sec_facts
-            (ticker, cik, concept, label, unit, start_date, end_date, fact_value,
-             accession, form, filed_date, fiscal_year, fiscal_period, frame)
-            SELECT ?, ?, ?, ?, ?, TO_DATE(?), TO_DATE(?), ?, ?, ?, TO_DATE(?), ?, ?, ?""",
-            params=row,
-        ).collect()
+    merge_sec_facts(session, rows)
     session.sql(
         """MERGE INTO report_manifest t USING (
             SELECT ? AS relative_path, ? AS ticker, ? AS report_year,
