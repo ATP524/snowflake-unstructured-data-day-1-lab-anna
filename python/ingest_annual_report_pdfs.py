@@ -3,7 +3,72 @@ import io
 import json
 import time
 
-from ingestion_common import fetch, log, run_cli, validate
+from datetime import date
+from urllib.parse import urlparse
+
+import requests
+
+# Edit these settings when running this file in Snowflake.
+TICKER = "AAPL"
+FIRST_YEAR = 2023
+LAST_YEAR = 2023
+
+SEC_USER_AGENT = "FinancialDocumentsCourse zach@dataexpert.io"
+MAX_PDF_BYTES = 30 * 1024 * 1024
+
+
+def log(session, ticker, year, source, url, status, detail=""):
+    session.sql(
+        """INSERT INTO ingest_log
+           (ticker, fiscal_year, source, source_url, status, detail)
+           SELECT ?, ?, ?, ?, ?, ?""",
+        params=[ticker, -1 if year is None else year, source, url, status, detail[:1000]],
+    ).collect()
+
+
+def fetch(url, allowed_hosts):
+    """Download a PDF with bounded retries and a 30 MB safety cap."""
+    if urlparse(url).scheme != "https" or urlparse(url).hostname not in allowed_hosts:
+        raise ValueError("URL must use HTTPS and an allowlisted host")
+    for attempt in range(3):
+        try:
+            with requests.get(
+                url, headers={"User-Agent": SEC_USER_AGENT,
+                              "Accept": "application/pdf"},
+                timeout=(12, 55), allow_redirects=False, stream=True,
+            ) as response:
+                if response.status_code in (301, 302, 303, 307, 308):
+                    raise ValueError("Redirect not followed: verify the target host first")
+                if response.status_code == 404:
+                    return None
+                if response.status_code in (429, 500, 502, 503, 504):
+                    raise RuntimeError(f"Retryable HTTP {response.status_code}")
+                response.raise_for_status()
+                parts, byte_count = [], 0
+                for part in response.iter_content(chunk_size=128 * 1024):
+                    if not part:
+                        continue
+                    byte_count += len(part)
+                    if byte_count > MAX_PDF_BYTES:
+                        raise ValueError("PDF exceeds 30 MB safety cap")
+                    parts.append(part)
+                return b"".join(parts)
+        except (requests.RequestException, RuntimeError):
+            if attempt == 2:
+                raise
+            time.sleep(2 * (attempt + 1))
+    return None
+
+
+def validate(target_ticker, first_year, last_year):
+    ticker = target_ticker.strip().upper()
+    if not ticker or not ticker.isascii() or not ticker.replace("-", "").isalnum():
+        raise ValueError("Invalid ticker")
+    if not (2009 <= first_year <= last_year <= date.today().year):
+        raise ValueError("Invalid year range")
+    if last_year - first_year > 5:
+        raise ValueError("Run in groups of at most six years")
+    return ticker
 
 
 def pdf_candidates(ticker, year):
@@ -26,7 +91,7 @@ def ingest_annual_report_pdfs(session, target_ticker, first_year, last_year):
         found = False
         for url in pdf_candidates(ticker, year):
             try:
-                pdf = fetch(url, allowed_pdf, binary=True)
+                pdf = fetch(url, allowed_pdf)
                 if pdf is None:
                     continue
                 if not pdf.startswith(b"%PDF-"):
@@ -54,29 +119,11 @@ def ingest_annual_report_pdfs(session, target_ticker, first_year, last_year):
 
 
 def main(session):
-    """Notebook entry point; the caller owns and closes the session."""
-    return ingest_annual_report_pdfs(session, "AAPL", 2023, 2023)
-
-
-# Schema that holds the lab tables and stage (see sql/ddls.sql) when run in a Workspace.
-WORKSPACE_DATABASE = "BOOTCAMP"
-WORKSPACE_SCHEMA = "PUBLIC"
-
-
-def _active_session():
-    """Return the Workspace kernel's session, or None when run from a CLI."""
-    try:
-        from snowflake.snowpark.context import get_active_session
-        return get_active_session()
-    except Exception:
-        return None
+    """Run in the selected Snowflake database/schema; leave the session open."""
+    return ingest_annual_report_pdfs(session, TICKER, FIRST_YEAR, LAST_YEAR)
 
 
 if __name__ == "__main__":
-    active = _active_session()
-    if active is not None:
-        active.use_database(WORKSPACE_DATABASE)
-        active.use_schema(WORKSPACE_SCHEMA)
-        print(json.dumps(main(active), indent=2))
-    else:
-        run_cli(ingest_annual_report_pdfs)
+    from snowflake.snowpark.context import get_active_session
+
+    print(json.dumps(main(get_active_session()), indent=2))

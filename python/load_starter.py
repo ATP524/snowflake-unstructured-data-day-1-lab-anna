@@ -56,17 +56,26 @@ def reference_rows(manifest, doc):
     return rows
 
 
-def load_starter(session, fixture_dir=None):
-    """Run after ddls.sql in the student's schema. Makes no HTTP requests."""
-    manifest, pdf, doc = read_fixture(fixture_dir)
-    rows = reference_rows(manifest, doc)
-    if not rows:
-        raise ValueError("Fixture contains no matching SEC facts")
+def ingest_starter_pdf(session, fixture_dir=None):
+    """Step 1: upload the verified bundled annual report; do not load SEC facts."""
+    manifest, pdf, _ = read_fixture(fixture_dir)
     session.file.put_stream(
         io.BytesIO(pdf), "@annual_report_pdfs/" + manifest["relative_path"],
         auto_compress=False, overwrite=True,
     )
     session.sql("ALTER STAGE annual_report_pdfs REFRESH").collect()
+    return {"report": manifest["relative_path"], "pdf_sha256": manifest["pdf_sha256"]}
+
+
+def ingest_starter_ground_truth(session, fixture_dir=None):
+    """Step 2: load the pinned SEC Company Facts response and reviewed metadata.
+
+    This is SEC-sourced data from the bundled snapshot, not a live API request.
+    """
+    manifest, _, doc = read_fixture(fixture_dir)
+    rows = reference_rows(manifest, doc)
+    if not rows:
+        raise ValueError("Fixture contains no matching SEC facts")
     merge_sec_facts(session, rows)
     session.sql(
         """MERGE INTO report_manifest t USING (
@@ -92,3 +101,9 @@ def load_starter(session, fixture_dir=None):
     ).collect()
     return {"report": manifest["relative_path"], "sec_rows": len(rows),
             "pdf_sha256": manifest["pdf_sha256"], "approved": True}
+
+
+def load_starter(session, fixture_dir=None):
+    """Compatibility helper: ingest the PDF, then the SEC ground truth."""
+    ingest_starter_pdf(session, fixture_dir)
+    return ingest_starter_ground_truth(session, fixture_dir)

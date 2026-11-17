@@ -1,6 +1,6 @@
--- Extension exercise: use this for a SECOND report, not the pinned starter.
--- Create your student schema/stage and run ddls.sql, then ingest the new report
--- using ingest_sec_ground_truth.py and ingest_annual_report_pdfs.py.
+-- Review each live-ingested report before extraction, including the first AAPL report.
+-- Create your student schema/stage and run ddls.sql, then ingest the PDF first
+-- and SEC facts second. Bundled starter loading supplies reviewed metadata.
 -- See ../README.md and ../docs/LOCAL_SETUP.md for execution examples.
 -- Start with one report. Verify a download succeeded before proceeding.
 SELECT * FROM ingest_log ORDER BY logged_at DESC LIMIT 30;

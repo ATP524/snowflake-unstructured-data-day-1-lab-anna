@@ -12,8 +12,10 @@ PDF_URL = "https://www.annualreports.com/HostedData/AnnualReportArchive/a/NASDAQ
 SEC_URL = "https://data.sec.gov/api/xbrl/companyfacts/CIK0000320193.json"
 
 
+SEC_USER_AGENT = "FinancialDocumentsCourse zach@dataexpert.io"
+
+
 def main():
-    from ingestion_common import SEC_USER_AGENT
     target = Path(__file__).resolve().parents[1] / "fixtures"
     target.mkdir(exist_ok=True)
     headers = {"User-Agent": SEC_USER_AGENT}

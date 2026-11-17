@@ -83,7 +83,7 @@ Commit the Python/SQL files and all four files under `fixtures/`: the PDF, SEC J
 
 The fixture builder was run locally to download the sources. The PDF headings, values, fiscal-calendar note, and matching Company Facts were checked. See [provenance](../fixtures/README.md).
 
-Do not silently refresh the pinned files: a new SEC response has a different hash even if the selected facts are unchanged. To intentionally refresh, install `requests` and `pypdf`, set a real contact User-Agent in `python/ingestion_common.py`, and run:
+Do not silently refresh the pinned files: a new SEC response has a different hash even if the selected facts are unchanged. To intentionally refresh, install `requests` and `pypdf`, set a real contact `SEC_USER_AGENT` in `python/build_starter_fixture.py`, and run:
 
 ```sh
 python python/build_starter_fixture.py

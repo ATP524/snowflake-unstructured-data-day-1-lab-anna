@@ -9,7 +9,10 @@ from unittest.mock import MagicMock, patch
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'python'))
 
-from load_starter import load_starter, read_fixture, reference_rows
+from load_starter import (
+    ingest_starter_pdf, ingest_starter_ground_truth,
+    load_starter, read_fixture, reference_rows,
+)
 
 
 class StarterTests(unittest.TestCase):
@@ -58,6 +61,21 @@ class StarterTests(unittest.TestCase):
         self.assertIn("MERGE INTO report_manifest", merge.args[0])
         self.assertIn("0000320193-23-000106", merge.kwargs["params"])
         session.close.assert_not_called()
+
+    def test_pdf_ingestion_does_not_load_sec_facts(self):
+        session = MagicMock()
+        ingest_starter_pdf(session)
+        session.file.put_stream.assert_called_once()
+        session.sql.assert_called_once_with("ALTER STAGE annual_report_pdfs REFRESH")
+
+    def test_sec_ingestion_does_not_upload_pdf(self):
+        session = MagicMock()
+        result = ingest_starter_ground_truth(session)
+        self.assertTrue(result["approved"])
+        session.file.put_stream.assert_not_called()
+        statements = [call.args[0] for call in session.sql.call_args_list]
+        self.assertTrue(any("MERGE INTO sec_facts" in sql for sql in statements))
+        self.assertTrue(any("MERGE INTO report_manifest" in sql for sql in statements))
 
     def test_integrity_failure_does_not_write(self):
         session = MagicMock()

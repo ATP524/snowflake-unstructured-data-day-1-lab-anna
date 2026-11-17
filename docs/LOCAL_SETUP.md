@@ -2,7 +2,7 @@
 
 Date: 2026-11-16  
 POC: Course instructor  
-TL;DR: Use a named Snowflake connection to load the same verified starter or run the live ingestion scripts from your computer.
+TL;DR: Instructor-only fallback for loading the verified starter from a computer. Student ingestion jobs run inside Snowflake; they do not accept command-line arguments.
 
 Run commands from the lab root. SQL worksheet basenames below refer to files in `sql/`; Python scripts and helpers are in `python/`.
 
@@ -43,18 +43,11 @@ finally:
 
 The fixture loader makes no HTTP calls. It uploads the bundled PDF to your stage, loads pinned SEC facts, and approves the verified manifest. Continue with `first_extraction.sql` and the remaining SQL worksheets in Snowflake.
 
-## Live ingestion
+## Live ingestion runs in Snowflake
 
-Set a descriptive `SEC_USER_AGENT` with a real contact email in `python/ingestion_common.py`, then run:
+Run the two ingestion jobs inside Snowflake, PDF first and SEC ground truth second. Each file exposes `TICKER`, `FIRST_YEAR`, `LAST_YEAR`, and `SEC_USER_AGENT` near the top. Select your student database/schema, enable the required external access integration, and run the file. It uses `get_active_session()` directly; it does not create connections or close the active session.
 
-```sh
-python python/ingest_sec_ground_truth.py --connection lab --ticker AAPL --first-year 2023 --last-year 2023
-python python/ingest_annual_report_pdfs.py --connection lab --ticker AAPL --first-year 2023 --last-year 2023
-```
-
-These commands open and close their own sessions. Imported functions accept an existing session and leave it open.
-
-Downloads originate from your computer, so Snowflake external access integration is unnecessary for local execution. You still need Snowflake privileges on the destination objects.
+For an imported module, call `main(session)` to use its file settings, or call its ingestion function with explicit ticker/year parameters. See the [student walkthrough](../README.md) for notebook examples.
 
 The downloader tests historical AnnualReports.com URLs, refuses redirects, caps PDFs at 30 MB, and limits each call to six report years. Check `ingest_log` and the returned summary rather than assuming a report downloaded.
 

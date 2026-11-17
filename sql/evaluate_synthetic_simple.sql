@@ -39,22 +39,57 @@ GROUP BY relative_path;
 -- Expect five rows. Read the questions before calling AI.
 SELECT * FROM student_questions;
 
--- 3. Ask AI to read each PDF.
--- This is the ONLY step that calls AI: five calls, one per PDF.
--- It costs inference credits. Rerunning it repeats those calls.
--- Saving the answers means the following steps do not call AI again.
+-- 3. Run both extraction paths. Only this step calls AI.
+-- Five PDFs: five direct extractions, five parses, up to five text extractions.
+-- Rerunning this step repeats inference charges. Scoring never calls AI.
 CREATE OR REPLACE TEMP TABLE student_answers AS
 SELECT
     relative_path,
+    'DIRECT_PDF' AS method,
     AI_EXTRACT(
-        file => TO_FILE('@annual_report_pdfs', relative_path),
+        file => FL_FILTER_PAGES(TO_FILE('@annual_report_pdfs', relative_path),
+                    ARRAY_CONSTRUCT(OBJECT_CONSTRUCT('start', 1, 'end', 5))),
         responseFormat => questions
     ) AS result
 FROM student_questions;
 
+-- Path B: PDF -> Markdown -> structured answers.
+-- page_split=FALSE returns one content field instead of a pages array.
+CREATE OR REPLACE TEMP TABLE student_parsed AS
+SELECT relative_path,
+       AI_PARSE_DOCUMENT(
+           TO_FILE('@annual_report_pdfs', relative_path),
+           OBJECT_CONSTRUCT('mode', 'LAYOUT', 'page_split', FALSE,
+               'page_filter', ARRAY_CONSTRUCT(OBJECT_CONSTRUCT('start', 1, 'end', 5))),
+           TRUE
+       ) AS parsed_result
+FROM student_questions;
+
+-- Inspect content and errors BEFORE running text extraction.
+CREATE OR REPLACE TEMP TABLE student_markdown AS
+SELECT relative_path,
+       parsed_result:value:content::STRING AS markdown,
+       parsed_result:error::STRING AS parse_error,
+       parsed_result:value:error::STRING AS document_error
+FROM student_parsed;
+
+SELECT *, LENGTH(markdown) AS characters FROM student_markdown;
+
+INSERT INTO student_answers (relative_path, method, result)
+SELECT questions.relative_path, 'PARSE_THEN_EXTRACT',
+       AI_EXTRACT(text => parsed.markdown, responseFormat => questions.questions)
+FROM student_questions AS questions
+JOIN student_markdown AS parsed
+    ON questions.relative_path = parsed.relative_path
+WHERE parsed.parse_error IS NULL AND parsed.document_error IS NULL
+  AND LENGTH(parsed.markdown) BETWEEN 1 AND 60000;
+-- The 60,000-character limit is a lab guardrail, not a model limit.
+-- Failed, empty, or oversized parses are not truncated; their missing answers
+-- remain in the scoring denominator. Inspect student_markdown to diagnose them.
+
 -- The response is a dictionary: metric_id -> extracted answer.
 -- Check for errors here before scoring.
-SELECT relative_path, result:response AS answers, result:error AS error
+SELECT relative_path, method, result:response AS answers, result:error AS error
 FROM student_answers;
 
 -- 4. Match each answer to its ground truth.
@@ -64,6 +99,7 @@ FROM student_answers;
 CREATE OR REPLACE TEMP TABLE student_comparison AS
 SELECT
     truth.ticker,
+    methods.method,
     truth.metric_id,
     truth.expected_unit,
     truth.expected_value,
@@ -72,8 +108,11 @@ SELECT
     ) AS extracted_value,
     answers.result:error::STRING AS extraction_error
 FROM synthetic_ground_truth AS truth
+CROSS JOIN (SELECT column1 AS method FROM VALUES
+    ('DIRECT_PDF'), ('PARSE_THEN_EXTRACT')) AS methods
 LEFT JOIN student_answers AS answers
-    ON truth.relative_path = answers.relative_path;
+    ON truth.relative_path = answers.relative_path
+   AND methods.method = answers.method;
 
 SELECT * FROM student_comparison ORDER BY ticker, metric_id;
 
@@ -94,28 +133,32 @@ SELECT
 FROM student_comparison;
 
 -- Read the individual results.
-SELECT ticker, metric_id, expected_value, extracted_value, status
+SELECT ticker, method, metric_id, expected_value, extracted_value, status
 FROM student_scores
 ORDER BY ticker, metric_id;
 
 -- Accuracy for each report: correct answers / expected answers.
 SELECT
     ticker,
+    method,
     COUNT(*) AS expected_answers,
     SUM(CASE WHEN status = 'PASS' THEN 1 ELSE 0 END) AS correct_answers,
     ROUND(100.0 * SUM(CASE WHEN status = 'PASS' THEN 1 ELSE 0 END)
           / NULLIF(COUNT(*), 0), 1) AS accuracy_percent
 FROM student_scores
-GROUP BY ticker
-ORDER BY ticker;
+GROUP BY ticker, method
+ORDER BY ticker, method;
 
--- Overall accuracy across all five reports. Expect 50 answers.
+-- Overall comparison: expect 50 answers PER METHOD (100 comparison rows).
 SELECT
+    method,
     COUNT(*) AS expected_answers,
     SUM(CASE WHEN status = 'PASS' THEN 1 ELSE 0 END) AS correct_answers,
     ROUND(100.0 * SUM(CASE WHEN status = 'PASS' THEN 1 ELSE 0 END)
           / NULLIF(COUNT(*), 0), 1) AS accuracy_percent
-FROM student_scores;
+FROM student_scores
+GROUP BY method
+ORDER BY method;
 
 -- Discussion:
 -- Did the model forget to multiply a value in millions?

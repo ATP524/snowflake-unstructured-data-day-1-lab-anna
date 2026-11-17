@@ -2,8 +2,68 @@
 import json
 import time
 
-from ingestion_common import fetch, log, run_cli, validate
+from datetime import date
+from urllib.parse import urlparse
+
+import requests
+
 from sec_facts import merge_sec_facts
+
+# Edit these settings when running this file in Snowflake.
+TICKER = "AAPL"
+FIRST_YEAR = 2023
+LAST_YEAR = 2023
+
+# Set your contact address here before making SEC requests.
+SEC_USER_AGENT = "FinancialDocumentsCourse zach@dataexpert.io"
+
+
+def log(session, ticker, year, source, url, status, detail=""):
+    session.sql(
+        """INSERT INTO ingest_log
+           (ticker, fiscal_year, source, source_url, status, detail)
+           SELECT ?, ?, ?, ?, ?, ?""",
+        params=[ticker, -1 if year is None else year, source, url, status, detail[:1000]],
+    ).collect()
+
+
+def fetch(url, allowed_hosts):
+    """Download JSON with bounded retries; do not follow unverified redirects."""
+    if urlparse(url).scheme != "https" or urlparse(url).hostname not in allowed_hosts:
+        raise ValueError("URL must use HTTPS and an allowlisted host")
+    for attempt in range(3):
+        try:
+            with requests.get(
+                url, headers={"User-Agent": SEC_USER_AGENT,
+                              "Accept": "application/json"},
+                timeout=(12, 55), allow_redirects=False, stream=True,
+            ) as response:
+                if response.status_code in (301, 302, 303, 307, 308):
+                    raise ValueError("Redirect not followed: verify the target host first")
+                if response.status_code == 404:
+                    return None
+                if response.status_code in (429, 500, 502, 503, 504):
+                    raise RuntimeError(f"Retryable HTTP {response.status_code}")
+                response.raise_for_status()
+                return b"".join(part for part in response.iter_content(128 * 1024) if part)
+        except (requests.RequestException, RuntimeError):
+            if attempt == 2:
+                raise
+            time.sleep(2 * (attempt + 1))
+    return None
+
+
+def validate(target_ticker, first_year, last_year):
+    ticker = target_ticker.strip().upper()
+    if not ticker or not ticker.isascii() or not ticker.replace("-", "").isalnum():
+        raise ValueError("Invalid ticker")
+    if not (2009 <= first_year <= last_year <= date.today().year):
+        raise ValueError("Invalid year range")
+    if last_year - first_year > 5:
+        raise ValueError("Run in groups of at most six years")
+    return ticker
+
+
 
 
 def ingest_sec_facts(session, target_ticker, first_year, last_year):
@@ -63,29 +123,11 @@ def ingest_sec_facts(session, target_ticker, first_year, last_year):
 
 
 def main(session):
-    """Notebook entry point; the caller owns and closes the session."""
-    return ingest_sec_facts(session, "AAPL", 2023, 2023)
-
-
-# Schema that holds the lab tables (see sql/ddls.sql) when run in a Workspace.
-WORKSPACE_DATABASE = "BOOTCAMP"
-WORKSPACE_SCHEMA = "PUBLIC"
-
-
-def _active_session():
-    """Return the Workspace kernel's session, or None when run from a CLI."""
-    try:
-        from snowflake.snowpark.context import get_active_session
-        return get_active_session()
-    except Exception:
-        return None
+    """Run in the selected Snowflake database/schema; leave the session open."""
+    return ingest_sec_facts(session, TICKER, FIRST_YEAR, LAST_YEAR)
 
 
 if __name__ == "__main__":
-    active = _active_session()
-    if active is not None:
-        active.use_database(WORKSPACE_DATABASE)
-        active.use_schema(WORKSPACE_SCHEMA)
-        print(json.dumps(main(active), indent=2))
-    else:
-        run_cli(ingest_sec_facts)
+    from snowflake.snowpark.context import get_active_session
+
+    print(json.dumps(main(get_active_session()), indent=2))

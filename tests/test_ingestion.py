@@ -17,12 +17,9 @@ def load_module(name):
     fake_requests.RequestException = type('RequestException', (Exception,), {})
     fake_requests.get = MagicMock()
     with patch.dict(sys.modules, {'requests': fake_requests}):
-        common = importlib.import_module('ingestion_common')
-        importlib.reload(common)
         module = importlib.import_module(name)
         module = importlib.reload(module)
     # patch.dict restores sys.modules, including removing newly imported modules.
-    sys.modules['ingestion_common'] = common
     sys.modules[name] = module
     return module
 
@@ -39,7 +36,7 @@ def snowpark_stubs():
 
 class IngestionTests(unittest.TestCase):
     def test_python_compiles(self):
-        for filename in ('ingestion_common.py', 'ingest_annual_report_pdfs.py',
+        for filename in ('ingest_annual_report_pdfs.py',
                          'ingest_sec_ground_truth.py'):
             with self.subTest(filename=filename):
                 ast.parse((ROOT / 'python' / filename).read_text(), filename=filename)
@@ -112,24 +109,58 @@ class IngestionTests(unittest.TestCase):
                 job.assert_called_once_with(session, 'AAPL', 2023, 2023)
             session.close.assert_not_called()
 
-    def test_cli_closes_its_session_on_failure(self):
-        load_module('ingest_sec_ground_truth')
-        common = sys.modules['ingestion_common']
-        stubs = snowpark_stubs()
-        session = stubs['snowflake.snowpark'].Session.builder.config.return_value.create.return_value
-        job = MagicMock(side_effect=RuntimeError('test failure'))
-        with patch.dict(sys.modules, stubs), \
-             patch.object(sys, 'argv', ['script', '--connection', 'lab']), \
-             self.assertRaises(RuntimeError):
-            common.run_cli(job)
-        session.close.assert_called_once()
+    def test_snowflake_only_entry_points_use_file_settings(self):
+        for name, function in (
+            ('ingest_sec_ground_truth', 'ingest_sec_facts'),
+            ('ingest_annual_report_pdfs', 'ingest_annual_report_pdfs'),
+        ):
+            module = load_module(name)
+            source = (ROOT / 'python' / (name + '.py')).read_text()
+            for removed in ('argparse', 'run_cli', 'Session.builder', 'session.close('):
+                self.assertNotIn(removed, source)
+            self.assertIn('main(get_active_session())', source)
+            session = MagicMock()
+            with patch.object(module, 'TICKER', 'MSFT'), \
+                 patch.object(module, 'FIRST_YEAR', 2022), \
+                 patch.object(module, 'LAST_YEAR', 2024), \
+                 patch.object(module, function, return_value={'ok': True}) as job:
+                self.assertEqual(module.main(session), {'ok': True})
+                job.assert_called_once_with(session, 'MSFT', 2022, 2024)
+            session.close.assert_not_called()
+            session.use_database.assert_not_called()
+            session.use_schema.assert_not_called()
 
-    def test_unapproved_hosts_are_rejected_before_network_access(self):
-        load_module('ingest_sec_ground_truth')
-        common = sys.modules['ingestion_common']
-        with self.assertRaises(ValueError):
-            common.fetch('https://example.com/report.pdf', {'www.sec.gov'})
-        common.requests.get.assert_not_called()
+    def test_standalone_download_helpers(self):
+        for name in ('ingest_sec_ground_truth', 'ingest_annual_report_pdfs'):
+            with self.subTest(module=name):
+                module = load_module(name)
+                with self.assertRaises(ValueError):
+                    module.fetch('https://example.com/report.pdf', {'www.sec.gov'})
+                module.requests.get.assert_not_called()
+                response = module.requests.get.return_value.__enter__.return_value
+                response.status_code = 200
+                response.iter_content.return_value = [b'data', b'', b'more']
+                self.assertEqual(module.fetch('https://www.sec.gov/test', {'www.sec.gov'}),
+                                 b'datamore')
+                self.assertFalse(module.requests.get.call_args.kwargs['allow_redirects'])
+                response.status_code = 302
+                with self.assertRaisesRegex(ValueError, 'Redirect'):
+                    module.fetch('https://www.sec.gov/test', {'www.sec.gov'})
+                response.status_code = 429
+                with patch.object(module.time, 'sleep') as sleep:
+                    with self.assertRaises(RuntimeError):
+                        module.fetch('https://www.sec.gov/test', {'www.sec.gov'})
+                    self.assertEqual(sleep.call_count, 2)
+
+    def test_pdf_size_cap(self):
+        module = load_module('ingest_annual_report_pdfs')
+        response = module.requests.get.return_value.__enter__.return_value
+        response.status_code = 200
+        response.iter_content.return_value = [b'12345']
+        with patch.object(module, 'MAX_PDF_BYTES', 4):
+            with self.assertRaisesRegex(ValueError, 'safety cap'):
+                module.fetch('https://www.annualreports.com/test.pdf',
+                             {'www.annualreports.com'})
 
 
 if __name__ == '__main__':

@@ -11,8 +11,8 @@ $$
     )
 $$;
 
-CREATE OR REPLACE VIEW normalized_extractions AS
-WITH fields AS (
+-- 1. Read the saved fields from each method. No model calls occur here.
+CREATE OR REPLACE VIEW extracted_fields AS
     SELECT r.run_id, r.ticker, r.report_year, r.relative_path,
            r.period_start, r.period_end, r.sec_accession,
            c.*, methods.method,
@@ -29,14 +29,18 @@ WITH fields AS (
     CROSS JOIN metric_catalog c
     CROSS JOIN (SELECT column1 AS method FROM VALUES ('DIRECT_PDF'), ('PARSE_THEN_EXTRACT')) methods
     LEFT JOIN extraction_results e ON e.run_id = r.run_id AND e.method = methods.method
-    WHERE GET(r.response_format, c.metric_id || '__raw_value') IS NOT NULL
-)
+    WHERE GET(r.response_format, c.metric_id || '__raw_value') IS NOT NULL;
+
+SELECT run_id, method, metric_id, raw_value, raw_scale FROM extracted_fields;
+
+-- 2. Convert printed amounts to base units (EPS stays unscaled).
+CREATE OR REPLACE VIEW normalized_extractions AS
 SELECT *,
        lab_number(raw_value) AS printed_value,
        lab_number(raw_scale) AS scale_multiplier,
        CASE WHEN lab_number(raw_scale) IN (1, 1000, 1000000, 1000000000)
             THEN lab_number(raw_value) * lab_number(raw_scale) END AS extracted_value
-FROM fields;
+FROM extracted_fields;
 
 -- SEC duplicates with identical values are harmless; conflicting values are
 -- ambiguous and MUST NOT be resolved by comparing to the AI's answer.
@@ -55,16 +59,21 @@ LEFT JOIN sec_facts s
 WHERE GET(r.response_format, c.metric_id || '__raw_value') IS NOT NULL
 GROUP BY r.run_id, c.metric_id;
 
-CREATE OR REPLACE VIEW metric_evaluation AS
-WITH compared AS (
+-- 3. Join each extracted answer to its independently matched SEC reference.
+CREATE OR REPLACE VIEW compared_values AS
     SELECT n.*, s.sec_rows, s.distinct_sec_values, s.sec_filed_date,
            IFF(s.distinct_sec_values = 1, s.candidate_value, NULL) AS sec_value,
            ABS(n.extracted_value - sec_value) AS absolute_error,
            absolute_error / NULLIF(ABS(sec_value), 0) AS relative_error,
            GREATEST(n.absolute_tolerance, ABS(sec_value) * n.relative_tolerance) AS allowed_error
     FROM normalized_extractions n
-    JOIN sec_reference s ON s.run_id = n.run_id AND s.metric_id = n.metric_id
-)
+    JOIN sec_reference s ON s.run_id = n.run_id AND s.metric_id = n.metric_id;
+
+SELECT run_id, method, metric_id, sec_value AS expected_value,
+       extracted_value, absolute_error FROM compared_values;
+
+-- 4. Classify each answer. Missing answers still count against accuracy.
+CREATE OR REPLACE VIEW metric_evaluation AS
 SELECT *,
     CASE
         WHEN sec_rows = 0 THEN 'NO_SEC_REFERENCE'
@@ -81,7 +90,7 @@ SELECT *,
         WHEN absolute_error <= allowed_error THEN 'PASS'
         ELSE 'VALUE_MISMATCH'
     END AS evaluation_status
-FROM compared;
+FROM compared_values;
 
 -- Includes missing extractions in the scorable denominator.
 -- Missing or ambiguous SEC references are excluded and reported separately.

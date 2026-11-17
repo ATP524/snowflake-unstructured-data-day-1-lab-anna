@@ -1,51 +1,46 @@
 # Day 1 Unstructured Data Lab
 
-## What you will learn
+Ingest annual-report PDFs, load independent SEC ground truth, and compare two ways to extract financial metrics in Snowflake.
 
-- Extract financial metrics with `AI_EXTRACT`.
-- Inspect document layout as Markdown with `AI_PARSE_DOCUMENT`.
-- Normalize millions versus per-share units and match the correct fiscal period.
-- Evaluate model output against independently sourced SEC facts.
+## Lab sequence
 
-Start with assets, revenue, and diluted EPS. Once those work, expand to all ten metrics or investigate another company.
+| Step | What you do | Output | Calls AI? |
+| --- | --- | --- | --- |
+| 1 | Ingest PDFs into a stage | Annual-report files | No |
+| 2 | Ingest SEC ground truth into a table | Structured financial facts | No |
+| 3 | Run both extraction paths | Saved financial answers and parsed Markdown | Yes |
+| 4 | Compare answers with SEC ground truth | Scores for each method | No |
+| If time | Generate synthetic PDFs and ground truth, then repeat the comparison | Controlled evaluation dataset | Generation: no; extraction: yes |
 
-For a controlled benchmark generated from structured fictional financial records, use the [synthetic earnings report workflow](docs/SYNTHETIC_EARNINGS.md). It includes five synthetic PDFs, 50 ground-truth values, and a Snowflake-compatible generator. Start with the [five-step student evaluation](sql/evaluate_synthetic_simple.sql); the detailed benchmark is optional.
+Start with AAPL fiscal 2023 and three metrics: assets, revenue, and diluted EPS.
 
-Course integrations are already configured. Students do not create integrations or publish a repository. [Instructor setup](docs/INSTRUCTOR_SETUP.md) and [local execution](docs/LOCAL_SETUP.md) are separate guides.
-
-## Repository layout
+The two paths are:
 
 ```text
-README.md       Student walkthrough
-python/         Snowpark ingestion, starter loader, and fixture builder
-sql/            Setup, extraction, evaluation, and validation worksheets
-docs/           Instructor and local-execution guides
-fixtures/       Pinned PDF, SEC response, and provenance
-tests/          Offline checks
+PDF -> AI_EXTRACT -> financial answers
+PDF -> AI_PARSE_DOCUMENT -> Markdown -> AI_EXTRACT -> financial answers
 ```
 
-## 1. Connect the course repository
+`AI_PARSE_DOCUMENT` produces document content, not the final financial fields. Both paths use the same pages and extraction questions.
 
-The course repository is private. Your instructor manages the GitHub token, Snowflake secret, and Git integration. **You do not need to generate a token, create a secret, or create a database for credentials.**
+## Before you begin
 
-1. In Snowsight, select `all_users_role`, then open **Projects → Workspaces → From Git repository**.
-2. Enter the course repository URL:
-   `https://github.com/DataExpert-io/snowflake-unstructured-data-day-1-lab.git`.
-3. Select the instructor-managed API integration, `dataexpert_course_git`.
-4. Choose personal access token / secret authentication and select the existing secret, `course_credentials.git.dataexpert_course_token`. Select the saved secret; do not paste a token.
-5. Select the course branch and open this lab's folder.
+### Connect the private course repository
 
-If your instructor provides different integration or secret names, use those instead. Do not choose public-repository authentication for this private repository.
+Your instructor manages the GitHub token, Snowflake secret, and Git integration. You do not generate a token or create a secret.
 
-Confirm you can see `python/load_starter.py`, `fixtures/`, `sql/first_extraction.sql`, and `sql/ddls.sql`. [Snowflake Workspace Git guide](https://docs.snowflake.com/en/user-guide/ui-snowsight/workspaces-git)
+1. Select `all_users_role` in Snowsight.
+2. Open **Projects → Workspaces → From Git repository**.
+3. Enter `https://github.com/DataExpert-io/snowflake-unstructured-data-day-1-lab.git`.
+4. Select the API integration `dataexpert_course_git`.
+5. Choose personal access token / secret authentication and select `course_credentials.git.dataexpert_course_token`. Select the saved secret; do not paste a token.
+6. Select the course branch and open the lab folder.
 
-If the integration or secret is missing or access is denied, ask the instructor to check the grants for `all_users_role`. Students need `USAGE` on the integration and secret, plus access to the secret's database and schema. The integration alone is not sufficient for this token-authenticated connection.
+Use different integration or secret names if supplied by your instructor. If either is missing, ask the instructor to check the grants. The private repository requires authenticated access; do not select public authentication.
 
-The course credential is shared for the lab. Do not modify the integration or secret, or store your personal GitHub credentials in the shared classroom environment. Continue below to create your lab schema in `bootcamp`.
+### Create your lab objects
 
-## 2. Create your schema and PDF stage
-
-Run this in a SQL worksheet. Replace `student_your_name` with a unique name such as `student_jane_smith` and select your assigned warehouse.
+Select your assigned warehouse. Replace `student_your_name` with your own unique schema name:
 
 ```sql
 USE ROLE all_users_role;
@@ -61,213 +56,242 @@ CREATE STAGE IF NOT EXISTS annual_report_pdfs
 SELECT CURRENT_ROLE(), CURRENT_DATABASE(), CURRENT_SCHEMA();
 ```
 
-Run `sql/ddls.sql` in that schema to create your tables. Do not run `sql/instructor_setup.sql` or the old ingestion `.sql` files.
+Run [sql/ddls.sql](sql/ddls.sql) in this schema. It creates the tables but does not populate them.
 
-Every student has a separate namespace, but the shared role does not provide security isolation. Do not modify another student's schema.
+Everyone uses the shared role. Separate schemas organize your work; they do not provide security isolation. Do not modify classmates' objects or store personal credentials here.
 
-## 3. Open a Python notebook and load the starter
+Create a Python notebook inside `python/`, alongside the Python modules. Use the same database, schema, and warehouse. Initialize its session:
 
-Create a notebook in the Workspace inside `python/`, alongside the lab's Python files. Select `bootcamp`, your student schema, and the assigned warehouse. Ensure `snowflake-snowpark-python` is available. The starter uses bundled files and requires no HTTP downloads, `requests`, or notebook external access.
+```python
+from snowflake.snowpark.context import get_active_session
+
+session = get_active_session()
+session.use_database("bootcamp")
+session.use_schema("student_your_name")  # Replace with your schema.
+```
+
+The ingestion jobs run only inside Snowflake. To run a file directly, edit `TICKER`, `FIRST_YEAR`, `LAST_YEAR`, and `SEC_USER_AGENT` near its top, then run it in the selected student database/schema. Each file uses the existing Snowflake session; there are no command-line arguments or connection credentials to configure. The notebook examples below pass ticker and years explicitly instead.
+
+Live ingestion needs `requests` and the instructor-provided `public_filing_access` external access integration enabled on the notebook service. Set a real contact address for SEC requests:
+
+```python
+import ingest_sec_ground_truth
+import ingest_annual_report_pdfs
+
+ingest_sec_ground_truth.SEC_USER_AGENT = "AnnualReportsLab your.real.contact@example.com"
+ingest_annual_report_pdfs.SEC_USER_AGENT = "AnnualReportsLab your.real.contact@example.com"
+```
+
+If source sites are unavailable or the instructor wants to avoid class-wide downloads, use the bundled snapshot alternatives in steps 1 and 2. These preserve the same learning sequence and need no HTTP access.
+
+## 1. Ingest PDFs into the stage
+
+Run in your notebook:
+
+```python
+from ingest_annual_report_pdfs import ingest_annual_report_pdfs
+
+print(ingest_annual_report_pdfs(session, "AAPL", 2023, 2023))
+```
+
+Expect `2023` in `pdf_years_downloaded`. Inspect the staged file:
+
+```sql
+SELECT relative_path, size
+FROM DIRECTORY(@annual_report_pdfs);
+```
+
+Expect `AAPL/2023.pdf`. If ingestion fails, inspect `ingest_log` before continuing.
+
+**Bundled alternative:** upload the verified report included in the repository:
+
+```python
+from load_starter import ingest_starter_pdf
+
+print(ingest_starter_pdf(session))
+```
+
+This step uploads the PDF only. It does not populate SEC ground truth.
+
+## 2. Ingest SEC ground truth into the table
 
 Run:
 
 ```python
-from snowflake.snowpark.context import get_active_session
-from load_starter import load_starter
+from ingest_sec_ground_truth import ingest_sec_facts
 
-session = get_active_session()
-session.use_database('bootcamp')
-session.use_schema('student_your_name')  # Use your actual schema name.
-
-print(load_starter(session))
-session.sql("""
-    SELECT relative_path, approved, period_start, period_end, sec_accession
-    FROM report_manifest
-""").show()
-session.sql("""
-    SELECT relative_path, size
-    FROM DIRECTORY(@annual_report_pdfs)
-""").show()
+print(ingest_sec_facts(session, "AAPL", 2023, 2023))
 ```
 
-Expect an approved `AAPL/2023.pdf` manifest row and the PDF in your own stage. The loader checks source hashes before writing anything, loads the pinned SEC facts, and supplies reviewed dates and page ranges. It does not call AI functions.
+Inspect the independent structured source:
 
-The notebook needs access to the actual repo files. If `load_starter` cannot be imported, inspect your working directory and locate the lab folder before adding it to `sys.path`:
+```sql
+SELECT concept, unit, start_date, end_date, fact_value, accession
+FROM sec_facts
+WHERE ticker = 'AAPL'
+ORDER BY concept, end_date;
+```
+
+There can be several filings and comparative periods. Do not compare an AI answer to an arbitrary row.
+
+Run [sql/prepare_lab.sql](sql/prepare_lab.sql) to review and approve the report's SEC accession, exact fiscal dates, and PDF page ranges. For the AAPL starter, use:
+
+| Setting | Reviewed value |
+| --- | --- |
+| Report path | `AAPL/2023.pdf` |
+| SEC accession | `0000320193-23-000106` |
+| Fiscal start | `2022-09-25` |
+| Fiscal end | `2023-09-30` |
+| Page range | Start `30`, end `36` (zero-based, end excluded) |
+
+Open the PDF and verify that the downloaded version has the expected statement pages before approving it. Do not reuse these values for another filing.
+
+**Bundled alternative:** load the pinned SEC Company Facts response and its reviewed report metadata:
 
 ```python
-from pathlib import Path
-import sys
+from load_starter import ingest_starter_ground_truth
 
-print(Path.cwd())
-print([p.name for p in Path.cwd().iterdir()])
-# Set this to the actual lab directory visible in your runtime:
-lab_dir = Path('REPLACE_WITH_ACTUAL_LAB_DIRECTORY').resolve()
-assert (lab_dir / 'python' / 'load_starter.py').is_file()
-assert (lab_dir / 'fixtures' / 'starter_manifest.json').is_file()
-sys.path.insert(0, str(lab_dir / 'python'))
+print(ingest_starter_ground_truth(session))
 ```
 
-Rerun the import cell. Restart the notebook service after editing imported modules. If your runtime does not support `session.file.put_stream`, use [local loading](docs/LOCAL_SETUP.md) or ask your instructor for a staged copy.
+This loads SEC-sourced structured facts from the bundled JSON snapshot, not a live API response. It does not upload the PDF. Use it with the bundled PDF from step 1; if you mix sources, verify they represent the same filing and pagination.
 
-## 4. Get your first result
+Confirm the report is ready:
 
-In a SQL worksheet using the same `bootcamp` student schema, run `sql/first_extraction.sql` one section at a time.
+```sql
+SELECT relative_path, approved, period_start, period_end, sec_accession
+FROM report_manifest;
+```
 
-The first query is a short, literal `AI_EXTRACT` call. Inspect its response before reading the SEC values:
+Expect one approved `AAPL/2023.pdf` row with the dates and accession above. Do not continue with an unreviewed manifest.
 
-| Metric | Printed in the PDF | SEC value in base units |
-| --- | --- | --- |
-| Total assets | 352,583 million USD | 352,583,000,000 USD |
-| Revenue (total net sales) | 383,285 million USD | 383,285,000,000 USD |
-| Diluted EPS | 6.13 USD per share | 6.13 USD per share |
+## 3. Run AI extraction using both paths
 
-Explain why the first two values need a multiplier of one million while EPS does not. Apple's fiscal year here runs from September 25, 2022 through September 30, 2023, not January through December.
-
-This exploratory query consumes inference credits but is separate from the saved benchmark.
-
-## 5. Compare both extraction paths
-
-Run `sql/extract_reports.sql` with its default settings:
+Open [sql/extract_reports.sql](sql/extract_reports.sql). Keep its defaults:
 
 ```sql
 SET report_path = 'AAPL/2023.pdf';
 SET include_all_metrics = FALSE;
 ```
 
-Execute the entire worksheet in the same SQL session so its run ID remains available. Pause at the inspection queries.
+Run it in order in one SQL session, pausing at the inspection queries:
 
-1. Confirm exactly one run snapshot was created.
-2. Inspect `DIRECT_PDF`, which extracts directly from the selected PDF pages.
-3. Inspect the page-level Markdown produced by `AI_PARSE_DOCUMENT` in LAYOUT mode.
-4. Inspect `PARSE_THEN_EXTRACT`, which asks the same questions of the Markdown.
+1. Save the report selection and questions under a new `run_id`.
+2. Run `DIRECT_PDF`: selected PDF pages → `AI_EXTRACT`.
+3. Run `AI_PARSE_DOCUMENT` and inspect the page-level Markdown and errors.
+4. Run `PARSE_THEN_EXTRACT`: Markdown → `AI_EXTRACT`, using the same questions.
+5. Inspect the saved answers from both methods.
 
-Both methods use the same six pages and the same 18 questions: printed value, scale, unit, start date, end date, and supporting text for each of three metrics. `AI_PARSE_DOCUMENT` produces content, so the second path still needs `AI_EXTRACT` to produce financial fields.
+Both methods ask for printed value, scale, unit, fiscal dates, and evidence for each metric. Expected numerical answers are not included in the prompts.
 
-The text path skips inputs above a conservative 60,000-character guardrail instead of truncating statements. Inspect parsing errors if the text extraction is missing.
+This step incurs inference charges. For one successful report it calls direct extraction once, parsing once, and text extraction once. The text path skips empty, failed, or oversized parses instead of silently truncating them. The 60,000-character guardrail is a lab choice, not a documented model limit.
 
-## 6. Evaluate and explain the results
+Rerun the whole worksheet with a fresh run ID to repeat the experiment. Do not rerun individual inserts under an existing ID.
 
-Run `sql/evaluate_results.sql`. Evaluation does not invoke AI again.
+## 4. Evaluate and compare the methods
 
-Expect three metric rows per method for each starter run. SEC matching uses the reviewed accession, concept, unit, and exact dates. A missing or ambiguous SEC reference is reported separately from extraction failures.
+Run [sql/evaluate_results.sql](sql/evaluate_results.sql). This step reads saved outputs and does not call AI.
 
-A full pass requires a valid number, scale, unit, dates, supporting text, and an amount within the catalog tolerance. This is stricter than a numeric-only accuracy measure. Model scores are confidence signals, not measured accuracy, and supporting quotes still need checking against the PDF.
+Follow its intermediate views:
 
-Currency tolerances default to the larger of $1 million and 0.01% of the reference. EPS tolerance is $0.01. These are teaching defaults; discuss whether they fit the statement's rounding. Zero references use the absolute tolerance.
+| View | What it means |
+| --- | --- |
+| `normalized_extractions` | AI answers converted into comparable numeric values |
+| `sec_reference` | SEC facts matched to the exact filing, unit, and period |
+| `metric_evaluation` | Expected value, extracted value, error, and pass/fail status |
 
-Answer these questions:
+Start by reading these columns:
 
-- Did both paths choose the correct year and consolidated total?
-- Did either method lose a scale note or misinterpret EPS?
-- What did the intermediate Markdown help you diagnose?
-- Would the extra parsing step be worth its cost for this report?
-
-## 7. Expand the exercise
-
-### All ten metrics
-
-Set `include_all_metrics = TRUE` and rerun the entire extraction worksheet to create a new run, then rerun evaluation. This expands to 60 questions and includes basic EPS, gross profit, liabilities, net income, operating income, equity, and operating cash flow.
-
-Do not rerun individual INSERTs with an existing run ID: the tables do not enforce uniqueness, and duplicates can distort evaluation. `sql/validation.sql` includes duplicate checks.
-
-### A second company
-
-Enable `public_filing_access` in the notebook's external access settings and add `requests`. Import the live ingestion modules:
-
-```python
-import ingestion_common
-from ingest_sec_ground_truth import ingest_sec_facts
-from ingest_annual_report_pdfs import ingest_annual_report_pdfs
-
-ingestion_common.SEC_USER_AGENT = 'AnnualReportsLab your.real.contact@example.com'
-# Choose a company/report year, then call:
-# ingest_sec_facts(session, ticker, first_year, last_year)
-# ingest_annual_report_pdfs(session, ticker, first_year, last_year)
+```sql
+SELECT method, metric_id, sec_value AS expected_value,
+       extracted_value, absolute_error, evaluation_status
+FROM metric_evaluation
+WHERE run_id = $run_id
+ORDER BY metric_id, method;
 ```
 
-Coordinate downloads with the instructor instead of having the whole class fetch the same SEC endpoint at once. Inspect `ingest_log` for download failures.
+Use the same SQL session as extraction for `$run_id`, or replace it with a saved run ID. The evaluator's built-in queries also show scores by run and method, parsing errors, and side-by-side statuses.
 
-Use `sql/prepare_lab.sql` to discover the new PDF and review its accession, fiscal dates, statement pages, and concept meanings before approving it. Do not reuse Apple's dates or page ranges. Change `report_path` in the extraction worksheet.
+For orientation, the starter's three reference values are:
 
-The lab targets original US-GAAP, USD-denominated `10-K` reports. Foreign issuers, amendments, extension concepts, and non-GAAP figures need additional handling.
+| Metric | Printed value | Base-unit value |
+| --- | ---: | ---: |
+| Assets | 352,583 million USD | 352,583,000,000 USD |
+| Revenue | 383,285 million USD | 383,285,000,000 USD |
+| Diluted EPS | 6.13 USD/share | 6.13 USD/share |
 
-## 8. Generate and evaluate five synthetic earnings reports
+A pass checks more than the number: scale, unit, period, and presence of evidence must also be correct. Evidence quotes still need human checking. Currency tolerances default to the larger of $1 million and 0.01%; EPS tolerance is $0.01. Missing AI answers count against accuracy. Missing or conflicting SEC references are reported separately, not resolved by picking the value closest to the AI answer.
 
-Use this exercise to test extraction against answers calculated from structured fictional data. Each PDF contains three years of financial statements. The five companies have different values but share one layout.
+Discuss:
 
-### Generate the PDFs and ground truth
+- Which method was more accurate?
+- Did either choose the wrong year or confuse millions with dollars?
+- Did the Markdown explain any failures?
+- Was the parsing step worth its extra cost?
 
-Return to your notebook alongside the files in `python/`. Ensure `reportlab` and `snowflake-snowpark-python` are installed. If installing `reportlab` from PyPI, enable the instructor-provided external access integration first. PDF generation itself needs no external requests or AI calls.
+Keep SEC facts and tolerances unchanged while comparing runs. The evaluator reads those tables live.
 
-Select your assigned warehouse and use `bootcamp` and the same student schema as before, with `all_users_role`.
+## If there is time: generate and evaluate synthetic PDFs
+
+### Generate five reports and their ground truth
+
+Install `reportlab` in your Python runtime. Installing from PyPI needs the instructor-provided external access integration; rendering itself uses no external requests or AI.
+
+In the same notebook and student schema:
 
 ```python
-from snowflake.snowpark.context import get_active_session
 from generate_synthetic_batch import main
-
-session = get_active_session()
-session.use_database("bootcamp")
-session.use_schema("student_your_name")  # Replace with your lab schema.
 
 batch = main(session)
 ```
 
-This uploads five PDFs and their JSON ground truth under `@annual_report_pdfs/synthetic/batch/`. It also populates `synthetic_ground_truth` with **50 rows: five reports × ten metrics**. The expected values come from the structured inputs, not from extracting the PDFs. They stay separate from `sec_facts`.
-
-Rerunning the generator overwrites the batch files and replaces the ground-truth table. Do not regenerate while evaluating an existing batch.
-
-### Inspect the correct answers
-
-In a SQL worksheet using the same database and student schema, run:
+This generates five fictional earnings reports with three comparative years, uploads them to `@annual_report_pdfs/synthetic/batch/`, and writes 50 expected answers to `synthetic_ground_truth`. The answers are calculated from the structured inputs, not extracted from the PDFs.
 
 ```sql
 SELECT ticker, COUNT(*) AS expected_metrics
 FROM synthetic_ground_truth
 GROUP BY ticker
 ORDER BY ticker;
-
-SELECT ticker, metric_id, expected_value, expected_unit
-FROM synthetic_ground_truth
-ORDER BY ticker, metric_id;
 ```
 
-Expect five companies with ten metrics each. Running `sql/ddls.sql` creates the table, but you must run the generator to populate it.
+Expect five companies with ten metrics each. Rerunning generation replaces the batch files and ground-truth table. Do not regenerate while evaluating.
 
-### Extract, compare, and score
+### Compare the same two AI paths
 
-Open [sql/evaluate_synthetic_simple.sql](sql/evaluate_synthetic_simple.sql) and run one numbered step at a time in the same SQL session:
+Run [sql/evaluate_synthetic_simple.sql](sql/evaluate_synthetic_simple.sql) in one SQL session, one numbered step at a time:
 
-1. Inspect the ground-truth answers.
-2. Read the questions and group them by PDF.
-3. Call `AI_EXTRACT` to read each PDF.
-4. Join the extracted answers to the correct answers.
-5. Mark each result and calculate accuracy per company and overall.
+1. Inspect the correct answers.
+2. Build and inspect the shared questions.
+3. Run direct extraction and parse-then-extract on the same statement pages.
+4. Join each method's answers to ground truth.
+5. Compare per-company and overall accuracy by method.
 
-Only step 3 calls AI: **five extraction calls**, which consume inference credits. Rerun the comparison and scoring steps without repeating extraction. Missing or invalid answers count as incorrect.
+There are **50 expected answers per method**, or 100 comparison rows. Failed or missing answers remain in the denominator.
 
-This beginner worksheet checks numeric accuracy only. Discuss whether errors come from selecting the wrong year, forgetting the millions multiplier, or scaling EPS incorrectly. For separate unit, date, scale, and evidence checks, use the optional [detailed evaluator](sql/evaluate_synthetic.sql).
+Step 3 makes five direct extraction calls, five parsing calls, and up to five text extraction calls. Other steps do not call AI. This beginner synthetic evaluation checks numeric accuracy only; it does not separately score dates, units, or supporting evidence.
 
-See the [synthetic earnings guide](docs/SYNTHETIC_EARNINGS.md) for source-data customization and local generation. These reports test financial-value variation in one template; they do not establish accuracy on unseen real filings.
+The five reports vary company names and financial values but share a layout. Their scores do not establish accuracy on unseen real filings. See [synthetic customization and implementation notes](docs/SYNTHETIC_EARNINGS.md). The [detailed direct-only synthetic benchmark](sql/evaluate_synthetic.sql) remains available for additional field validation, but is not the two-method classroom exercise.
 
-## Starter provenance and limitations
+## Further experiments
 
-The bundled report is Apple's 80-page 2023 Form 10-K from AnnualReports.com, checked against SEC accession `0000320193-23-000106`. Selected pages are zero-based indexes 30 through 35, with exclusive end 36. Operations are on index 30, balance sheet on 32, cash flows on 34, and the fiscal-calendar note on 35. These are PDF indexes, not printed page numbers.
+- Set `include_all_metrics = TRUE` in `extract_reports.sql` for ten metrics, then rerun evaluation.
+- Choose another US-GAAP, USD-denominated original `10-K`. Ingest its PDFs first and SEC facts second, then review its manifest with `prepare_lab.sql`. Never reuse AAPL's accession, dates, or page ranges.
+- Use [sql/validation.sql](sql/validation.sql) to investigate duplicate rows and reference gaps.
 
-See [fixture provenance](fixtures/README.md) for hashes, sources, and verification details. The loader uses pinned files, so it is also the fallback when source websites are unavailable.
-
-Keep SEC data and catalog settings unchanged while comparing runs. Evaluation reads these tables live, so reingestion or catalog edits can change historical results.
-
-Source artifacts and reference values were verified locally. The hosted workflow and SQL still need a live Snowflake rehearsal in the chosen student runtime. AI queries consume credits. Reevaluate saved outputs instead of repeating inference unnecessarily.
-
-## Troubleshooting
+## Troubleshooting and instructor resources
 
 | Symptom | Check |
 | --- | --- |
-| Git connection denied | Use the supplied URL, existing integration, and correct authentication |
-| Schema creation denied | Ask the instructor to check the course database grants |
-| Table/stage not found | SQL and notebook must use `bootcamp` and your student schema |
-| Fixture hash mismatch | Restore the pinned fixture files; do not bypass verification |
-| Missing text-path result | Inspect parse output and the text-size guardrail |
-| AI function unavailable | Check course Cortex grants and regional availability |
+| Git connection denied | Saved secret, integration, and GitHub token Contents: Read-only permission |
+| Python import fails | Notebook must be alongside modules in `python/`; inspect the runtime directory before changing import paths |
+| Table/stage not found | SQL and Python must select the same database and student schema |
+| Live download fails | External access integration, `requests`, contact User-Agent, and `ingest_log` |
+| No approved report | Complete the filing and page review in `prepare_lab.sql` |
+| Missing text-path result | Inspect parsing errors, Markdown, and input length |
+| Fixture hash mismatch | Restore the pinned files; do not bypass checks |
 
-[Instructor setup and validation](docs/INSTRUCTOR_SETUP.md) · [Local execution](docs/LOCAL_SETUP.md) · [AI_EXTRACT](https://docs.snowflake.com/en/sql-reference/functions/ai_extract) · [AI_PARSE_DOCUMENT](https://docs.snowflake.com/en/sql-reference/functions/ai_parse_document)
+The bundled AAPL report is an 80-page 2023 Form 10-K. The selected pages are PDF indexes 30 through 35, not printed page numbers. See [fixture provenance](fixtures/README.md) for hashes and sources.
+
+The hosted workflow still needs a live rehearsal in the student Snowflake runtime; offline tests do not validate SQL execution or model accuracy. Students do not run instructor setup or refresh the bundled fixtures.
+
+[Instructor setup](docs/INSTRUCTOR_SETUP.md) · [Local execution](docs/LOCAL_SETUP.md) · [AI_EXTRACT](https://docs.snowflake.com/en/sql-reference/functions/ai_extract) · [AI_PARSE_DOCUMENT](https://docs.snowflake.com/en/sql-reference/functions/ai_parse_document)
