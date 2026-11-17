@@ -26,74 +26,22 @@ tests/          Offline checks
 
 ## 1. Connect the course repository
 
-In Snowsight, select `all_users_role`, then open **Projects → Workspaces → From Git repository**.
+The course repository is private. Your instructor manages the GitHub token, Snowflake secret, and Git integration. **You do not need to generate a token, create a secret, or create a database for credentials.**
 
-Use the course repository URL provided by your instructor, select the existing `dataexpert_github_api` integration, and use public-repository authentication if the course repository is public. If your account uses a differently named integration, use the instructor's supplied name. Select the course branch and open this lab's folder.
+1. In Snowsight, select `all_users_role`, then open **Projects → Workspaces → From Git repository**.
+2. Enter the course repository URL:
+   `https://github.com/DataExpert-io/snowflake-unstructured-data-day-1-lab.git`.
+3. Select the instructor-managed API integration, `dataexpert_course_git`.
+4. Choose personal access token / secret authentication and select the existing secret, `course_credentials.git.dataexpert_course_token`. Select the saved secret; do not paste a token.
+5. Select the course branch and open this lab's folder.
+
+If your instructor provides different integration or secret names, use those instead. Do not choose public-repository authentication for this private repository.
 
 Confirm you can see `python/load_starter.py`, `fixtures/`, `sql/first_extraction.sql`, and `sql/ddls.sql`. [Snowflake Workspace Git guide](https://docs.snowflake.com/en/user-guide/ui-snowsight/workspaces-git)
 
-### Optional: connect with a GitHub personal access token
+If the integration or secret is missing or access is denied, ask the instructor to check the grants for `all_users_role`. Students need `USAGE` on the integration and secret, plus access to the secret's database and schema. The integration alone is not sufficient for this token-authenticated connection.
 
-Skip this section when using public-repository authentication. For a private repository, Snowflake can store your GitHub personal access token (PAT) in a secret and use it through a Git API integration.
-
-Do not create a personal-token secret under `all_users_role` or in a shared student schema. Everyone using that role shares its privileges. Ask your instructor or Snowflake administrator to provide a private schema and a role restricted to you. Do not paste the token into chat, commit it to Git, or save it in a shared worksheet.
-
-1. **Create your own database and schema before creating the GitHub secret.** Use the private role assigned to you by your instructor, not `all_users_role`. Replace the example names with unique names for your account:
-
-   ```sql
-   USE ROLE YOUR_PRIVATE_ROLE;
-
-   CREATE DATABASE IF NOT EXISTS YOUR_PRIVATE_DB;
-   CREATE SCHEMA IF NOT EXISTS YOUR_PRIVATE_DB.YOUR_PRIVATE_SCHEMA;
-
-   USE DATABASE YOUR_PRIVATE_DB;
-   USE SCHEMA YOUR_PRIVATE_SCHEMA;
-   ```
-
-   Your role needs `CREATE DATABASE` on the account to create the database. If you lack that privilege, ask the instructor to create the database and schema for your private role. A uniquely named database is not private if it is owned by a role shared with classmates. Keep this credential database separate from the shared `bootcamp` lab database.
-
-2. In GitHub, open **Settings → Developer settings → Personal access tokens → Fine-grained tokens**. Select the repository owner and the repository you want to connect. Grant **Repository permissions → Contents → Read-only** to fetch files, or **Read and write** if you need to push changes. Generate and copy the token. Organization-owned repositories may require approval.
-
-3. Open a private SQL worksheet in Snowsight using your restricted role. Replace `YOUR_PRIVATE_DB`, `YOUR_PRIVATE_SCHEMA`, `YOUR_GITHUB_USERNAME`, and `YOUR_GITHUB_PAT`, then run:
-
-   ```sql
-   CREATE SECRET YOUR_PRIVATE_DB.YOUR_PRIVATE_SCHEMA.github_token
-     TYPE = PASSWORD
-     USERNAME = 'YOUR_GITHUB_USERNAME'
-     PASSWORD = 'YOUR_GITHUB_PAT';
-   ```
-
-4. Have an administrator, or a role with `CREATE INTEGRATION` and the required access to the secret, create a dedicated integration. Replace `YOUR_OWNER` with the GitHub username or organization that owns the repository. Leave the shared `dataexpert_github_api` integration unchanged.
-
-   ```sql
-   CREATE API INTEGRATION github_token_integration
-     API_PROVIDER = git_https_api
-     API_ALLOWED_PREFIXES = ('https://github.com/YOUR_OWNER/')
-     ALLOWED_AUTHENTICATION_SECRETS = (
-       YOUR_PRIVATE_DB.YOUR_PRIVATE_SCHEMA.github_token
-     )
-     ENABLED = TRUE;
-   ```
-
-   Your restricted role needs `USAGE` on the integration, `USAGE` on the secret, and access to its database and schema. Creating the secret requires `CREATE SECRET` on its schema. Ask the administrator to grant these permissions to your restricted role, not `all_users_role`.
-
-5. Return to **Projects → Workspaces → From Git repository**. Enter the repository's HTTPS URL, select `github_token_integration`, and select the personal access token authentication option with your secret.
-
-   If you need a SQL Git repository clone instead of a Workspace, run the following using your restricted role. It also needs `CREATE GIT REPOSITORY` on the target schema.
-
-   ```sql
-   CREATE GIT REPOSITORY YOUR_PRIVATE_DB.YOUR_PRIVATE_SCHEMA.my_repo
-     API_INTEGRATION = github_token_integration
-     GIT_CREDENTIALS = YOUR_PRIVATE_DB.YOUR_PRIVATE_SCHEMA.github_token
-     ORIGIN = 'https://github.com/YOUR_OWNER/YOUR_REPO.git';
-
-   -- Fetch the latest changes to the SQL Git repository clone:
-   ALTER GIT REPOSITORY YOUR_PRIVATE_DB.YOUR_PRIVATE_SCHEMA.my_repo FETCH;
-   ```
-
-Keep the private repository connection separate from the shared course role. Continue the lab's data setup below using `all_users_role`.
-
-See [Snowflake's token authentication guide](https://docs.snowflake.com/en/developer-guide/git/git-setting-up-public#configure-for-authenticating-with-a-token).
+The course credential is shared for the lab. Do not modify the integration or secret, or store your personal GitHub credentials in the shared classroom environment. Continue below to create your lab schema in `bootcamp`.
 
 ## 2. Create your schema and PDF stage
 
@@ -251,7 +199,7 @@ Use this exercise to test extraction against answers calculated from structured 
 
 Return to your notebook alongside the files in `python/`. Ensure `reportlab` and `snowflake-snowpark-python` are installed. If installing `reportlab` from PyPI, enable the instructor-provided external access integration first. PDF generation itself needs no external requests or AI calls.
 
-Select your assigned warehouse and use the same lab schema as before. This is the shared-role lab environment, **not your private GitHub-secret database**.
+Select your assigned warehouse and use `bootcamp` and the same student schema as before, with `all_users_role`.
 
 ```python
 from snowflake.snowpark.context import get_active_session
