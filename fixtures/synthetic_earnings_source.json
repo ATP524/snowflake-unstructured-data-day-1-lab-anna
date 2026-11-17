@@ -1,0 +1,61 @@
+{
+  "synthetic": true,
+  "company": "Orchard Devices, Inc.",
+  "ticker": "SYN_ORCH",
+  "currency": "USD",
+  "amount_scale": 1000000,
+  "template_version": "earnings-v1",
+  "years": [
+    {
+      "fiscal_year": 2025, "period_start": "2024-09-29", "period_end": "2025-09-27",
+      "products_revenue": 245600, "services_revenue": 86400,
+      "products_cost": 149800, "services_cost": 25920,
+      "research_development": 28400, "selling_general_admin": 24600,
+      "other_income": -320, "income_tax": 19240,
+      "shares_basic": 14200, "shares_diluted": 14350,
+      "cash": 31200, "marketable_securities_current": 26500,
+      "receivables": 28400, "inventory": 7200, "other_current_assets": 14100,
+      "marketable_securities_noncurrent": 112000,
+      "property_equipment": 43800, "other_noncurrent_assets": 56800,
+      "current_liabilities": 131000, "noncurrent_liabilities": 159000,
+      "depreciation": 11800, "share_compensation": 12400,
+      "working_capital_change": -3120, "capital_expenditure": -13200,
+      "other_investing_cash_flow": 9200, "financing_cash_flow": -97800,
+      "beginning_cash": 28200
+    },
+    {
+      "fiscal_year": 2024, "period_start": "2023-10-01", "period_end": "2024-09-28",
+      "products_revenue": 239000, "services_revenue": 78000,
+      "products_cost": 148000, "services_cost": 24180,
+      "research_development": 27000, "selling_general_admin": 24000,
+      "other_income": 180, "income_tax": 16600,
+      "shares_basic": 14700, "shares_diluted": 14850,
+      "cash": 28200, "marketable_securities_current": 28000,
+      "receivables": 27000, "inventory": 6900, "other_current_assets": 13900,
+      "marketable_securities_noncurrent": 118000,
+      "property_equipment": 42100, "other_noncurrent_assets": 54900,
+      "current_liabilities": 129000, "noncurrent_liabilities": 163000,
+      "depreciation": 11400, "share_compensation": 11600,
+      "working_capital_change": -2400, "capital_expenditure": -12100,
+      "other_investing_cash_flow": 7100, "financing_cash_flow": -94800,
+      "beginning_cash": 30000
+    },
+    {
+      "fiscal_year": 2023, "period_start": "2022-09-25", "period_end": "2023-09-30",
+      "products_revenue": 251000, "services_revenue": 71000,
+      "products_cost": 157000, "services_cost": 22720,
+      "research_development": 25800, "selling_general_admin": 23500,
+      "other_income": -280, "income_tax": 17200,
+      "shares_basic": 15100, "shares_diluted": 15250,
+      "cash": 30000, "marketable_securities_current": 30000,
+      "receivables": 26000, "inventory": 6300, "other_current_assets": 13700,
+      "marketable_securities_noncurrent": 122000,
+      "property_equipment": 41000, "other_noncurrent_assets": 53000,
+      "current_liabilities": 125000, "noncurrent_liabilities": 168000,
+      "depreciation": 11000, "share_compensation": 10800,
+      "working_capital_change": -1600, "capital_expenditure": -11800,
+      "other_investing_cash_flow": 5000, "financing_cash_flow": -88900,
+      "beginning_cash": 30000
+    }
+  ]
+}

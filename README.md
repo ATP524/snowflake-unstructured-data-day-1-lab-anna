@@ -9,6 +9,8 @@
 
 Start with assets, revenue, and diluted EPS. Once those work, expand to all ten metrics or investigate another company.
 
+For a controlled benchmark generated from structured fictional financial records, use the [synthetic earnings report workflow](docs/SYNTHETIC_EARNINGS.md). It includes five synthetic PDFs, 50 ground-truth values, and a Snowflake-compatible generator. Start with the [five-step student evaluation](sql/evaluate_synthetic_simple.sql); the detailed benchmark is optional.
+
 Course integrations are already configured. Students do not create integrations or publish a repository. [Instructor setup](docs/INSTRUCTOR_SETUP.md) and [local execution](docs/LOCAL_SETUP.md) are separate guides.
 
 ## Repository layout
@@ -36,9 +38,23 @@ Skip this section when using public-repository authentication. For a private rep
 
 Do not create a personal-token secret under `all_users_role` or in a shared student schema. Everyone using that role shares its privileges. Ask your instructor or Snowflake administrator to provide a private schema and a role restricted to you. Do not paste the token into chat, commit it to Git, or save it in a shared worksheet.
 
-1. In GitHub, open **Settings → Developer settings → Personal access tokens → Fine-grained tokens**. Select the repository owner and the repository you want to connect. Grant **Repository permissions → Contents → Read-only** to fetch files, or **Read and write** if you need to push changes. Generate and copy the token. Organization-owned repositories may require approval.
+1. **Create your own database and schema before creating the GitHub secret.** Use the private role assigned to you by your instructor, not `all_users_role`. Replace the example names with unique names for your account:
 
-2. Open a private SQL worksheet in Snowsight using your restricted role. Replace `YOUR_PRIVATE_DB`, `YOUR_PRIVATE_SCHEMA`, `YOUR_GITHUB_USERNAME`, and `YOUR_GITHUB_PAT`, then run:
+   ```sql
+   USE ROLE YOUR_PRIVATE_ROLE;
+
+   CREATE DATABASE IF NOT EXISTS YOUR_PRIVATE_DB;
+   CREATE SCHEMA IF NOT EXISTS YOUR_PRIVATE_DB.YOUR_PRIVATE_SCHEMA;
+
+   USE DATABASE YOUR_PRIVATE_DB;
+   USE SCHEMA YOUR_PRIVATE_SCHEMA;
+   ```
+
+   Your role needs `CREATE DATABASE` on the account to create the database. If you lack that privilege, ask the instructor to create the database and schema for your private role. A uniquely named database is not private if it is owned by a role shared with classmates. Keep this credential database separate from the shared `bootcamp` lab database.
+
+2. In GitHub, open **Settings → Developer settings → Personal access tokens → Fine-grained tokens**. Select the repository owner and the repository you want to connect. Grant **Repository permissions → Contents → Read-only** to fetch files, or **Read and write** if you need to push changes. Generate and copy the token. Organization-owned repositories may require approval.
+
+3. Open a private SQL worksheet in Snowsight using your restricted role. Replace `YOUR_PRIVATE_DB`, `YOUR_PRIVATE_SCHEMA`, `YOUR_GITHUB_USERNAME`, and `YOUR_GITHUB_PAT`, then run:
 
    ```sql
    CREATE SECRET YOUR_PRIVATE_DB.YOUR_PRIVATE_SCHEMA.github_token
@@ -47,7 +63,7 @@ Do not create a personal-token secret under `all_users_role` or in a shared stud
      PASSWORD = 'YOUR_GITHUB_PAT';
    ```
 
-3. Have an administrator, or a role with `CREATE INTEGRATION` and the required access to the secret, create a dedicated integration. Replace `YOUR_OWNER` with the GitHub username or organization that owns the repository. Leave the shared `dataexpert_github_api` integration unchanged.
+4. Have an administrator, or a role with `CREATE INTEGRATION` and the required access to the secret, create a dedicated integration. Replace `YOUR_OWNER` with the GitHub username or organization that owns the repository. Leave the shared `dataexpert_github_api` integration unchanged.
 
    ```sql
    CREATE API INTEGRATION github_token_integration
@@ -61,7 +77,7 @@ Do not create a personal-token secret under `all_users_role` or in a shared stud
 
    Your restricted role needs `USAGE` on the integration, `USAGE` on the secret, and access to its database and schema. Creating the secret requires `CREATE SECRET` on its schema. Ask the administrator to grant these permissions to your restricted role, not `all_users_role`.
 
-4. Return to **Projects → Workspaces → From Git repository**. Enter the repository's HTTPS URL, select `github_token_integration`, and select the personal access token authentication option with your secret.
+5. Return to **Projects → Workspaces → From Git repository**. Enter the repository's HTTPS URL, select `github_token_integration`, and select the personal access token authentication option with your secret.
 
    If you need a SQL Git repository clone instead of a Workspace, run the following using your restricted role. It also needs `CREATE GIT REPOSITORY` on the target schema.
 
@@ -226,6 +242,64 @@ Coordinate downloads with the instructor instead of having the whole class fetch
 Use `sql/prepare_lab.sql` to discover the new PDF and review its accession, fiscal dates, statement pages, and concept meanings before approving it. Do not reuse Apple's dates or page ranges. Change `report_path` in the extraction worksheet.
 
 The lab targets original US-GAAP, USD-denominated `10-K` reports. Foreign issuers, amendments, extension concepts, and non-GAAP figures need additional handling.
+
+## 8. Generate and evaluate five synthetic earnings reports
+
+Use this exercise to test extraction against answers calculated from structured fictional data. Each PDF contains three years of financial statements. The five companies have different values but share one layout.
+
+### Generate the PDFs and ground truth
+
+Return to your notebook alongside the files in `python/`. Ensure `reportlab` and `snowflake-snowpark-python` are installed. If installing `reportlab` from PyPI, enable the instructor-provided external access integration first. PDF generation itself needs no external requests or AI calls.
+
+Select your assigned warehouse and use the same lab schema as before. This is the shared-role lab environment, **not your private GitHub-secret database**.
+
+```python
+from snowflake.snowpark.context import get_active_session
+from generate_synthetic_batch import main
+
+session = get_active_session()
+session.use_database("bootcamp")
+session.use_schema("student_your_name")  # Replace with your lab schema.
+
+batch = main(session)
+```
+
+This uploads five PDFs and their JSON ground truth under `@annual_report_pdfs/synthetic/batch/`. It also populates `synthetic_ground_truth` with **50 rows: five reports × ten metrics**. The expected values come from the structured inputs, not from extracting the PDFs. They stay separate from `sec_facts`.
+
+Rerunning the generator overwrites the batch files and replaces the ground-truth table. Do not regenerate while evaluating an existing batch.
+
+### Inspect the correct answers
+
+In a SQL worksheet using the same database and student schema, run:
+
+```sql
+SELECT ticker, COUNT(*) AS expected_metrics
+FROM synthetic_ground_truth
+GROUP BY ticker
+ORDER BY ticker;
+
+SELECT ticker, metric_id, expected_value, expected_unit
+FROM synthetic_ground_truth
+ORDER BY ticker, metric_id;
+```
+
+Expect five companies with ten metrics each. Running `sql/ddls.sql` creates the table, but you must run the generator to populate it.
+
+### Extract, compare, and score
+
+Open [sql/evaluate_synthetic_simple.sql](sql/evaluate_synthetic_simple.sql) and run one numbered step at a time in the same SQL session:
+
+1. Inspect the ground-truth answers.
+2. Read the questions and group them by PDF.
+3. Call `AI_EXTRACT` to read each PDF.
+4. Join the extracted answers to the correct answers.
+5. Mark each result and calculate accuracy per company and overall.
+
+Only step 3 calls AI: **five extraction calls**, which consume inference credits. Rerun the comparison and scoring steps without repeating extraction. Missing or invalid answers count as incorrect.
+
+This beginner worksheet checks numeric accuracy only. Discuss whether errors come from selecting the wrong year, forgetting the millions multiplier, or scaling EPS incorrectly. For separate unit, date, scale, and evidence checks, use the optional [detailed evaluator](sql/evaluate_synthetic.sql).
+
+See the [synthetic earnings guide](docs/SYNTHETIC_EARNINGS.md) for source-data customization and local generation. These reports test financial-value variation in one template; they do not establish accuracy on unseen real filings.
 
 ## Starter provenance and limitations
 

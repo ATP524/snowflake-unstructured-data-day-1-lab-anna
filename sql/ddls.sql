@@ -5,6 +5,26 @@ CREATE TABLE IF NOT EXISTS sec_facts (
     frame STRING, loaded_at TIMESTAMP_LTZ DEFAULT CURRENT_TIMESTAMP()
 );
 
+-- One expected answer per synthetic PDF and metric; separate from SEC facts.
+-- Run generate_synthetic_batch.py to populate 50 rows (five PDFs x ten metrics).
+CREATE TABLE IF NOT EXISTS synthetic_ground_truth (
+    relative_path STRING,
+    ticker STRING,
+    report_year INT,
+    metric_id STRING,
+    metric_label STRING,
+    expected_printed_value NUMBER(38, 2),
+    expected_scale NUMBER(38, 0),
+    expected_value NUMBER(38, 2),
+    expected_unit STRING,
+    period_start DATE,
+    period_end DATE,
+    page_index INT,
+    source_sha256 STRING,
+    pdf_sha256 STRING,
+    reference_source STRING
+);
+
 CREATE TABLE IF NOT EXISTS ingest_log (
     ticker STRING,
     fiscal_year INT,
