@@ -220,16 +220,44 @@ For orientation, the starter's three reference values are:
 | Revenue | 383,285 million USD | 383,285,000,000 USD |
 | Diluted EPS | 6.13 USD/share | 6.13 USD/share |
 
-A pass checks more than the number: scale, unit, period, and presence of evidence must also be correct. Evidence quotes still need human checking. Currency tolerances default to the larger of $1 million and 0.01%; EPS tolerance is $0.01. Missing AI answers count against accuracy. Missing or conflicting SEC references are reported separately, not resolved by picking the value closest to the AI answer.
+### What counts as a passing answer?
 
-Discuss:
+Each metric is scored separately for each method. An answer receives `PASS` only when it satisfies every applicable check below.
 
-- Which method was more accurate?
-- Did either choose the wrong year or confuse millions with dollars?
-- Did the Markdown explain any failures?
-- Was the parsing step worth its extra cost?
+| Check | Requirement |
+| --- | --- |
+| Usable SEC reference | SEC facts must match the selected company, filing accession, concept, unit, and period, with exactly one distinct reference value. Identical duplicate values are allowed. |
+| Successful extraction | The method must have a saved extraction result without an extraction error. |
+| Numeric value and scale | The returned value must parse as a number, and the scale multiplier must be `1`, `1000`, `1000000`, or `1000000000`. The evaluator multiplies them to get the base-unit value. EPS must use scale `1`. |
+| Unit | The returned unit must exactly match the metric catalog: `USD` for dollar amounts or `USD/shares` for EPS. |
+| Fiscal period | The end date must match the selected report's period end. Duration metrics, such as revenue and EPS, must also match its period start. Instant metrics, such as assets, do not require a start date. |
+| Evidence present | The evidence field must contain text other than an empty string or `NOT_FOUND`. The automated check only tests presence; manually verify that the quote supports the metric, value, and period. |
+| Value within tolerance | The absolute difference between the normalized answer and SEC reference must be less than or equal to the allowed error. Dollar amounts default to the larger of $1,000,000 and 0.01% of the absolute SEC value. EPS allows $0.01 per share. |
 
-Keep SEC facts and tolerances unchanged while comparing runs. The evaluator reads those tables live.
+For example, the starter revenue reference is $383,285,000,000. Its allowed error is $38,328,500 (0.01%), which is larger than $1,000,000. Returning `383285` with scale `1000000` produces the correct base-unit value. Returning the same number with scale `1` fails the value check. Even an exact numeric match fails if its unit, required dates, or evidence do not meet the checks above.
+
+`evaluation_status` shows the first failing check in SQL order, so fixing one problem may reveal another. `NO_SEC_REFERENCE` and `AMBIGUOUS_SEC_REFERENCE` indicate reference-data problems. Other non-`PASS` statuses identify extraction or answer problems. The model's `value_score` is shown for inspection but does not determine `PASS`.
+
+### How the method score is calculated
+
+- `expected_metrics`: all requested metrics for that run and method.
+- `scorable_metrics`: requested metrics with a usable SEC reference.
+- `passed_metrics`: scorable metrics that satisfy all pass conditions.
+- `pass_rate = passed_metrics / scorable_metrics`. Multiply by 100 to express it as a percentage.
+- `reference_gaps`: metrics with missing or conflicting SEC references. These are excluded from the pass-rate denominator and reported separately. The evaluator never chooses a reference by proximity to the AI answer.
+
+Missing answers and extraction errors stay in the denominator when a usable reference exists. For example, with three scorable metrics, two passes and one missing answer give a pass rate of `2 / 3`, or about 66.7%. If no metrics are scorable, the pass rate is `NULL`, not zero.
+
+### What to compare and explain
+
+Compare `DIRECT_PDF` and `PARSE_THEN_EXTRACT` on the same run and metrics. Keep SEC facts and tolerances unchanged while comparing runs; the evaluator reads those tables live.
+
+In your discussion:
+
+- Report each method's passed/scorable counts, pass rate, and reference gaps. If the rates are equal, report a tie.
+- Inspect non-passing rows and explain the causes you can verify, such as a wrong year, incorrect scale, missing evidence, or extraction error.
+- Check the supporting quotes manually. For the parsed path, use the saved Markdown and parsing errors to investigate where information was lost or misread.
+- Explain whether any observed accuracy benefit justifies the extra parsing call. Separate the measured pass rates from your judgment about cost; if you did not measure cost, say so.
 
 ## If there is time: generate and evaluate synthetic PDFs
 
@@ -266,9 +294,20 @@ Run [sql/evaluate_synthetic_simple.sql](sql/evaluate_synthetic_simple.sql) in on
 4. Join each method's answers to ground truth.
 5. Compare per-company and overall accuracy by method.
 
-There are **50 expected answers per method**, or 100 comparison rows. Failed or missing answers remain in the denominator.
+There are **50 expected answers per method**, or 100 comparison rows. Each answer receives one status:
 
-Step 3 makes five direct extraction calls, five parsing calls, and up to five text extraction calls. Other steps do not call AI. This beginner synthetic evaluation checks numeric accuracy only; it does not separately score dates, units, or supporting evidence.
+| Status | Criterion |
+| --- | --- |
+| `ERROR` | The extraction result contains an error. |
+| `MISSING` | The answer is absent or cannot be converted to a number. |
+| `PASS` | The absolute difference from ground truth is at most $0.005 per share for EPS or $0.50 for other amounts. |
+| `FAIL` | A numeric answer is present but falls outside that tolerance. |
+
+The evaluator applies these checks in the order shown. Answers must already be in base units; the comparison does not apply a scale multiplier.
+
+`accuracy_percent = 100 × passing answers / expected answers`: ten expected answers per company and 50 overall for each method. `ERROR`, `MISSING`, and `FAIL` all remain in the denominator. For example, 45 passes out of 50 expected answers is 90% accuracy.
+
+Step 3 makes five direct extraction calls, five parsing calls, and up to five text extraction calls. Other steps do not call AI. This beginner synthetic evaluation checks numeric accuracy only; it does not separately score dates, units, or supporting evidence. A synthetic `PASS` therefore does not establish that those fields are correct. Its tolerances and pass conditions differ from the real-filing evaluation above.
 
 The five reports vary company names and financial values but share a layout. Their scores do not establish accuracy on unseen real filings. See [synthetic customization and implementation notes](docs/SYNTHETIC_EARNINGS.md). The [detailed direct-only synthetic benchmark](sql/evaluate_synthetic.sql) remains available for additional field validation, but is not the two-method classroom exercise.
 
