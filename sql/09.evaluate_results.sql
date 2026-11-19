@@ -1,4 +1,17 @@
--- Run after extract_reports.sql. These views never call AI functions.
+USE ROLE all_users_role;
+USE DATABASE bootcamp;
+USE WAREHOUSE compute_wh;
+USE SCHEMA atp524;
+
+-- Step 09: score every extraction against SEC ground truth. Run after 08.extract_reports.
+-- These views never call AI functions. The views cover ALL runs (history is kept);
+-- the result queries below show the LATEST batch from 08, i.e. every report that
+-- batch extracted. To review an older batch, SET batch_id = '<batch id>' instead.
+SET batch_id = (SELECT batch_id FROM lab_runs ORDER BY created_at DESC LIMIT 1);
+SELECT $batch_id AS batch_id, COUNT(*) AS reports_in_batch,
+       LISTAGG(relative_path, ', ') WITHIN GROUP (ORDER BY report_year) AS reports
+FROM lab_runs WHERE batch_id = $batch_id;
+
 CREATE OR REPLACE FUNCTION lab_number(s STRING)
 RETURNS FLOAT
 LANGUAGE SQL
@@ -13,7 +26,7 @@ $$;
 
 -- 1. Read the saved fields from each method. No model calls occur here.
 CREATE OR REPLACE VIEW extracted_fields AS
-    SELECT r.run_id, r.ticker, r.report_year, r.relative_path,
+    SELECT r.run_id, r.batch_id, r.ticker, r.report_year, r.relative_path,
            r.period_start, r.period_end, r.sec_accession,
            c.*, methods.method,
            e.run_id IS NOT NULL AS has_extraction,
@@ -31,7 +44,8 @@ CREATE OR REPLACE VIEW extracted_fields AS
     LEFT JOIN extraction_results e ON e.run_id = r.run_id AND e.method = methods.method
     WHERE GET(r.response_format, c.metric_id || '__raw_value') IS NOT NULL;
 
-SELECT run_id, method, metric_id, raw_value, raw_scale FROM extracted_fields;
+SELECT report_year, run_id, method, metric_id, raw_value, raw_scale
+FROM extracted_fields WHERE batch_id = $batch_id ORDER BY report_year, metric_id, method;
 
 -- 2. Convert printed amounts to base units (EPS stays unscaled).
 CREATE OR REPLACE VIEW normalized_extractions AS
@@ -69,8 +83,9 @@ CREATE OR REPLACE VIEW compared_values AS
     FROM normalized_extractions n
     JOIN sec_reference s ON s.run_id = n.run_id AND s.metric_id = n.metric_id;
 
-SELECT run_id, method, metric_id, sec_value AS expected_value,
-       extracted_value, absolute_error FROM compared_values;
+SELECT report_year, run_id, method, metric_id, sec_value AS expected_value,
+       extracted_value, absolute_error
+FROM compared_values WHERE batch_id = $batch_id ORDER BY report_year, metric_id, method;
 
 -- 4. Classify each answer. Missing answers still count against accuracy.
 CREATE OR REPLACE VIEW metric_evaluation AS
@@ -94,35 +109,60 @@ FROM compared_values;
 
 -- Includes missing extractions in the scorable denominator.
 -- Missing or ambiguous SEC references are excluded and reported separately.
-SELECT run_id, method, COUNT(*) AS expected_metrics,
+SELECT report_year, run_id, method, COUNT(*) AS expected_metrics,
        COALESCE(COUNT_IF(sec_rows > 0 AND distinct_sec_values = 1), 0) AS scorable_metrics,
        COALESCE(COUNT_IF(evaluation_status = 'PASS'), 0) AS passed_metrics,
        COALESCE(COUNT_IF(evaluation_status = 'PASS'), 0)::FLOAT
            / NULLIF(COUNT_IF(sec_rows > 0 AND distinct_sec_values = 1), 0) AS pass_rate,
        COALESCE(COUNT_IF(evaluation_status IN ('NO_SEC_REFERENCE', 'AMBIGUOUS_SEC_REFERENCE')), 0) AS reference_gaps
 FROM metric_evaluation
-GROUP BY run_id, method
-ORDER BY run_id, method;
+WHERE batch_id = $batch_id
+GROUP BY report_year, run_id, method
+ORDER BY report_year, method;
 
-SELECT run_id, relative_path, method, metric_id, raw_value, raw_scale,
+SELECT report_year, run_id, relative_path, method, metric_id, raw_value, raw_scale,
        extracted_value, sec_value, absolute_error, relative_error,
        extracted_unit, extracted_start, extracted_end, evidence,
        value_score, evaluation_status
 FROM metric_evaluation
-ORDER BY run_id, metric_id, method;
+WHERE batch_id = $batch_id
+ORDER BY report_year, metric_id, method;
 
 -- Review parse-stage failures and text-input guardrails separately.
-SELECT p.run_id, p.raw_result:error AS parse_error,
+SELECT r.report_year, p.run_id, p.raw_result:error AS parse_error,
        p.raw_result:value:error AS document_error,
        COUNT(pp.page_index) AS parsed_pages,
        SUM(LENGTH(pp.content)) AS parsed_characters
-FROM parse_results p LEFT JOIN parsed_pages pp ON p.run_id = pp.run_id
-GROUP BY p.run_id, p.raw_result:error, p.raw_result:value:error;
+FROM parse_results p
+JOIN lab_runs r ON r.run_id = p.run_id
+LEFT JOIN parsed_pages pp ON p.run_id = pp.run_id
+WHERE r.batch_id = $batch_id
+GROUP BY r.report_year, p.run_id, p.raw_result:error, p.raw_result:value:error
+ORDER BY r.report_year;
 
 -- Compare methods on the same report and metric.
-SELECT run_id, metric_id,
+SELECT report_year, run_id, metric_id,
        MAX(IFF(method = 'DIRECT_PDF', evaluation_status, NULL)) AS direct_status,
        MAX(IFF(method = 'PARSE_THEN_EXTRACT', evaluation_status, NULL)) AS parsed_status
 FROM metric_evaluation
-GROUP BY run_id, metric_id
-ORDER BY run_id, metric_id;
+WHERE batch_id = $batch_id
+GROUP BY report_year, run_id, metric_id
+ORDER BY report_year, metric_id;
+
+-- Coverage check: EVERY year in scope, with its latest evaluation (any batch).
+-- A year with no evaluation shows its next step from pipeline_coverage (06)
+-- instead of disappearing from the results.
+WITH latest_eval AS (
+    SELECT run_id,
+           COUNT_IF(method = 'DIRECT_PDF' AND evaluation_status = 'PASS')         AS direct_pdf_passed,
+           COUNT_IF(method = 'PARSE_THEN_EXTRACT' AND evaluation_status = 'PASS') AS parse_then_extract_passed,
+           COUNT(DISTINCT metric_id)                                              AS metrics_evaluated
+    FROM metric_evaluation
+    GROUP BY run_id
+)
+SELECT c.ticker, c.report_year, c.readiness, c.latest_run_id,
+       e.metrics_evaluated, e.direct_pdf_passed, e.parse_then_extract_passed,
+       IFF(e.run_id IS NOT NULL, 'EVALUATED', c.next_step) AS status
+FROM pipeline_coverage c
+LEFT JOIN latest_eval e ON e.run_id = c.latest_run_id
+ORDER BY c.report_year;

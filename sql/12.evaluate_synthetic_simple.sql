@@ -1,7 +1,12 @@
+USE ROLE all_users_role;
+USE DATABASE bootcamp;
+USE warehouse compute_wh;
+USE SCHEMA atp524;
+
 -- Synthetic earnings evaluation: run one numbered step at a time.
 -- First generate the five reports. Use the same database and student schema.
 -- This lesson checks numeric accuracy only.
--- For unit, period, and evidence checks, use evaluate_synthetic.sql.
+-- For unit, period, and evidence checks, use 13.evaluate_synthetic.sql.
 
 -- 1. Look at the correct answers.
 -- Expect 50 rows: five reports with ten metrics each.

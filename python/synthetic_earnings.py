@@ -295,7 +295,7 @@ def build_batch_sources(source):
 def generate_batch_in_snowflake(session, source):
     """Upload five PDFs plus ground truth, then publish the batch manifest last.
 
-    Generation makes no AI calls. Run evaluate_synthetic.sql separately.
+    Generation makes no AI calls. Run 13.evaluate_synthetic.sql separately.
     """
     sources = build_batch_sources(source)
     # Validate/render every report before beginning uploads.

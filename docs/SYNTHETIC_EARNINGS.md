@@ -8,9 +8,9 @@ TL;DR: After the real-report exercise, generate five fictional reports and compa
 
 Follow the optional synthetic section in [the student walkthrough](../README.md).
 
-1. Run `python/generate_synthetic_batch.py` in the selected student schema.
+1. Run `python/11.generate_synthetic_batch.py` in the selected student schema.
 2. Confirm `synthetic_ground_truth` has five companies and ten metrics per company.
-3. Run `sql/evaluate_synthetic_simple.sql` one numbered step at a time in one SQL session.
+3. Run `sql/12.evaluate_synthetic_simple.sql` one numbered step at a time in one SQL session.
 
 The worksheet uses the same statement pages and questions for both methods:
 
@@ -27,10 +27,10 @@ Expect 50 comparisons per method, 100 total. This student worksheet scores numer
 
 - `fixtures/synthetic_earnings_source.json`: base structured inputs for three fiscal years.
 - `python/synthetic_earnings.py`: financial derivation, rendering, and upload helpers.
-- `python/generate_synthetic_batch.py`: student entry point.
+- `python/11.generate_synthetic_batch.py`: student entry point.
 - `fixtures/synthetic_batch/`: checked-in reference outputs, not another required setup step.
-- `sql/evaluate_synthetic_simple.sql`: two-method classroom comparison.
-- `sql/evaluate_synthetic.sql`: optional detailed, direct-only benchmark with scale, unit, date, and evidence-presence checks.
+- `sql/12.evaluate_synthetic_simple.sql`: two-method classroom comparison.
+- `sql/13.evaluate_synthetic.sql`: optional detailed, direct-only benchmark with scale, unit, date, and evidence-presence checks.
 
 The generator uploads five PDFs, five per-report answer JSON files, and `@annual_report_pdfs/synthetic/batch/manifest.json`. It also creates/replaces `synthetic_ground_truth` in the active schema. The beginner evaluator uses that table; the detailed direct-only benchmark uses the staged manifest.
 

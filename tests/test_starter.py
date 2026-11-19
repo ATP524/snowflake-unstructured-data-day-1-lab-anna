@@ -86,13 +86,30 @@ class StarterTests(unittest.TestCase):
         session.file.put_stream.assert_not_called()
 
     def test_starter_scope_and_evaluation_match(self):
-        extraction = (ROOT / "sql" / "extract_reports.sql").read_text()
+        extraction = (ROOT / "sql" / "08.extract_reports.sql").read_text()
         self.assertIn("SET include_all_metrics = FALSE;", extraction)
         self.assertIn("c.metric_id IN ('assets', 'revenue', 'eps_diluted')", extraction)
-        evaluation = (ROOT / "sql" / "evaluate_results.sql").read_text()
+        evaluation = (ROOT / "sql" / "09.evaluate_results.sql").read_text()
         self.assertEqual(evaluation.count(
             "WHERE GET(r.response_format, c.metric_id || '__raw_value') IS NOT NULL"
         ), 2)
+
+    def test_pipeline_steps_process_the_whole_scope(self):
+        # Steps 04-09 must read the scope (lab_settings) or the readiness view built
+        # from it, never a hard-coded report, so no ingested year is silently skipped.
+        import re
+        for name in ("04.prepare_manifest.sql", "05.locate_statement_pages.sql",
+                     "06.check_readiness.sql", "07.first_extraction.sql",
+                     "08.extract_reports.sql", "09.evaluate_results.sql"):
+            with self.subTest(file=name):
+                sql = (ROOT / "sql" / name).read_text()
+                self.assertRegex(sql, r"lab_settings|report_readiness|batch_id")
+                code = "\n".join(line.split("--")[0] for line in sql.splitlines())
+                self.assertIsNone(re.search(r"'[A-Z]+/[0-9]{4}\.pdf'", code), name)
+                self.assertNotIn("report_path", code)
+        coverage = (ROOT / "sql" / "06.check_readiness.sql").read_text()
+        self.assertIn("CREATE OR REPLACE VIEW pipeline_coverage", coverage)
+        self.assertIn("FROM scope_years y", coverage)
 
     def test_new_scripts_compile(self):
         for name in ("load_starter.py", "build_starter_fixture.py"):

@@ -1,6 +1,7 @@
 """Offline checks; never call remote APIs or Snowflake."""
 import ast
 import importlib
+import importlib.util
 import json
 from pathlib import Path
 import sys
@@ -11,14 +12,23 @@ from unittest.mock import MagicMock, patch
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'python'))
 
+# Step-numbered filenames cannot be imported by name; load them by path instead.
+SCRIPT_FILES = {
+    'ingest_annual_report_pdfs': '02.ingest_annual_report_pdfs.py',
+    'ingest_sec_ground_truth': '03.ingest_sec_ground_truth.py',
+}
+
 
 def load_module(name):
     fake_requests = types.ModuleType('requests')
     fake_requests.RequestException = type('RequestException', (Exception,), {})
     fake_requests.get = MagicMock()
     with patch.dict(sys.modules, {'requests': fake_requests}):
-        module = importlib.import_module(name)
-        module = importlib.reload(module)
+        spec = importlib.util.spec_from_file_location(
+            name, ROOT / 'python' / SCRIPT_FILES[name])
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[name] = module
+        spec.loader.exec_module(module)
     # patch.dict restores sys.modules, including removing newly imported modules.
     sys.modules[name] = module
     return module
@@ -36,8 +46,7 @@ def snowpark_stubs():
 
 class IngestionTests(unittest.TestCase):
     def test_python_compiles(self):
-        for filename in ('ingest_annual_report_pdfs.py',
-                         'ingest_sec_ground_truth.py'):
+        for filename in SCRIPT_FILES.values():
             with self.subTest(filename=filename):
                 ast.parse((ROOT / 'python' / filename).read_text(), filename=filename)
 
@@ -97,38 +106,55 @@ class IngestionTests(unittest.TestCase):
         self.assertEqual({r[8] for r in rows}, {'original', 'later-comparative'})
         self.assertTrue(all(r[1] == '0000320193' for r in rows))
 
-    def test_notebook_entry_points_reuse_session(self):
-        for name, function in (
-            ('ingest_sec_ground_truth', 'ingest_sec_facts'),
-            ('ingest_annual_report_pdfs', 'ingest_annual_report_pdfs'),
-        ):
-            module = load_module(name)
-            session = MagicMock()
-            with patch.object(module, function, return_value={'ok': True}) as job:
-                self.assertEqual(module.main(session), {'ok': True})
-                job.assert_called_once_with(session, 'AAPL', 2023, 2023)
-            session.close.assert_not_called()
+    @staticmethod
+    def settings_session(rows):
+        """A fake Snowpark session whose lab_settings query returns `rows`."""
+        session = MagicMock()
+        session.sql.return_value.collect.return_value = rows
+        return session
 
-    def test_snowflake_only_entry_points_use_file_settings(self):
+    def test_main_ingests_the_scope_from_lab_settings(self):
         for name, function in (
             ('ingest_sec_ground_truth', 'ingest_sec_facts'),
             ('ingest_annual_report_pdfs', 'ingest_annual_report_pdfs'),
         ):
-            module = load_module(name)
-            source = (ROOT / 'python' / (name + '.py')).read_text()
-            for removed in ('argparse', 'run_cli', 'Session.builder', 'session.close('):
-                self.assertNotIn(removed, source)
-            self.assertIn('main(get_active_session())', source)
-            session = MagicMock()
-            with patch.object(module, 'TICKER', 'MSFT'), \
-                 patch.object(module, 'FIRST_YEAR', 2022), \
-                 patch.object(module, 'LAST_YEAR', 2024), \
-                 patch.object(module, function, return_value={'ok': True}) as job:
-                self.assertEqual(module.main(session), {'ok': True})
-                job.assert_called_once_with(session, 'MSFT', 2022, 2024)
-            session.close.assert_not_called()
-            session.use_database.assert_not_called()
-            session.use_schema.assert_not_called()
+            with self.subTest(module=name):
+                module = load_module(name)
+                session = self.settings_session(
+                    [{'TICKER': 'MSFT', 'FIRST_YEAR': 2022, 'LAST_YEAR': 2024}])
+                with patch.object(module, function, return_value={'ok': True}) as job:
+                    self.assertEqual(module.main(session), {'ok': True})
+                    job.assert_called_once_with(session, 'MSFT', 2022, 2024)
+                self.assertIn('FROM lab_settings', session.sql.call_args.args[0])
+                session.close.assert_not_called()
+                session.use_database.assert_not_called()
+                session.use_schema.assert_not_called()
+
+    def test_main_refuses_a_missing_or_incomplete_scope(self):
+        for rows in ([], [{'TICKER': 'AAPL', 'FIRST_YEAR': 2023, 'LAST_YEAR': 2023}] * 2,
+                     [{'TICKER': '', 'FIRST_YEAR': 2023, 'LAST_YEAR': 2023}],
+                     [{'TICKER': 'AAPL', 'FIRST_YEAR': None, 'LAST_YEAR': 2023}]):
+            for name, function in (
+                ('ingest_sec_ground_truth', 'ingest_sec_facts'),
+                ('ingest_annual_report_pdfs', 'ingest_annual_report_pdfs'),
+            ):
+                with self.subTest(module=name, rows=rows):
+                    module = load_module(name)
+                    with patch.object(module, function) as job, \
+                         self.assertRaisesRegex(ValueError, 'lab_settings'):
+                        module.main(self.settings_session(rows))
+                    job.assert_not_called()
+
+    def test_snowflake_only_entry_points_have_no_hard_coded_scope(self):
+        for name in SCRIPT_FILES:
+            with self.subTest(module=name):
+                source = (ROOT / 'python' / SCRIPT_FILES[name]).read_text()
+                for removed in ('argparse', 'run_cli', 'Session.builder', 'session.close(',
+                                'TICKER =', 'FIRST_YEAR =', 'LAST_YEAR ='):
+                    self.assertNotIn(removed, source)
+                self.assertIn('read_ingest_settings(session)', source)
+                self.assertIn('session = get_active_session()', source)
+                self.assertIn('main(session)', source)
 
     def test_standalone_download_helpers(self):
         for name in ('ingest_sec_ground_truth', 'ingest_annual_report_pdfs'):

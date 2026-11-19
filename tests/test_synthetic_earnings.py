@@ -12,6 +12,16 @@ from pypdf import PdfReader
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "python"))
+
+# The entry point has a step-numbered filename (11.generate_synthetic_batch.py),
+# which `import` cannot load; register it under its module name instead.
+import importlib.util
+_spec = importlib.util.spec_from_file_location(
+    "generate_synthetic_batch", ROOT / "python" / "11.generate_synthetic_batch.py")
+_module = importlib.util.module_from_spec(_spec)
+sys.modules["generate_synthetic_batch"] = _module
+_spec.loader.exec_module(_module)
+
 from synthetic_earnings import (
     build_batch_sources, derive, generate_batch_in_snowflake,
     generate_in_snowflake, number, prepare, render_report,
@@ -129,7 +139,7 @@ class SyntheticBatchTests(SyntheticEarningsTests):
                             for _, _, expected in rows))
 
     def test_simple_sql_keeps_scoring_readable_and_answers_private(self):
-        sql = (ROOT / "sql/evaluate_synthetic_simple.sql").read_text()
+        sql = (ROOT / "sql/12.evaluate_synthetic_simple.sql").read_text()
         self.assertNotIn("LATERAL FLATTEN", sql)
         self.assertNotIn("REGEXP", sql)
         self.assertEqual(sql.count("AI_EXTRACT("), 2)
@@ -159,7 +169,7 @@ class SyntheticBatchTests(SyntheticEarningsTests):
         generate.assert_called_once_with(session, self.source)
 
     def test_sql_scores_by_report_not_cross_product(self):
-        sql = (ROOT / "sql/evaluate_synthetic.sql").read_text()
+        sql = (ROOT / "sql/13.evaluate_synthetic.sql").read_text()
         self.assertIn("payload:reports", sql)
         self.assertIn("ON e.relative_path = r.manifest:relative_path::STRING", sql)
         self.assertNotIn("CROSS JOIN synthetic_extraction", sql)

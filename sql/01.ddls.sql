@@ -1,3 +1,9 @@
+USE ROLE all_users_role;
+USE DATABASE bootcamp;
+USE warehouse compute_wh;
+USE SCHEMA atp524;
+
+//ground truth
 CREATE TABLE IF NOT EXISTS sec_facts (
     ticker STRING, cik STRING, concept STRING, label STRING, unit STRING,
     start_date DATE, end_date DATE, fact_value FLOAT, accession STRING,
@@ -5,8 +11,9 @@ CREATE TABLE IF NOT EXISTS sec_facts (
     frame STRING, loaded_at TIMESTAMP_LTZ DEFAULT CURRENT_TIMESTAMP()
 );
 
+//we generate from our fixtures
 -- One expected answer per synthetic PDF and metric; separate from SEC facts.
--- Run generate_synthetic_batch.py to populate 50 rows (five PDFs x ten metrics).
+-- Run 11.generate_synthetic_batch.py to populate 50 rows (five PDFs x ten metrics).
 CREATE TABLE IF NOT EXISTS synthetic_ground_truth (
     relative_path STRING,
     ticker STRING,
@@ -24,7 +31,7 @@ CREATE TABLE IF NOT EXISTS synthetic_ground_truth (
     pdf_sha256 STRING,
     reference_source STRING
 );
-
+//when we hit a different datasource we log info about source
 CREATE TABLE IF NOT EXISTS ingest_log (
     ticker STRING,
     fiscal_year INT,
@@ -35,7 +42,7 @@ CREATE TABLE IF NOT EXISTS ingest_log (
     logged_at TIMESTAMP_LTZ DEFAULT CURRENT_TIMESTAMP()
 );
 
--- One row per staged PDF. Run prepare_lab.sql after ingestion to populate.
+-- One row per staged PDF. Run 04.prepare_manifest.sql after ingestion to populate.
 -- Fiscal year in a filename is a label, not a reliable XBRL period join key.
 CREATE TABLE IF NOT EXISTS report_manifest (
     relative_path STRING,
@@ -49,6 +56,7 @@ CREATE TABLE IF NOT EXISTS report_manifest (
     review_notes STRING
 );
 
+// all of the metrics we want to extract from the PDFs
 CREATE TABLE IF NOT EXISTS metric_catalog (
     metric_id STRING,
     metric_description STRING,
@@ -59,6 +67,8 @@ CREATE TABLE IF NOT EXISTS metric_catalog (
     relative_tolerance FLOAT
 );
 
+// objective: select metrics (first item in single quotes), plus ground truth from sec data to see if AI parsing is working as intended
+//merge is idemopotent, it won't insert more data verses INSERT INTO which would
 -- No automatic revenue-tag fallback: different concepts may mean different things.
 -- Tolerances allow small presentation-rounding differences and are configurable.
 MERGE INTO metric_catalog t
@@ -87,9 +97,12 @@ WHEN NOT MATCHED THEN INSERT (
     s.period_type, s.absolute_tolerance, s.relative_tolerance
 );
 
+// helps with labs
 -- Each execution gets a new run ID; previous outputs are retained.
+-- batch_id groups the runs created together by one execution of 08.extract_reports.
 CREATE TABLE IF NOT EXISTS lab_runs (
     run_id STRING,
+    batch_id STRING,
     relative_path STRING,
     ticker STRING,
     report_year INT,
@@ -112,4 +125,24 @@ CREATE TABLE IF NOT EXISTS extraction_results (
     method STRING,
     raw_result VARIANT,
     created_at TIMESTAMP_LTZ DEFAULT CURRENT_TIMESTAMP()
+);
+
+-- One row: the scope being processed (ticker + year range). Set it ONLY in
+-- python/00.set_session_variables.ipynb. Steps 02 and 03 ingest this scope and
+-- every SQL step from 04 on processes every report in it.
+CREATE TABLE IF NOT EXISTS lab_settings (
+    ticker STRING,
+    first_year INT,
+    last_year INT,
+    updated_at TIMESTAMP_LTZ DEFAULT CURRENT_TIMESTAMP()
+);
+
+-- Parsed pages saved by 05.locate_statement_pages.sql so no page is parsed twice.
+CREATE TABLE IF NOT EXISTS statement_page_scan (
+    relative_path STRING,
+    scan_type STRING,
+    page_index INT,
+    printed_page INT,
+    content STRING,
+    scanned_at TIMESTAMP_LTZ DEFAULT CURRENT_TIMESTAMP()
 );

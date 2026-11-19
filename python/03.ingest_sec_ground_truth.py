@@ -1,3 +1,7 @@
+##objective: loading data from existing pipeline into the SQL sec table we just created in DDLs
+##first specify service (create new on first day)
+## the actual data from the sec; the correct extraction data
+
 """Load SEC Company Facts into the current schema with Snowpark."""
 import json
 import time
@@ -7,12 +11,12 @@ from urllib.parse import urlparse
 
 import requests
 
+from lab_settings import read_ingest_settings
 from sec_facts import merge_sec_facts
 
-# Edit these settings when running this file in Snowflake.
-TICKER = "AAPL"
-FIRST_YEAR = 2023
-LAST_YEAR = 2023
+# The ticker and year range are NOT set here: they come from lab_settings,
+# set once in python/00.set_session_variables.ipynb, so steps 02 and 03 always
+# cover the same ticker-years.
 
 # Set your contact address here before making SEC requests.
 SEC_USER_AGENT = "FinancialDocumentsCourse zach@dataexpert.io"
@@ -123,11 +127,15 @@ def ingest_sec_facts(session, target_ticker, first_year, last_year):
 
 
 def main(session):
-    """Run in the selected Snowflake database/schema; leave the session open."""
-    return ingest_sec_facts(session, TICKER, FIRST_YEAR, LAST_YEAR)
+    """Ingest the scope set in lab_settings; leave the session open."""
+    ticker, first_year, last_year = read_ingest_settings(session)
+    return ingest_sec_facts(session, ticker, first_year, last_year)
 
 
 if __name__ == "__main__":
     from snowflake.snowpark.context import get_active_session
-
-    print(json.dumps(main(get_active_session()), indent=2))
+    session = get_active_session()
+    session.sql("USE WAREHOUSE compute_wh").collect()
+    session.sql("USE DATABASE bootcamp").collect()
+    session.sql("USE SCHEMA atp524").collect()
+    print(json.dumps(main(session), indent=2))

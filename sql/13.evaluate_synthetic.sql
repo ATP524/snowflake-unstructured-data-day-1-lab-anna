@@ -1,6 +1,11 @@
+USE ROLE all_users_role;
+USE DATABASE bootcamp;
+USE warehouse compute_wh;
+USE SCHEMA atp524;
+
 -- Run after generate_batch_in_snowflake uploads five PDFs and the batch manifest.
 -- Select the same database, student schema, and query warehouse as the lab.
--- This worksheet is independent of extract_reports.sql/evaluate_results.sql.
+-- This worksheet is independent of 08.extract_reports.sql/09.evaluate_results.sql.
 CREATE FILE FORMAT IF NOT EXISTS synthetic_json_format TYPE = JSON;
 
 CREATE OR REPLACE TEMP TABLE synthetic_reference AS

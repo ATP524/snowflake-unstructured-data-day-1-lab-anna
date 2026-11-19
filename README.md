@@ -4,15 +4,28 @@ Ingest annual-report PDFs, load independent SEC ground truth, and compare two wa
 
 ## Lab sequence
 
-| Step | What you do | Output | Calls AI? |
-| --- | --- | --- | --- |
-| 1 | Ingest PDFs into a stage | Annual-report files | No |
-| 2 | Ingest SEC ground truth into a table | Structured financial facts | No |
-| 3 | Run both extraction paths | Saved financial answers and parsed Markdown | Yes |
-| 4 | Compare answers with SEC ground truth | Scores for each method | No |
-| If time | Generate synthetic PDFs and ground truth, then repeat the comparison | Controlled evaluation dataset | Generation: no; extraction: yes |
+Files are numbered in the order they run. You set **one scope**, a ticker and a year range, once in step 00. It is stored in the `lab_settings` table. Steps 02 and 03 ingest that scope, and every step from 04 on processes **every report in it**, so nothing you ingest is silently skipped. `pipeline_coverage` (step 06) lists every year in scope with the next step it still needs.
 
-Start with AAPL fiscal 2023 and three metrics: assets, revenue, and diluted EPS.
+| Step | File | What you do | Calls AI? |
+| --- | --- | --- | --- |
+| 00 | `python/00.set_session_variables.ipynb` | Session settings, SEC contact, and the scope: ticker + first/last year (`lab_settings`) | No |
+| 01 | `sql/01.ddls.sql` | Create the lab tables | No |
+| 02 | `python/02.ingest_annual_report_pdfs.py` | Ingest the scope's PDFs into the stage | No |
+| 03 | `python/03.ingest_sec_ground_truth.py` | Ingest the scope's SEC ground truth into a table | No |
+| 04 | `sql/04.prepare_manifest.sql` | Manifest rows plus proposed fiscal dates and accession for every report in scope | No |
+| 05 | `sql/05.locate_statement_pages.sql` | Find statement pages and approve every unapproved report in scope | Yes (parsing ~21 pages per new report) |
+| 06 | `sql/06.check_readiness.sql` | `report_readiness` (READY / NOT READY) and `pipeline_coverage` (per-year step status) | No |
+| 07 | `sql/07.first_extraction.sql` | First hands-on `AI_EXTRACT`: three metrics per READY report | Yes (one call per new report) |
+| 08 | `sql/08.extract_reports.ipynb` (or `.sql`) | Run both extraction paths for every READY report, as one batch | Yes |
+| 09 | `sql/09.evaluate_results.sql` | Compare the latest batch with SEC ground truth; per-year coverage check | No |
+| 10 | `sql/10.validation.sql` | Check for duplicate rows and reference gaps | No |
+| 11 | `python/11.generate_synthetic_batch.py` | If time: generate synthetic PDFs and ground truth | No |
+| 12 | `sql/12.evaluate_synthetic_simple.sql` | Compare the two paths on the synthetic batch | Yes |
+| 13 | `sql/13.evaluate_synthetic.sql` | Optional detailed, direct-only synthetic benchmark | Yes |
+
+Unnumbered Python files are modules that numbered steps import, not steps you run: `lab_settings.py` (reads the scope), `sec_facts.py`, `synthetic_earnings.py`, and `build_starter_fixture.py` (instructors refresh fixtures with it). `load_starter.py` is the **offline alternative to steps 02 + 03**: it loads the bundled AAPL 2023 PDF and SEC facts without internet access (see the *Bundled alternative* notes below); continue from step 04 afterwards. `sql/instructor_setup.sql` is for instructors only.
+
+Start with AAPL fiscal 2023 and three metrics: assets, revenue, and diluted EPS. Widen the year range in step 00 when you are ready for more reports.
 
 The two paths are:
 
@@ -56,7 +69,7 @@ CREATE STAGE IF NOT EXISTS annual_report_pdfs
 SELECT CURRENT_ROLE(), CURRENT_DATABASE(), CURRENT_SCHEMA();
 ```
 
-Run [sql/ddls.sql](sql/ddls.sql) in this schema. It creates the tables but does not populate them.
+Run [sql/01.ddls.sql](sql/01.ddls.sql) in this schema. It creates the tables but does not populate them.
 
 Everyone uses the shared role. Separate schemas organize your work; they do not provide security isolation. Do not modify classmates' objects or store personal credentials here.
 
@@ -70,38 +83,34 @@ session.use_database("bootcamp")
 session.use_schema("student_your_name")  # Replace with your schema.
 ```
 
-The ingestion jobs run only inside Snowflake. To run a file directly, edit `TICKER`, `FIRST_YEAR`, `LAST_YEAR`, and `SEC_USER_AGENT` near its top, then run it in the selected student database/schema. Each file uses the existing Snowflake session; there are no command-line arguments or connection credentials to configure. The notebook examples below pass ticker and years explicitly instead.
+The ingestion jobs run only inside Snowflake, in the selected student database/schema, using the existing Snowflake session; there are no command-line arguments or connection credentials to configure. They do **not** contain a ticker or years: both read the scope from `lab_settings`, which you set in step 00. Set a real contact address for SEC requests in `SEC_USER_AGENT` (near the top of each file, or in the 00 notebook).
 
-Live ingestion needs `requests` and the instructor-provided `public_filing_access` external access integration enabled on the notebook service. Set a real contact address for SEC requests:
+Live ingestion needs `requests` and the instructor-provided `public_filing_access` external access integration enabled on the notebook service.
 
-```python
-import ingest_sec_ground_truth
-import ingest_annual_report_pdfs
+### Choose the scope (step 00)
 
-ingest_sec_ground_truth.SEC_USER_AGENT = "AnnualReportsLab your.real.contact@example.com"
-ingest_annual_report_pdfs.SEC_USER_AGENT = "AnnualReportsLab your.real.contact@example.com"
+In [python/00.set_session_variables.ipynb](python/00.set_session_variables.ipynb), edit the **Choose what to process** cell and run the notebook:
+
+```sql
+MERGE INTO bootcamp.atp524.lab_settings t
+USING (SELECT 'AAPL' AS ticker, 2023 AS first_year, 2024 AS last_year) s ON TRUE
+...
 ```
 
-If source sites are unavailable or the instructor wants to avoid class-wide downloads, use the bundled snapshot alternatives in steps 1 and 2. These preserve the same learning sequence and need no HTTP access.
+This is the only place the ticker and years are written. Use `first_year = last_year` for a single report; a range covers at most six years.
+
+If source sites are unavailable or the instructor wants to avoid class-wide downloads, use the bundled snapshot alternatives in steps 1 and 2. These preserve the same learning sequence and need no HTTP access, but cover AAPL 2023 only.
 
 ## 1. Ingest PDFs into the stage
 
-Run in your notebook:
-
-```python
-from ingest_annual_report_pdfs import ingest_annual_report_pdfs
-
-print(ingest_annual_report_pdfs(session, "AAPL", 2023, 2023))
-```
-
-Expect `2023` in `pdf_years_downloaded`. Inspect the staged file:
+Run [python/02.ingest_annual_report_pdfs.py](python/02.ingest_annual_report_pdfs.py). It downloads one PDF per year in scope to `@annual_report_pdfs/<TICKER>/<YEAR>.pdf`. Expect each year in `pdf_years_downloaded`; any year in `pdf_years_missing` stays visible in `pipeline_coverage` as "02 ingest PDF". Inspect the staged files:
 
 ```sql
 SELECT relative_path, size
 FROM DIRECTORY(@annual_report_pdfs);
 ```
 
-Expect `AAPL/2023.pdf`. If ingestion fails, inspect `ingest_log` before continuing.
+If ingestion fails, inspect `ingest_log` before continuing.
 
 **Bundled alternative:** upload the verified report included in the repository:
 
@@ -115,13 +124,7 @@ This step uploads the PDF only. It does not populate SEC ground truth.
 
 ## 2. Ingest SEC ground truth into the table
 
-Run:
-
-```python
-from ingest_sec_ground_truth import ingest_sec_facts
-
-print(ingest_sec_facts(session, "AAPL", 2023, 2023))
-```
+Run [python/03.ingest_sec_ground_truth.py](python/03.ingest_sec_ground_truth.py). It loads the SEC facts for the same scope.
 
 Inspect the independent structured source:
 
@@ -134,7 +137,12 @@ ORDER BY concept, end_date;
 
 There can be several filings and comparative periods. Do not compare an AI answer to an arbitrary row.
 
-Run [sql/prepare_lab.sql](sql/prepare_lab.sql) to review and approve the report's SEC accession, exact fiscal dates, and PDF page ranges. For the AAPL starter, use:
+Prepare the manifest in two steps; both process every report in scope:
+
+1. Run [sql/04.prepare_manifest.sql](sql/04.prepare_manifest.sql). It adds a manifest row per staged PDF and proposes each in-scope report's SEC accession and exact fiscal dates from `sec_facts`.
+2. Run [sql/05.locate_statement_pages.sql](sql/05.locate_statement_pages.sql). For each unapproved report in scope, it reads the table of contents and footers, parses only a short window of pages, finds the statement pages, and approves the report (`AUTO-APPROVED` with evidence) or explains why not (`AUTO-REJECTED`, naming what was NOT FOUND). Fix a rejected report with the manual override at the end of `04.prepare_manifest.sql`; that is the only place a report is named by hand, because it records a person's review of that PDF.
+
+For the AAPL starter, the reviewed values are:
 
 | Setting | Reviewed value |
 | --- | --- |
@@ -154,43 +162,43 @@ from load_starter import ingest_starter_ground_truth
 print(ingest_starter_ground_truth(session))
 ```
 
-This loads SEC-sourced structured facts from the bundled JSON snapshot, not a live API response. It does not upload the PDF. Use it with the bundled PDF from step 1; if you mix sources, verify they represent the same filing and pagination.
+This loads SEC-sourced structured facts from the bundled JSON snapshot, not a live API response. It does not upload the PDF. Use it with the bundled PDF from step 1; if you mix sources, verify they represent the same filing and pagination. Keep the scope in step 00 covering AAPL 2023 when using the bundled data.
 
-Confirm the report is ready:
+Confirm readiness by running [sql/06.check_readiness.sql](sql/06.check_readiness.sql). It creates two views:
 
-```sql
-SELECT relative_path, approved, period_start, period_end, sec_accession
-FROM report_manifest;
-```
+- `report_readiness`: one row per in-scope report with `READY` or `NOT READY`, which check failed, and the approval note.
+- `pipeline_coverage`: one row for **every year in scope**, built from the scope itself rather than from the manifest. It has one column per step (PDF staged, SEC facts loaded, manifest row, period proposed, pages found, approved, READY, extracted by each path) and a `next_step` naming the first step still missing.
 
-Expect one approved `AAPL/2023.pdf` row with the dates and accession above. Do not continue with an unreviewed manifest.
+Expect every in-scope report to show `READY` (AAPL 2023 with the dates and accession above). Only READY reports are extracted; any other year stays listed in `pipeline_coverage` with what to run next.
+
+Optionally, run [sql/07.first_extraction.sql](sql/07.first_extraction.sql) for a first hands-on `AI_EXTRACT`: three plain-language questions per READY report, compared side by side with SEC facts. The fiscal year end in each question comes from the manifest. Reports already extracted there are not called again.
 
 ## 3. Run AI extraction using both paths
 
-Open [sql/extract_reports.sql](sql/extract_reports.sql). Keep its defaults:
+Open [sql/08.extract_reports.ipynb](sql/08.extract_reports.ipynb) (or [sql/08.extract_reports.sql](sql/08.extract_reports.sql)). It processes **every READY report in scope** as one batch; you do not edit report paths or years here. Keep its defaults:
 
 ```sql
-SET report_path = 'AAPL/2023.pdf';
 SET include_all_metrics = FALSE;
+SET batch_id = (SELECT UUID_STRING());
 ```
 
 Run it in order in one SQL session, pausing at the inspection queries:
 
-1. Save the report selection and questions under a new `run_id`.
-2. Run `DIRECT_PDF`: selected PDF pages → `AI_EXTRACT`.
+1. Save each READY report's selection and questions under its own `run_id`, all sharing the batch's `batch_id`. Expect one row per READY report.
+2. Run `DIRECT_PDF`: selected PDF pages → `AI_EXTRACT`, for every report in the batch.
 3. Run `AI_PARSE_DOCUMENT` and inspect the page-level Markdown and errors.
 4. Run `PARSE_THEN_EXTRACT`: Markdown → `AI_EXTRACT`, using the same questions.
 5. Inspect the saved answers from both methods.
 
 Both methods ask for printed value, scale, unit, fiscal dates, and evidence for each metric. Expected numerical answers are not included in the prompts.
 
-This step incurs inference charges. For one successful report it calls direct extraction once, parsing once, and text extraction once. The text path skips empty, failed, or oversized parses instead of silently truncating them. The 60,000-character guardrail is a lab choice, not a documented model limit.
+This step incurs inference charges. For each successful report it calls direct extraction once, parsing once, and text extraction once. The text path skips empty, failed, or oversized parses instead of silently truncating them; such a report shows "a path did not finish" in `pipeline_coverage`. The 60,000-character guardrail is a lab choice, not a documented model limit.
 
-Rerun the whole worksheet with a fresh run ID to repeat the experiment. Do not rerun individual inserts under an existing ID.
+Rerun the whole worksheet (a new `batch_id`) to repeat the experiment. Do not rerun individual inserts under an existing batch.
 
 ## 4. Evaluate and compare the methods
 
-Run [sql/evaluate_results.sql](sql/evaluate_results.sql). This step reads saved outputs and does not call AI.
+Run [sql/09.evaluate_results.sql](sql/09.evaluate_results.sql). This step reads saved outputs and does not call AI. It sets `$batch_id` to the latest batch from step 08, so its results cover every report that batch extracted. It ends with a per-year coverage check: each year in scope shows `EVALUATED` with its pass counts, or the step it still needs.
 
 Follow its intermediate views:
 
@@ -203,14 +211,14 @@ Follow its intermediate views:
 Start by reading these columns:
 
 ```sql
-SELECT method, metric_id, sec_value AS expected_value,
+SELECT report_year, method, metric_id, sec_value AS expected_value,
        extracted_value, absolute_error, evaluation_status
 FROM metric_evaluation
-WHERE run_id = $run_id
-ORDER BY metric_id, method;
+WHERE batch_id = $batch_id
+ORDER BY report_year, metric_id, method;
 ```
 
-Use the same SQL session as extraction for `$run_id`, or replace it with a saved run ID. The evaluator's built-in queries also show scores by run and method, parsing errors, and side-by-side statuses.
+The views keep every run, so earlier batches stay comparable; set `$batch_id` to a saved batch ID to review one. The evaluator's built-in queries also show scores by report and method, parsing errors, and side-by-side statuses.
 
 For orientation, the starter's three reference values are:
 
@@ -263,15 +271,9 @@ In your discussion:
 
 ### Generate five reports and their ground truth
 
-Install `reportlab` in your Python runtime. Installing from PyPI needs the instructor-provided external access integration; rendering itself uses no external requests or AI.
+`reportlab` is installed automatically on first run if it is missing; installing from PyPI needs the instructor-provided artifact repository or external access integration. Rendering itself uses no external requests or AI.
 
-In the same notebook and student schema:
-
-```python
-from generate_synthetic_batch import main
-
-batch = main(session)
-```
+Run [python/11.generate_synthetic_batch.py](python/11.generate_synthetic_batch.py) in the student schema.
 
 This generates five fictional earnings reports with three comparative years, uploads them to `@annual_report_pdfs/synthetic/batch/`, and writes 50 expected answers to `synthetic_ground_truth`. The answers are calculated from the structured inputs, not extracted from the PDFs.
 
@@ -286,7 +288,7 @@ Expect five companies with ten metrics each. Rerunning generation replaces the b
 
 ### Compare the same two AI paths
 
-Run [sql/evaluate_synthetic_simple.sql](sql/evaluate_synthetic_simple.sql) in one SQL session, one numbered step at a time:
+Run [sql/12.evaluate_synthetic_simple.sql](sql/12.evaluate_synthetic_simple.sql) in one SQL session, one numbered step at a time:
 
 1. Inspect the correct answers.
 2. Build and inspect the shared questions.
@@ -309,13 +311,14 @@ The evaluator applies these checks in the order shown. Answers must already be i
 
 Step 3 makes five direct extraction calls, five parsing calls, and up to five text extraction calls. Other steps do not call AI. This beginner synthetic evaluation checks numeric accuracy only; it does not separately score dates, units, or supporting evidence. A synthetic `PASS` therefore does not establish that those fields are correct. Its tolerances and pass conditions differ from the real-filing evaluation above.
 
-The five reports vary company names and financial values but share a layout. Their scores do not establish accuracy on unseen real filings. See [synthetic customization and implementation notes](docs/SYNTHETIC_EARNINGS.md). The [detailed direct-only synthetic benchmark](sql/evaluate_synthetic.sql) remains available for additional field validation, but is not the two-method classroom exercise.
+The five reports vary company names and financial values but share a layout. Their scores do not establish accuracy on unseen real filings. See [synthetic customization and implementation notes](docs/SYNTHETIC_EARNINGS.md). The [detailed direct-only synthetic benchmark](sql/13.evaluate_synthetic.sql) remains available for additional field validation, but is not the two-method classroom exercise.
 
 ## Further experiments
 
-- Set `include_all_metrics = TRUE` in `extract_reports.sql` for ten metrics, then rerun evaluation.
-- Choose another US-GAAP, USD-denominated original `10-K`. Ingest its PDFs first and SEC facts second, then review its manifest with `prepare_lab.sql`. Never reuse AAPL's accession, dates, or page ranges.
-- Use [sql/validation.sql](sql/validation.sql) to investigate duplicate rows and reference gaps.
+- Set `include_all_metrics = TRUE` in `08.extract_reports` for ten metrics, then rerun evaluation.
+- Widen the year range in `00.set_session_variables.ipynb` (for example AAPL 2021-2025), run 02 and 03, then 04-06; `pipeline_coverage` shows each year's progress, and 08 extracts every year that reaches `READY`.
+- Choose another US-GAAP, USD-denominated original `10-K` company: change the ticker in step 00 and run the same steps. Never reuse AAPL's accession, dates, or page ranges.
+- Use [sql/10.validation.sql](sql/10.validation.sql) to investigate duplicate rows and reference gaps.
 
 ## Troubleshooting and instructor resources
 
@@ -325,7 +328,9 @@ The five reports vary company names and financial values but share a layout. The
 | Python import fails | Notebook must be alongside modules in `python/`; inspect the runtime directory before changing import paths |
 | Table/stage not found | SQL and Python must select the same database and student schema |
 | Live download fails | External access integration, `requests`, contact User-Agent, and `ingest_log` |
-| No approved report | Complete the filing and page review in `prepare_lab.sql` |
+| No approved report | Run `04.prepare_manifest.sql` and `05.locate_statement_pages.sql`, then check `06.check_readiness.sql`; for an `AUTO-REJECTED` report use the manual override in `04` |
+| A year is missing from results | `SELECT * FROM pipeline_coverage` (step 06): its `next_step` column names the step that year still needs |
+| `lab_settings must contain exactly one row` | Run the **Choose what to process** cell in `00.set_session_variables.ipynb` |
 | Missing text-path result | Inspect parsing errors, Markdown, and input length |
 | Fixture hash mismatch | Restore the pinned files; do not bypass checks |
 

@@ -1,3 +1,6 @@
+## puts PDF documents by getting PDFs
+# this data is a PDF we can go and read online (i.e. the annual report 2025 report which has things we need and things we do not)
+
 """Download AnnualReports.com PDFs and upload them through Snowpark."""
 import io
 import json
@@ -8,10 +11,11 @@ from urllib.parse import urlparse
 
 import requests
 
-# Edit these settings when running this file in Snowflake.
-TICKER = "AAPL"
-FIRST_YEAR = 2023
-LAST_YEAR = 2023
+from lab_settings import read_ingest_settings
+
+# The ticker and year range are NOT set here: they come from lab_settings,
+# set once in python/00.set_session_variables.ipynb, so steps 02 and 03 always
+# cover the same ticker-years.
 
 SEC_USER_AGENT = "FinancialDocumentsCourse zach@dataexpert.io"
 MAX_PDF_BYTES = 30 * 1024 * 1024
@@ -119,11 +123,15 @@ def ingest_annual_report_pdfs(session, target_ticker, first_year, last_year):
 
 
 def main(session):
-    """Run in the selected Snowflake database/schema; leave the session open."""
-    return ingest_annual_report_pdfs(session, TICKER, FIRST_YEAR, LAST_YEAR)
+    """Ingest the scope set in lab_settings; leave the session open."""
+    ticker, first_year, last_year = read_ingest_settings(session)
+    return ingest_annual_report_pdfs(session, ticker, first_year, last_year)
 
 
 if __name__ == "__main__":
     from snowflake.snowpark.context import get_active_session
-
-    print(json.dumps(main(get_active_session()), indent=2))
+    session = get_active_session()
+    session.sql("USE WAREHOUSE compute_wh").collect()
+    session.sql("USE DATABASE bootcamp").collect()
+    session.sql("USE SCHEMA atp524").collect()
+    print(json.dumps(main(session), indent=2))

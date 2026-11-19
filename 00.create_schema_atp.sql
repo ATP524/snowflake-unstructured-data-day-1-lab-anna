@@ -1,0 +1,52 @@
+USE ROLE all_users_role;
+USE DATABASE bootcamp;
+USE warehouse compute_wh;
+
+
+CREATE SCHEMA IF NOT EXISTS atp524;
+USE SCHEMA atp524;
+
+
+//most of the stuff in snowflake sits in s3 behind the scenes
+//our stage for documents
+CREATE STAGE IF NOT EXISTS annual_report_pdfs
+    DIRECTORY = (ENABLE = TRUE)
+    ENCRYPTION = (TYPE = 'SNOWFLAKE_SSE');
+
+SELECT CURRENT_ROLE(), CURRENT_DATABASE(), CURRENT_SCHEMA();
+
+DESCRIBE USER ATP524;
+
+//the below gave insufficient privileges; must have MODIFY PROGRAMMATIC AUTHENTICAL METHODS granted on USER ATP%@$
+ALTER USER atp524 SET RSA_PUBLIC_KEY='MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2V5lrJ0QpjH+al9ci5QNIxNLP3efg39Wqfvar/wP0YpBCaMYM9h/H0lXtM10KlFvANnxO0d3BMM6N6189FaoI2Kco0h/hxdmHMYcvkCsGLdEfLmEEkcvn6HiJxuvYZvIC3uTiwJNEoGmytx+gfAylzp6N7453GnfiZdQyjXRZ4wJzbwC/laX5Re9Re6UHE2uR/xp1Jd27LOJuQu0+g87qdBJALBfE5RG+sK+T1G7cchIOWUEDqeEigjrrGRMEhnrEqL8aKP0vE30HMBGmdlUyWZWPjwyoJuECDTZ6aZJKTf9ttr+znXvm0IdmWgeSw9S/JTXyTTACPsNn17YwNjWxQIDAQAB';
+
+//query the data in the stage
+SELECT * FROM DIRECTORY(@annual_report_pdfs)
+
+
+ALTER SERVICE USER$ATP524.PUBLIC.STUDENT_ATP524_SERVICE
+  SET EXTERNAL_ACCESS_INTEGRATIONS = (PUBLIC_FILING_ACCESS);
+
+
+  SELECT * FROM synthetic_ground_truth;
+
+
+  DESCRIBE INTEGRATION dataexpert_course_git;
+
+SHOW GRANTS TO ROLE all_users_role AND privilege_type = 'CREATE INTEGRATION';
+
+
+SELECT CURRENT_DATABASE(), CURRENT_SCHEMA();
+
+SHOW GRANTS TO ROLE ALL_USERS_ROLE;
+SELECT "privilege", "granted_on", "name"
+FROM TABLE(RESULT_SCAN(LAST_QUERY_ID()))
+WHERE "privilege" IN ('CREATE STAGE', 'OWNERSHIP');
+
+
+SHOW GRANTS ON SCHEMA IDENTIFIER(CURRENT_DATABASE() || '.' || CURRENT_SCHEMA());
+
+SELECT "privilege", "grantee_name"
+FROM TABLE(RESULT_SCAN(LAST_QUERY_ID()))
+WHERE "grantee_name" = CURRENT_ROLE()
+  AND "privilege" IN ('CREATE STAGE', 'OWNERSHIP');

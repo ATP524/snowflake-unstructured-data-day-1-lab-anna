@@ -1,4 +1,9 @@
--- Run after evaluate_results.sql. These checks do not call AI or modify data.
+USE ROLE all_users_role;
+USE DATABASE bootcamp;
+USE warehouse compute_wh;
+USE SCHEMA atp524;
+
+-- Run after 09.evaluate_results.sql. These checks do not call AI or modify data.
 -- Every row should say PASS.
 WITH cases AS (
     SELECT column1 AS input, column2::FLOAT AS expected
