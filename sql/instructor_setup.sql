@@ -1,6 +1,6 @@
 USE ROLE all_users_role;
 USE DATABASE bootcamp;
-USE warehouse compute_wh;
+USE WAREHOUSE compute_wh;
 USE SCHEMA atp524;
 
 -- We need to do this to allow Snowflake access to external APIs!

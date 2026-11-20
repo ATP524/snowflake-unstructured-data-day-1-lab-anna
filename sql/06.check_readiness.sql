@@ -6,7 +6,9 @@ USE SCHEMA atp524;
 -- Step 06: confirm every report in scope is READY before spending AI credits in
 -- 07.first_extraction and 08.extract_reports, and show exactly where any year stopped.
 -- Scope = lab_settings (ticker + year range), set in python/00.set_session_variables.ipynb.
--- Run after 05.locate_statement_pages.sql. Reads tables only; no AI, no data changes.
+-- Inputs:  lab_settings, report_manifest, sec_facts, metric_catalog, stage, lab_runs, extraction_results.
+-- Outputs: views report_readiness and pipeline_coverage.
+-- Calls AI: no. Changes data: no. Run after 05.locate_statement_pages.sql.
 
 -- READINESS per in-scope report. Uses the same conditions as the lab_runs insert
 -- in 08, plus ground-truth coverage. Only READY reports produce a run.

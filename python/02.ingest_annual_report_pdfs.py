@@ -1,7 +1,12 @@
-## puts PDF documents by getting PDFs
-# this data is a PDF we can go and read online (i.e. the annual report 2025 report which has things we need and things we do not)
+"""Step 02: download the scope's annual-report PDFs and upload them to the stage.
 
-"""Download AnnualReports.com PDFs and upload them through Snowpark."""
+Inputs:  lab_settings (ticker + year range, set in 00.set_session_variables.ipynb).
+Outputs: @annual_report_pdfs/<TICKER>/<YEAR>.pdf, one ingest_log row per attempt.
+Calls AI: no. Needs internet access (PUBLIC_FILING_ACCESS integration).
+Safe to re-run: yes (files are overwritten). Next: 03.ingest_sec_ground_truth.py.
+"""
+# ATP NOTE: puts PDF documents by getting PDFs. This data is a PDF we can go and read
+# online (i.e. the annual report 2025 report which has things we need and things we do not).
 import io
 import json
 import time

@@ -7,21 +7,15 @@ USE SCHEMA atp524;
 -- Run after 06.check_readiness.sql. Everything report-specific (PDF path, pages,
 -- fiscal year end, SEC accession) comes from report_manifest for the scope set in
 -- python/00.set_session_variables.ipynb; nothing is typed in here.
+-- Inputs:  report_readiness (06), report_manifest, PDFs on the stage, sec_facts.
+-- Outputs: extracted_values (one row per report) + side-by-side MATCH/MISMATCH vs SEC.
 -- This exploratory call is separate from the persisted benchmark (08 + 09).
--- Cost: one AI_EXTRACT per READY report not yet extracted here.
+-- Calls AI: one AI_EXTRACT per READY report not yet extracted here (safe to re-run).
 -- (Offline alternative to steps 02 + 03 for AAPL 2023 only: load_starter(session).)
 
 -- ask AI to look at this PDF; a simple approach
--- note: we got this to MATCH for AAPL but this prompt might get it wrong for TSLA so we need ground truth and comparison methods
-CREATE TABLE IF NOT EXISTS extracted_values (
-    extracted     OBJECT,
-    relative_path STRING,
-    ticker        STRING,
-    report_year   INT,
-    period_end    DATE,
-    sec_accession STRING,
-    extracted_at  TIMESTAMP_LTZ
-);
+-- ATP NOTE: we got this to MATCH for AAPL but this prompt might get it wrong for TSLA so we need ground truth and comparison methods
+-- extracted_values is defined in 01.ddls.sql (grain: one row per report).
 
 -- One row per READY in-scope report that has not been extracted here yet.
 INSERT INTO extracted_values (extracted, relative_path, ticker, report_year,
@@ -86,7 +80,7 @@ WHERE f.concept IN ('Assets',
 ORDER BY m.report_year, f.concept;
 
 
--- Side by Side comparsion on extracted_values and sec_facts data to compare, per report
+-- Side-by-side comparison of extracted_values and sec_facts data to compare, per report
 WITH extracted AS (
     SELECT
         v.relative_path,
@@ -140,6 +134,6 @@ RevenueFromContractWithCustomerExcludingAssessedTax  383,285 million USD  383285
 -- Next: run 08.extract_reports.ipynb (defaults to these three metrics), then
 -- 09.evaluate_results.sql for the persisted two-path comparison.
 
-//using spark 1 petabyte of data using spark is about 500,000 USD in 2026 so using AI on this amount of data isn't cost effective
---in data engineering there are 3vs: volume, velocity, and variety 
---this is a variety topic
+-- ATP NOTE: using spark 1 petabyte of data using spark is about 500,000 USD in 2026 so using AI on this amount of data isn't cost effective
+-- ATP NOTE: in data engineering there are 3vs: volume, velocity, and variety 
+-- ATP NOTE: this is a variety topic

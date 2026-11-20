@@ -102,12 +102,13 @@ The hosted SQL/notebook flow has not been executed in this environment. Before c
 3. Confirm notebook imports and `session.file.put_stream` work in the assigned runtime.
 4. Run `01.ddls.sql`, set the scope to AAPL 2023-2023 in `00.set_session_variables.ipynb`, then `load_starter(session)`; confirm the stage and approved manifest.
 5. Run `04.prepare_manifest.sql`, `05.locate_statement_pages.sql` and `06.check_readiness.sql`; `pipeline_coverage` should show 2023 as READY.
-6. Run `07.first_extraction.sql`, then `08.extract_reports.sql` with defaults and `09.evaluate_results.sql`; expect three metrics per method.
-7. Repeat 08 with `include_all_metrics = TRUE`; expect ten metrics per method.
+6. Run `07.first_extraction.sql`, then the `08.extract_reports.ipynb` notebook with defaults and `09.evaluate_results.sql`; expect three metrics per method.
+7. Repeat 08 with `include_all_metrics = TRUE` (a new `prompt_version`, so it re-extracts even with `only_new_reports = TRUE`); expect ten metrics per method.
 8. Run `10.validation.sql` and check for duplicate run outputs.
 9. Widen the scope to several years with live ingestion and confirm `pipeline_coverage` lists every year with a sensible `next_step`.
 10. Confirm students can inspect intermediate Markdown and explain differences.
-11. Check actual inference cost and runtime before setting class limits.
+11. Check actual inference cost and runtime before setting class limits. Every runner query is tagged `lab:<step file>`; a role with `SNOWFLAKE.ACCOUNT_USAGE` access can group AI cost by step (query in [PRODUCTION.md](PRODUCTION.md)). `ALL_USERS_ROLE` does not have that access.
+12. **Standing check:** before every class and after any code edit, Run All in `python/00.run_pipeline.ipynb` with both gates `False`. It is free; expect no `FAILED` step and every step 10 check passing.
 
 Page selection keeps the starter small. Do not enable cross-region inference without organizational approval. Larger warehouse sizes do not guarantee faster document AI calls.
 

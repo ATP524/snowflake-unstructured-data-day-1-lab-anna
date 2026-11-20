@@ -86,7 +86,8 @@ class StarterTests(unittest.TestCase):
         session.file.put_stream.assert_not_called()
 
     def test_starter_scope_and_evaluation_match(self):
-        extraction = (ROOT / "sql" / "08.extract_reports.sql").read_text()
+        from sql_runner import notebook_sql_text
+        extraction = notebook_sql_text(ROOT / "sql" / "08.extract_reports.ipynb")
         self.assertIn("SET include_all_metrics = FALSE;", extraction)
         self.assertIn("c.metric_id IN ('assets', 'revenue', 'eps_diluted')", extraction)
         evaluation = (ROOT / "sql" / "09.evaluate_results.sql").read_text()
@@ -98,11 +99,13 @@ class StarterTests(unittest.TestCase):
         # Steps 04-09 must read the scope (lab_settings) or the readiness view built
         # from it, never a hard-coded report, so no ingested year is silently skipped.
         import re
+        from sql_runner import notebook_sql_text
         for name in ("04.prepare_manifest.sql", "05.locate_statement_pages.sql",
                      "06.check_readiness.sql", "07.first_extraction.sql",
-                     "08.extract_reports.sql", "09.evaluate_results.sql"):
+                     "08.extract_reports.ipynb", "09.evaluate_results.sql"):
             with self.subTest(file=name):
-                sql = (ROOT / "sql" / name).read_text()
+                path = ROOT / "sql" / name
+                sql = notebook_sql_text(path) if path.suffix == ".ipynb" else path.read_text()
                 self.assertRegex(sql, r"lab_settings|report_readiness|batch_id")
                 code = "\n".join(line.split("--")[0] for line in sql.splitlines())
                 self.assertIsNone(re.search(r"'[A-Z]+/[0-9]{4}\.pdf'", code), name)
@@ -110,6 +113,105 @@ class StarterTests(unittest.TestCase):
         coverage = (ROOT / "sql" / "06.check_readiness.sql").read_text()
         self.assertIn("CREATE OR REPLACE VIEW pipeline_coverage", coverage)
         self.assertIn("FROM scope_years y", coverage)
+
+    def test_step_05_reads_headings_from_config_and_guards_every_scan(self):
+        # 05 must stay company-neutral: heading wording lives in statement_heading_patterns
+        # (01), stored pages are never read or parsed twice, and each locator outcome is
+        # documented in 01 and tested in 10.
+        from sql_runner import split_sql
+        sql = (ROOT / "sql" / "05.locate_statement_pages.sql").read_text()
+        statements = split_sql(sql)
+        inserts = [s for s in statements if s.lstrip().upper().startswith("INSERT")]
+        self.assertEqual(len(inserts), 2)
+        for statement, scan_type in zip(inserts, ("'TEXT'", "'WINDOW'")):
+            with self.subTest(scan_type=scan_type):
+                self.assertIn("NOT EXISTS", statement)
+                self.assertIn("p.scan_type = %s" % scan_type, statement)
+        self.assertIn("pdf_page_text", inserts[0])
+        self.assertNotIn("AI_PARSE_DOCUMENT", inserts[0])
+        code = "\n".join(line.split("--")[0] for line in sql.splitlines())
+        self.assertIn("JOIN statement_heading_patterns", code)
+        # every heading match uses the config table, never a hard-coded wording
+        self.assertNotRegex(code, r"(?i)ILIKE\s+'%")
+        self.assertIn("max_statement_pages", code)
+        ddl = (ROOT / "sql" / "01.ddls.sql").read_text()
+        validation = (ROOT / "sql" / "10.validation.sql").read_text()
+        for method in ("TEXT+INDEX", "TEXT", "AI_FALLBACK", "MANUAL_REVIEW", "NOT_FOUND"):
+            with self.subTest(method=method):
+                self.assertIn("'%s'" % method, code)
+                self.assertIn(method, ddl)
+                self.assertIn("'%s'" % method, validation)
+        self.assertIn("CREATE OR REPLACE FUNCTION pdf_page_text", ddl)
+
+    def test_step_08_is_notebook_only_and_every_insert_is_guarded(self):
+        from sql_runner import notebook_sql_text, split_sql
+        self.assertFalse((ROOT / "sql" / "08.extract_reports.sql").exists())
+        inserts = [s for s in split_sql(notebook_sql_text(ROOT / "sql" / "08.extract_reports.ipynb"))
+                   if s.lstrip().upper().startswith("INSERT")]
+        self.assertEqual(len(inserts), 4)
+        for statement in inserts:
+            with self.subTest(insert=statement.split("(")[0]):
+                self.assertIn("NOT EXISTS", statement)
+                self.assertIn("$batch_id", statement)
+
+    def test_every_table_documents_layer_grain_and_key(self):
+        import re
+        ddl = (ROOT / "sql" / "01.ddls.sql").read_text()
+        tables = re.findall(r"CREATE TABLE IF NOT EXISTS (\w+)", ddl)
+        self.assertGreaterEqual(len(tables), 11)
+        for table in tables:
+            with self.subTest(table=table):
+                comment = re.search(r"COMMENT ON TABLE %s IS '([^']*)'" % table, ddl)
+                self.assertIsNotNone(comment, table)
+                self.assertRegex(comment.group(1), r"^(CONFIG|RAW|CURATED)\. Grain: ")
+        validation = (ROOT / "sql" / "10.validation.sql").read_text()
+        for check in ("'unique'", "'not_null'", "'relationships'", "'accepted_values'"):
+            self.assertIn(check, validation)
+        for table in tables:
+            if table != "ingest_log":  # event log: documented as having no natural key
+                self.assertIn("'%s" % table, validation, table)
+
+    def test_sql_splitter_keeps_scripting_blocks_and_drops_comments(self):
+        from sql_runner import _split_sql_fallback, split_sql
+        text = ("-- header only\nSELECT 1;\nEXECUTE IMMEDIATE $$ BEGIN RETURN 'a;b'; END; $$;\n"
+                "SELECT 'it''s; fine';\n-- trailing note\n")
+        for splitter in (split_sql, lambda s: [p.strip() for p in _split_sql_fallback(s)
+                                               if p.strip().rstrip(";").strip()]):
+            statements = splitter(text)
+            self.assertEqual(len(statements), 3, statements)
+            self.assertIn("$$ BEGIN RETURN 'a;b'; END; $$", statements[1])
+
+    def test_step_08_defaults_to_only_new_reports_and_records_provenance(self):
+        from sql_runner import notebook_sql_text
+        sql = notebook_sql_text(ROOT / "sql" / "08.extract_reports.ipynb")
+        self.assertIn("SET only_new_reports = TRUE;", sql)
+        self.assertIn("SET include_all_metrics = FALSE;", sql)
+        for column in ("prompt_version", "include_all_metrics", "metric_count", "metric_ids"):
+            self.assertIn(column, sql)
+        self.assertIn("NOT ($only_new_reports AND EXISTS", sql)
+
+    def test_runner_tags_each_step_and_restores_the_previous_tag(self):
+        from unittest.mock import MagicMock
+        from sql_runner import run_sql_text
+        session = MagicMock()
+        previous = MagicMock()
+        previous.as_dict.return_value = {"value": "my_tag"}
+        session.sql.return_value.collect.side_effect = [[previous], [], [], []]
+        run_sql_text(session, "SELECT 1;", label="x", show=False, query_tag="lab:x.sql")
+        calls = [c.args[0] for c in session.sql.call_args_list]
+        self.assertEqual(calls[1], "ALTER SESSION SET QUERY_TAG = 'lab:x.sql'")
+        self.assertEqual(calls[2].rstrip(";"), "SELECT 1")
+        self.assertEqual(calls[3], "ALTER SESSION SET QUERY_TAG = 'my_tag'")
+
+    def test_runner_notebook_holds_no_pipeline_sql(self):
+        # One source per step: the runner calls step files, it never contains their SQL.
+        nb = json.loads((ROOT / "python" / "00.run_pipeline.ipynb").read_text())
+        for cell in nb["cells"]:
+            source = "".join(cell.get("source", []))
+            if cell.get("cell_type") != "code":
+                continue
+            for keyword in ("INSERT INTO", "MERGE INTO", "CREATE ", "UPDATE ", "DELETE FROM", "AI_EXTRACT(", "AI_PARSE_DOCUMENT("):
+                self.assertNotIn(keyword, source.upper() if keyword.isupper() else source, keyword)
 
     def test_new_scripts_compile(self):
         for name in ("load_starter.py", "build_starter_fixture.py"):

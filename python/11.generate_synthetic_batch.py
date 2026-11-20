@@ -1,7 +1,10 @@
-"""Generate five synthetic earnings PDFs and 50 ground-truth rows in Snowflake.
+"""Step 11 (if time): generate five synthetic earnings PDFs and 50 ground-truth rows.
 
-Select your student database and schema first. Requires reportlab and an
-existing annual_report_pdfs stage. Generation does not call AI.
+Inputs:  fixtures/synthetic_earnings_source.json (structured company values).
+Outputs: PDFs + manifest.json on @annual_report_pdfs/synthetic/batch/, synthetic_ground_truth.
+Calls AI: no. Requires reportlab (installed on first run if missing) and the stage.
+Safe to re-run: yes; replaces the batch files and ground-truth rows.
+Select your student database and schema first. Next: sql/12.evaluate_synthetic_simple.sql.
 """
 import importlib.util
 import json

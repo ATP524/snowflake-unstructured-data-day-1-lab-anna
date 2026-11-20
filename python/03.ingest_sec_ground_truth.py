@@ -1,8 +1,13 @@
-##objective: loading data from existing pipeline into the SQL sec table we just created in DDLs
-##first specify service (create new on first day)
-## the actual data from the sec; the correct extraction data
+"""Step 03: load the scope's SEC Company Facts (XBRL) into sec_facts: the ground truth.
 
-"""Load SEC Company Facts into the current schema with Snowpark."""
+Inputs:  lab_settings (ticker + year range, set in 00.set_session_variables.ipynb).
+Outputs: sec_facts (upserted on its unique key; see sec_facts.py), one ingest_log row.
+Calls AI: no. Needs internet access (PUBLIC_FILING_ACCESS integration).
+Safe to re-run: yes (MERGE). Next: sql/04.prepare_manifest.sql.
+"""
+# ATP NOTE: objective is loading data from the SEC into the sec_facts table created in
+# the DDLs; these are the correct values the AI extraction is compared against.
+# First specify the notebook service (create a new one on the first day).
 import json
 import time
 

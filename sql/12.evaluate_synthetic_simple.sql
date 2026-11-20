@@ -1,10 +1,14 @@
 USE ROLE all_users_role;
 USE DATABASE bootcamp;
-USE warehouse compute_wh;
+USE WAREHOUSE compute_wh;
 USE SCHEMA atp524;
 
--- Synthetic earnings evaluation: run one numbered step at a time.
--- First generate the five reports. Use the same database and student schema.
+-- Step 12: compare the two extraction paths on the synthetic batch, one numbered step at a time.
+-- Inputs:  synthetic PDFs on @annual_report_pdfs/synthetic/batch/, synthetic_ground_truth (11).
+-- Outputs: session TEMP tables only (student_*); nothing permanent is written.
+-- Calls AI: step 3 only (5 direct extractions, 5 parses, up to 5 text extractions).
+-- Temp tables disappear when the session ends; rerun the whole file in a new session.
+-- First generate the five reports (11). Use the same database and student schema.
 -- This lesson checks numeric accuracy only.
 -- For unit, period, and evidence checks, use 13.evaluate_synthetic.sql.
 

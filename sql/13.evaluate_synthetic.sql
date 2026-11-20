@@ -1,11 +1,14 @@
 USE ROLE all_users_role;
 USE DATABASE bootcamp;
-USE warehouse compute_wh;
+USE WAREHOUSE compute_wh;
 USE SCHEMA atp524;
 
--- Run after generate_batch_in_snowflake uploads five PDFs and the batch manifest.
+-- Step 13 (optional): detailed direct-only synthetic benchmark (value, scale, unit, dates, evidence).
+-- Inputs:  synthetic PDFs + manifest.json on the stage (11). Outputs: session TEMP tables/views only.
+-- Calls AI: one AI_EXTRACT per synthetic PDF.
+-- Run after 11.generate_synthetic_batch.py uploads five PDFs and the batch manifest.
 -- Select the same database, student schema, and query warehouse as the lab.
--- This worksheet is independent of 08.extract_reports.sql/09.evaluate_results.sql.
+-- This worksheet is independent of 08.extract_reports.ipynb/09.evaluate_results.sql.
 CREATE FILE FORMAT IF NOT EXISTS synthetic_json_format TYPE = JSON;
 
 CREATE OR REPLACE TEMP TABLE synthetic_reference AS

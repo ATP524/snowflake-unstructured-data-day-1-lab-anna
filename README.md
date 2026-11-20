@@ -9,21 +9,29 @@ Files are numbered in the order they run. You set **one scope**, a ticker and a 
 | Step | File | What you do | Calls AI? |
 | --- | --- | --- | --- |
 | 00 | `python/00.set_session_variables.ipynb` | Session settings, SEC contact, and the scope: ticker + first/last year (`lab_settings`) | No |
-| 01 | `sql/01.ddls.sql` | Create the lab tables | No |
+| 01 | `sql/01.ddls.sql` | Create the lab tables, grouped by layer, with declared keys and grain comments | No |
 | 02 | `python/02.ingest_annual_report_pdfs.py` | Ingest the scope's PDFs into the stage | No |
 | 03 | `python/03.ingest_sec_ground_truth.py` | Ingest the scope's SEC ground truth into a table | No |
 | 04 | `sql/04.prepare_manifest.sql` | Manifest rows plus proposed fiscal dates and accession for every report in scope | No |
-| 05 | `sql/05.locate_statement_pages.sql` | Find statement pages and approve every unapproved report in scope | Yes (parsing ~21 pages per new report) |
+| 05 | `sql/05.locate_statement_pages.sql` | Find statement pages and approve every unapproved report in scope | Yes (parsing 15 pages per new report; finding them is free) |
 | 06 | `sql/06.check_readiness.sql` | `report_readiness` (READY / NOT READY) and `pipeline_coverage` (per-year step status) | No |
 | 07 | `sql/07.first_extraction.sql` | First hands-on `AI_EXTRACT`: three metrics per READY report | Yes (one call per new report) |
-| 08 | `sql/08.extract_reports.ipynb` (or `.sql`) | Run both extraction paths for every READY report, as one batch | Yes |
+| 08 | `sql/08.extract_reports.ipynb` | Run both extraction paths for every READY report, as one batch (export a `.sql` copy with `python/export_notebook_sql.py`) | Yes |
 | 09 | `sql/09.evaluate_results.sql` | Compare the latest batch with SEC ground truth; per-year coverage check | No |
-| 10 | `sql/10.validation.sql` | Check for duplicate rows and reference gaps | No |
+| 10 | `sql/10.validation.sql` | Data-quality tests: unique keys, not-null, relationships, accepted values | No |
 | 11 | `python/11.generate_synthetic_batch.py` | If time: generate synthetic PDFs and ground truth | No |
 | 12 | `sql/12.evaluate_synthetic_simple.sql` | Compare the two paths on the synthetic batch | Yes |
 | 13 | `sql/13.evaluate_synthetic.sql` | Optional detailed, direct-only synthetic benchmark | Yes |
 
-Unnumbered Python files are modules that numbered steps import, not steps you run: `lab_settings.py` (reads the scope), `sec_facts.py`, `synthetic_earnings.py`, and `build_starter_fixture.py` (instructors refresh fixtures with it). `load_starter.py` is the **offline alternative to steps 02 + 03**: it loads the bundled AAPL 2023 PDF and SEC facts without internet access (see the *Bundled alternative* notes below); continue from step 04 afterwards. `sql/instructor_setup.sql` is for instructors only.
+Unnumbered Python files are modules that numbered steps import, not steps you run: `lab_settings.py` (reads the scope), `sql_runner.py` (runs a step's SQL file in order), `export_notebook_sql.py` (writes a notebook's SQL cells to `build/*.sql`), `sec_facts.py`, `synthetic_earnings.py`, and `build_starter_fixture.py` (instructors refresh fixtures with it). `load_starter.py` is the **offline alternative to steps 02 + 03**: it loads the bundled AAPL 2023 PDF and SEC facts without internet access (see the *Bundled alternative* notes below); continue from step 04 afterwards. `sql/instructor_setup.sql` is for instructors only.
+
+**Run everything at once:** [python/00.run_pipeline.ipynb](python/00.run_pipeline.ipynb) runs steps 01-10 in order, each from its own file, and ends with a step summary, `pipeline_coverage` and the step 10 checks. Internet steps (02, 03) and AI steps (05, 07, 08) only run when you set `RUN_INGESTION` / `RUN_AI_STEPS` to `True`; otherwise they are reported as `SKIPPED`. Running the steps one by one is still the way to learn what each does.
+
+- **Standing check:** before every class and after any code edit, Run All with both gates `False`. It is free and verifies the whole pipeline wiring; expect no `FAILED` step and every step 10 check passing.
+- **One source per step:** to change a step, edit that step's own file (`sql/NN...`, the 08 notebook, `python/NN...`), then run it. Never paste step SQL into the runner; a unit test enforces this.
+- **Save your work and results:** `workspace_export.ipynb` writes every table and result view to `results/<date>/` (CSV plus the staged PDFs and a `SUMMARY.md`) and then zips the whole workspace, so the export contains both code and results.
+
+**How it fits together:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) has the pipeline flow diagram, the data layers (CONFIG, RAW, CURATED, ANALYSIS), and a catalog of every table with its grain, key, writer and readers. [docs/PRODUCTION.md](docs/PRODUCTION.md) maps the lab to dbt models and tests and to a scheduled Snowflake Task DAG.
 
 Start with AAPL fiscal 2023 and three metrics: assets, revenue, and diluted EPS. Widen the year range in step 00 when you are ready for more reports.
 
@@ -140,7 +148,7 @@ There can be several filings and comparative periods. Do not compare an AI answe
 Prepare the manifest in two steps; both process every report in scope:
 
 1. Run [sql/04.prepare_manifest.sql](sql/04.prepare_manifest.sql). It adds a manifest row per staged PDF and proposes each in-scope report's SEC accession and exact fiscal dates from `sec_facts`.
-2. Run [sql/05.locate_statement_pages.sql](sql/05.locate_statement_pages.sql). For each unapproved report in scope, it reads the table of contents and footers, parses only a short window of pages, finds the statement pages, and approves the report (`AUTO-APPROVED` with evidence) or explains why not (`AUTO-REJECTED`, naming what was NOT FOUND). Fix a rejected report with the manual override at the end of `04.prepare_manifest.sql`; that is the only place a report is named by hand, because it records a person's review of that PDF.
+2. Run [sql/05.locate_statement_pages.sql](sql/05.locate_statement_pages.sql). For each unapproved report in scope, it first reads every page's text for free (no AI) to find the "Item 8. Financial Statements and Supplementary Data" page, cross-checks it with the report's index when there is one, then AI-parses only a 15-page window, finds the statement pages, and approves the report (`AUTO-APPROVED` with evidence) or explains why not (`AUTO-REJECTED`, naming what was NOT FOUND). `report_manifest.locator_method` says how the pages were found (`TEXT+INDEX`, `TEXT`, `MANUAL_REVIEW`, `AI_FALLBACK`, `NOT_FOUND`). This works for reports with an index (AAPL, TSLA) and without one (MSFT). If a new company's headings are worded differently, add the wording to `statement_heading_patterns` in `01.ddls.sql` rather than editing 05. Fix a rejected report with the manual override at the end of `04.prepare_manifest.sql`; that is the only place a report is named by hand, because it records a person's review of that PDF.
 
 For the AAPL starter, the reviewed values are:
 
@@ -175,7 +183,7 @@ Optionally, run [sql/07.first_extraction.sql](sql/07.first_extraction.sql) for a
 
 ## 3. Run AI extraction using both paths
 
-Open [sql/08.extract_reports.ipynb](sql/08.extract_reports.ipynb) (or [sql/08.extract_reports.sql](sql/08.extract_reports.sql)). It processes **every READY report in scope** as one batch; you do not edit report paths or years here. Keep its defaults:
+Open [sql/08.extract_reports.ipynb](sql/08.extract_reports.ipynb), the only source of step 08's SQL (`python/export_notebook_sql.py` writes a generated `build/08.extract_reports.sql` copy if you need a worksheet). It processes **every READY report in scope** as one batch; you do not edit report paths or years here. Every insert skips rows that already exist, so re-running a cell never duplicates or pays twice. Keep its defaults:
 
 ```sql
 SET include_all_metrics = FALSE;
@@ -194,7 +202,9 @@ Both methods ask for printed value, scale, unit, fiscal dates, and evidence for 
 
 This step incurs inference charges. For each successful report it calls direct extraction once, parsing once, and text extraction once. The text path skips empty, failed, or oversized parses instead of silently truncating them; such a report shows "a path did not finish" in `pipeline_coverage`. The 60,000-character guardrail is a lab choice, not a documented model limit.
 
-Rerun the whole worksheet (a new `batch_id`) to repeat the experiment. Do not rerun individual inserts under an existing batch.
+Rerun the whole worksheet (a new `batch_id`) to repeat the experiment. Do not rerun individual inserts under an existing batch. By default (`only_new_reports = TRUE`) a new batch only extracts reports that have not already been extracted with the same questions, so a rerun costs nothing for finished years; changing the questions or `include_all_metrics` re-extracts automatically. Set `only_new_reports = FALSE` for a deliberate full re-extraction.
+
+Each run records its provenance in `lab_runs`: `prompt_version` (a hash of the question template with fiscal dates masked, so identical wording has the same version in every year), `include_all_metrics` (the setting used), `metric_count` (how many metrics were asked, e.g. 3 or 10) and `metric_ids` (exactly which). Step 09 reports the pass rate by `prompt_version`.
 
 ## 4. Evaluate and compare the methods
 

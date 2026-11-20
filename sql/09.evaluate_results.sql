@@ -4,7 +4,10 @@ USE WAREHOUSE compute_wh;
 USE SCHEMA atp524;
 
 -- Step 09: score every extraction against SEC ground truth. Run after 08.extract_reports.
--- These views never call AI functions. The views cover ALL runs (history is kept);
+-- Inputs:  lab_runs, extraction_results, parse_results (08), sec_facts, metric_catalog.
+-- Outputs: function lab_number; views extracted_fields -> normalized_extractions ->
+--          sec_reference -> compared_values -> metric_evaluation; result queries.
+-- Calls AI: no. Changes data: no. The views cover ALL runs (history is kept);
 -- the result queries below show the LATEST batch from 08, i.e. every report that
 -- batch extracted. To review an older batch, SET batch_id = '<batch id>' instead.
 SET batch_id = (SELECT batch_id FROM lab_runs ORDER BY created_at DESC LIMIT 1);
@@ -22,6 +25,24 @@ $$
             '-' || REPLACE(REPLACE(TRIM(s), '(', ''), ')', ''),
             IFF(REGEXP_LIKE(TRIM(s), '^[+-]?[0-9]+([.][0-9]+)?$'), TRIM(s), NULL))
     )
+$$;
+
+-- Does the AI's scale answer agree with the table scale note it quoted as evidence?
+-- 1000 needs "thousand", 1000000 "million", 1000000000 "billion" in the evidence; scale 1
+-- must not quote an "in thousands/millions/billions" note. Used for currency amounts only
+-- (per-share values are covered by the INVALID_EPS_SCALE rule). No AI call.
+CREATE OR REPLACE FUNCTION lab_scale_matches_evidence(scale FLOAT, evidence STRING)
+RETURNS BOOLEAN
+LANGUAGE SQL
+AS
+$$
+    COALESCE(CASE scale
+        WHEN 1          THEN NOT (evidence ILIKE ANY ('%in thousands%', '%in millions%', '%in billions%'))
+        WHEN 1000       THEN evidence ILIKE '%thousand%'
+        WHEN 1000000    THEN evidence ILIKE '%million%'
+        WHEN 1000000000 THEN evidence ILIKE '%billion%'
+        ELSE FALSE
+    END, FALSE)
 $$;
 
 -- 1. Read the saved fields from each method. No model calls occur here.
@@ -102,6 +123,10 @@ SELECT *,
         WHEN period_type = 'duration'
              AND (extracted_start IS NULL OR extracted_start <> period_start) THEN 'PERIOD_MISMATCH'
         WHEN evidence IS NULL OR TRIM(evidence) IN ('', 'NOT_FOUND') THEN 'MISSING_EVIDENCE'
+        -- the stated scale must agree with the scale note quoted as evidence, even when
+        -- the scaled number happens to match SEC
+        WHEN expected_unit <> 'USD/shares'
+             AND NOT lab_scale_matches_evidence(scale_multiplier, evidence) THEN 'SCALE_EVIDENCE_MISMATCH'
         WHEN absolute_error <= allowed_error THEN 'PASS'
         ELSE 'VALUE_MISMATCH'
     END AS evaluation_status
@@ -148,6 +173,19 @@ FROM metric_evaluation
 WHERE batch_id = $batch_id
 GROUP BY report_year, run_id, metric_id
 ORDER BY report_year, metric_id;
+
+-- Pass rate by prompt version and metric set (all batches). A change in pass rate between
+-- two prompt_versions is attributable to the question wording or metric set, not the data.
+SELECT LEFT(r.prompt_version, 12) AS prompt_version, r.include_all_metrics, r.metric_count,
+       e.method, COUNT(DISTINCT r.run_id) AS runs,
+       COUNT_IF(e.sec_rows > 0 AND e.distinct_sec_values = 1) AS scorable_answers,
+       COUNT_IF(e.evaluation_status = 'PASS') AS passed_answers,
+       passed_answers / NULLIF(scorable_answers, 0) AS pass_rate,
+       MIN(r.created_at) AS first_run, MAX(r.created_at) AS last_run
+FROM metric_evaluation e
+JOIN lab_runs r ON r.run_id = e.run_id
+GROUP BY ALL
+ORDER BY first_run, method;
 
 -- Coverage check: EVERY year in scope, with its latest evaluation (any batch).
 -- A year with no evaluation shows its next step from pipeline_coverage (06)

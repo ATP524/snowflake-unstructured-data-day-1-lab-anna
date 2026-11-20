@@ -1,0 +1,31 @@
+TICKER,FISCAL_YEAR,SOURCE,SOURCE_URL,STATUS,DETAIL,LOGGED_AT
+AAPL,-1,SEC_XBRL,https://data.sec.gov/api/xbrl/companyfacts/CIK0000320193.json,SUCCESS,58 facts loaded,2026-11-18 07:34:53.703000-08:00
+AAPL,2021,PDF,https://www.annualreports.com/HostedData/AnnualReportArchive/a/NASDAQ_AAPL_2021.pdf,SUCCESS,789896 bytes,2026-11-18 07:40:08.884000-08:00
+AAPL,2022,PDF,https://www.annualreports.com/HostedData/AnnualReportArchive/a/NASDAQ_AAPL_2022.pdf,SUCCESS,729516 bytes,2026-11-18 07:40:13.382000-08:00
+AAPL,2023,PDF,https://www.annualreports.com/HostedData/AnnualReportArchive/a/NASDAQ_AAPL_2023.pdf,SUCCESS,807316 bytes,2026-11-18 07:40:16.867000-08:00
+AAPL,2024,PDF,https://www.annualreports.com/HostedData/AnnualReportArchive/a/NASDAQ_AAPL_2024.pdf,SUCCESS,1093835 bytes,2026-11-18 07:40:20.563000-08:00
+AAPL,2025,PDF,https://www.annualreports.com/HostedData/AnnualReports/PDF/NASDAQ_AAPL_2025.pdf,SUCCESS,1858048 bytes,2026-11-18 07:40:23.662000-08:00
+AAPL,2021,PDF,https://www.annualreports.com/HostedData/AnnualReportArchive/a/NASDAQ_AAPL_2021.pdf,SUCCESS,789896 bytes,2026-11-20 05:41:18.081000-08:00
+AAPL,2022,PDF,https://www.annualreports.com/HostedData/AnnualReportArchive/a/NASDAQ_AAPL_2022.pdf,SUCCESS,729516 bytes,2026-11-20 05:41:21.714000-08:00
+AAPL,2023,PDF,https://www.annualreports.com/HostedData/AnnualReportArchive/a/NASDAQ_AAPL_2023.pdf,SUCCESS,807316 bytes,2026-11-20 05:41:25.242000-08:00
+AAPL,2024,PDF,https://www.annualreports.com/HostedData/AnnualReportArchive/a/NASDAQ_AAPL_2024.pdf,SUCCESS,1093835 bytes,2026-11-20 05:41:28.911000-08:00
+AAPL,2025,PDF,https://www.annualreports.com/HostedData/AnnualReports/PDF/NASDAQ_AAPL_2025.pdf,SUCCESS,1858048 bytes,2026-11-20 05:41:31.987000-08:00
+AAPL,-1,SEC_XBRL,https://data.sec.gov/api/xbrl/companyfacts/CIK0000320193.json,SUCCESS,174 facts loaded,2026-11-20 05:41:37.178000-08:00
+MSFT,2023,PDF,https://www.annualreports.com/HostedData/AnnualReportArchive/m/NASDAQ_MSFT_2023.pdf,SUCCESS,2434632 bytes,2026-11-20 06:45:49.480000-08:00
+MSFT,2024,PDF,https://www.annualreports.com/HostedData/AnnualReportArchive/m/NASDAQ_MSFT_2024.pdf,SUCCESS,1394318 bytes,2026-11-20 06:45:53.016000-08:00
+MSFT,-1,SEC_XBRL,https://data.sec.gov/api/xbrl/companyfacts/CIK0000789019.json,SUCCESS,84 facts loaded,2026-11-20 06:46:00.490000-08:00
+TSLA,2023,PDF,https://www.annualreports.com/HostedData/AnnualReportArchive/t/NASDAQ_TSLA_2023.pdf,SUCCESS,984581 bytes,2026-11-20 07:28:54.990000-08:00
+TSLA,2024,PDF,https://www.annualreports.com/HostedData/AnnualReportArchive/t/NASDAQ_TSLA_2024.pdf,SUCCESS,1720174 bytes,2026-11-20 07:28:58.707000-08:00
+TSLA,2023,PDF,https://www.annualreports.com/HostedData/AnnualReports/PDF/NASDAQ_TSLA_2023.pdf,ERROR,403 Client Error: Forbidden for url: https://www.annualreports.com/HostedData/AnnualReports/PDF/NASDAQ_TSLA_2023.pdf,2026-11-20 07:29:00.748000-08:00
+TSLA,2023,PDF,https://www.annualreports.com/HostedData/AnnualReportArchive/t/NASDAQ_TSLA_2023.pdf,ERROR,403 Client Error: Forbidden for url: https://www.annualreports.com/HostedData/AnnualReportArchive/t/NASDAQ_TSLA_2023.pdf,2026-11-20 07:29:07.738000-08:00
+TSLA,2023,PDF,https://www.annualreports.com/HostedData/AnnualReports/PDF/NYSE_TSLA_2023.pdf,ERROR,403 Client Error: Forbidden for url: https://www.annualreports.com/HostedData/AnnualReports/PDF/NYSE_TSLA_2023.pdf,2026-11-20 07:29:14.848000-08:00
+TSLA,2023,PDF,https://www.annualreports.com/HostedData/AnnualReportArchive/t/NYSE_TSLA_2023.pdf,ERROR,403 Client Error: Forbidden for url: https://www.annualreports.com/HostedData/AnnualReportArchive/t/NYSE_TSLA_2023.pdf,2026-11-20 07:29:21.988000-08:00
+TSLA,2023,PDF,,MISSING,No valid PDF found at tested URLs,2026-11-20 07:29:22.868000-08:00
+TSLA,2024,PDF,https://www.annualreports.com/HostedData/AnnualReports/PDF/NASDAQ_TSLA_2024.pdf,ERROR,403 Client Error: Forbidden for url: https://www.annualreports.com/HostedData/AnnualReports/PDF/NASDAQ_TSLA_2024.pdf,2026-11-20 07:29:30.458000-08:00
+TSLA,2024,PDF,https://www.annualreports.com/HostedData/AnnualReportArchive/t/NASDAQ_TSLA_2024.pdf,ERROR,403 Client Error: Forbidden for url: https://www.annualreports.com/HostedData/AnnualReportArchive/t/NASDAQ_TSLA_2024.pdf,2026-11-20 07:29:37.637000-08:00
+TSLA,2024,PDF,https://www.annualreports.com/HostedData/AnnualReports/PDF/NYSE_TSLA_2024.pdf,ERROR,403 Client Error: Forbidden for url: https://www.annualreports.com/HostedData/AnnualReports/PDF/NYSE_TSLA_2024.pdf,2026-11-20 07:29:44.698000-08:00
+TSLA,2024,PDF,https://www.annualreports.com/HostedData/AnnualReportArchive/t/NYSE_TSLA_2024.pdf,ERROR,403 Client Error: Forbidden for url: https://www.annualreports.com/HostedData/AnnualReportArchive/t/NYSE_TSLA_2024.pdf,2026-11-20 07:29:51.797000-08:00
+TSLA,2024,PDF,,MISSING,No valid PDF found at tested URLs,2026-11-20 07:29:52.691000-08:00
+TSLA,2023,PDF,https://www.annualreports.com/HostedData/AnnualReportArchive/t/NASDAQ_TSLA_2023.pdf,SUCCESS,984581 bytes,2026-11-20 07:30:59.115000-08:00
+TSLA,2024,PDF,https://www.annualreports.com/HostedData/AnnualReportArchive/t/NASDAQ_TSLA_2024.pdf,SUCCESS,1720174 bytes,2026-11-20 07:31:03.385000-08:00
+TSLA,-1,SEC_XBRL,https://data.sec.gov/api/xbrl/companyfacts/CIK0001318605.json,SUCCESS,99 facts loaded,2026-11-20 07:31:10.896000-08:00

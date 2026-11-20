@@ -1,0 +1,4273 @@
+RUN_ID,METHOD,RAW_RESULT,CREATED_AT
+8f84bf88-030b-4428-905d-d953723ba4a2,DIRECT_PDF,"{
+  ""error"": null,
+  ""response"": {
+    ""assets__end"": ""2024-12-31"",
+    ""assets__evidence"": ""Total assets | December 31, 2024 | $122,070 | Consolidated Balance Sheets (in millions, except per share data)"",
+    ""assets__raw_value"": ""122070"",
+    ""assets__scale"": ""1000000"",
+    ""assets__start"": ""NOT_APPLICABLE"",
+    ""assets__unit"": ""USD"",
+    ""eps_diluted__end"": ""2024-12-31"",
+    ""eps_diluted__evidence"": ""Net income per share of common stock attributable to common stockholders - Diluted | Year Ended December 31, 2024 | $2.04 | Consolidated Statements of Operations (in millions, except per share data)"",
+    ""eps_diluted__raw_value"": ""2.04"",
+    ""eps_diluted__scale"": ""1"",
+    ""eps_diluted__start"": ""2024-01-01"",
+    ""eps_diluted__unit"": ""USD/shares"",
+    ""revenue__end"": ""2024-12-31"",
+    ""revenue__evidence"": ""Total revenues; Year Ended December 31, 2024; (in millions, except per share data); 97,690"",
+    ""revenue__raw_value"": ""97690"",
+    ""revenue__scale"": ""1000000"",
+    ""revenue__start"": ""2024-01-01"",
+    ""revenue__unit"": ""USD""
+  },
+  ""scoring"": {
+    ""scores"": {
+      ""assets__end"": {
+        ""score"": 0.97
+      },
+      ""assets__evidence"": {
+        ""score"": 0.89
+      },
+      ""assets__raw_value"": {
+        ""score"": 0.97
+      },
+      ""assets__scale"": {
+        ""score"": 0.95
+      },
+      ""assets__start"": {
+        ""score"": 0.92
+      },
+      ""assets__unit"": {
+        ""score"": 0.97
+      },
+      ""eps_diluted__end"": {
+        ""score"": 0.97
+      },
+      ""eps_diluted__evidence"": {
+        ""score"": 0.89
+      },
+      ""eps_diluted__raw_value"": {
+        ""score"": 0.97
+      },
+      ""eps_diluted__scale"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__start"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__unit"": {
+        ""score"": 0.89
+      },
+      ""revenue__end"": {
+        ""score"": 0.92
+      },
+      ""revenue__evidence"": {
+        ""score"": 0.78
+      },
+      ""revenue__raw_value"": {
+        ""score"": 0.87
+      },
+      ""revenue__scale"": {
+        ""score"": 0.95
+      },
+      ""revenue__start"": {
+        ""score"": 0.95
+      },
+      ""revenue__unit"": {
+        ""score"": 0.95
+      }
+    }
+  }
+}",2026-11-20 09:09:31.686000-08:00
+758197a6-9c9b-4803-a2db-e4a9c0c528f9,PARSE_THEN_EXTRACT,"{
+  ""error"": null,
+  ""response"": {
+    ""assets__end"": ""2024-12-31"",
+    ""assets__evidence"": ""Total assets | $ 122,070 | column header December 31, 2024 | Consolidated Balance Sheets (in millions, except per share data)"",
+    ""assets__raw_value"": ""122070.0"",
+    ""assets__scale"": ""1000000"",
+    ""assets__start"": ""NOT_APPLICABLE"",
+    ""assets__unit"": ""USD"",
+    ""eps_diluted__end"": ""2024-12-31"",
+    ""eps_diluted__evidence"": ""Diluted | $ 2.04 | Year Ended December 31, 2024 | Consolidated Statements of Operations (in millions, except per share data)"",
+    ""eps_diluted__raw_value"": ""2.04"",
+    ""eps_diluted__scale"": ""1"",
+    ""eps_diluted__start"": ""2024-01-01"",
+    ""eps_diluted__unit"": ""USD/shares"",
+    ""revenue__end"": ""2024-12-31"",
+    ""revenue__evidence"": ""Total revenues | 2024 column (Year Ended December 31, 2024) | $ 97,690 | (in millions, except per share data)"",
+    ""revenue__raw_value"": ""97690.0"",
+    ""revenue__scale"": ""1000000"",
+    ""revenue__start"": ""2024-01-01"",
+    ""revenue__unit"": ""USD""
+  },
+  ""scoring"": {
+    ""scores"": {
+      ""assets__end"": {
+        ""score"": 0.97
+      },
+      ""assets__evidence"": {
+        ""score"": 0.84
+      },
+      ""assets__raw_value"": {
+        ""score"": 0.78
+      },
+      ""assets__scale"": {
+        ""score"": 0.95
+      },
+      ""assets__start"": {
+        ""score"": 0.92
+      },
+      ""assets__unit"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__end"": {
+        ""score"": 0.97
+      },
+      ""eps_diluted__evidence"": {
+        ""score"": 0.84
+      },
+      ""eps_diluted__raw_value"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__scale"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__start"": {
+        ""score"": 0.92
+      },
+      ""eps_diluted__unit"": {
+        ""score"": 0.92
+      },
+      ""revenue__end"": {
+        ""score"": 0.92
+      },
+      ""revenue__evidence"": {
+        ""score"": 0.78
+      },
+      ""revenue__raw_value"": {
+        ""score"": 0.78
+      },
+      ""revenue__scale"": {
+        ""score"": 0.92
+      },
+      ""revenue__start"": {
+        ""score"": 0.92
+      },
+      ""revenue__unit"": {
+        ""score"": 0.92
+      }
+    }
+  }
+}",2026-11-20 08:20:51.002000-08:00
+fd24c3b0-4f92-4a6b-b74b-e51dd9275a0f,PARSE_THEN_EXTRACT,"{
+  ""error"": null,
+  ""response"": {
+    ""assets__end"": ""2023-12-31"",
+    ""assets__evidence"": ""Total assets | $ 106,618 (column: December 31, 2023; Consolidated Balance Sheets (in millions, except per share data))"",
+    ""assets__raw_value"": ""106618.0"",
+    ""assets__scale"": ""1000000"",
+    ""assets__start"": ""NOT_APPLICABLE"",
+    ""assets__unit"": ""USD"",
+    ""eps_diluted__end"": ""2023-12-31"",
+    ""eps_diluted__evidence"": ""Diluted | $ 4.30 (column: Year Ended December 31, 2023; Consolidated Statements of Operations (in millions, except per share data))"",
+    ""eps_diluted__raw_value"": ""4.30"",
+    ""eps_diluted__scale"": ""1"",
+    ""eps_diluted__start"": ""2023-01-01"",
+    ""eps_diluted__unit"": ""USD/shares"",
+    ""revenue__end"": ""2023-12-31"",
+    ""revenue__evidence"": ""Total revenues | $ 96,773 | Year Ended December 31, 2023 | (in millions, except per share data)"",
+    ""revenue__raw_value"": ""96773.0"",
+    ""revenue__scale"": ""1000000"",
+    ""revenue__start"": ""2023-01-01"",
+    ""revenue__unit"": ""USD""
+  },
+  ""scoring"": {
+    ""scores"": {
+      ""assets__end"": {
+        ""score"": 0.97
+      },
+      ""assets__evidence"": {
+        ""score"": 0.84
+      },
+      ""assets__raw_value"": {
+        ""score"": 0.78
+      },
+      ""assets__scale"": {
+        ""score"": 0.95
+      },
+      ""assets__start"": {
+        ""score"": 0.92
+      },
+      ""assets__unit"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__end"": {
+        ""score"": 0.97
+      },
+      ""eps_diluted__evidence"": {
+        ""score"": 0.84
+      },
+      ""eps_diluted__raw_value"": {
+        ""score"": 0.92
+      },
+      ""eps_diluted__scale"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__start"": {
+        ""score"": 0.92
+      },
+      ""eps_diluted__unit"": {
+        ""score"": 0.92
+      },
+      ""revenue__end"": {
+        ""score"": 0.92
+      },
+      ""revenue__evidence"": {
+        ""score"": 0.78
+      },
+      ""revenue__raw_value"": {
+        ""score"": 0.78
+      },
+      ""revenue__scale"": {
+        ""score"": 0.92
+      },
+      ""revenue__start"": {
+        ""score"": 0.92
+      },
+      ""revenue__unit"": {
+        ""score"": 0.92
+      }
+    }
+  }
+}",2026-11-20 08:20:51.002000-08:00
+fd24c3b0-4f92-4a6b-b74b-e51dd9275a0f,DIRECT_PDF,"{
+  ""error"": null,
+  ""response"": {
+    ""assets__end"": ""2023-12-31"",
+    ""assets__evidence"": ""Total assets | December 31, 2023 | $106,618 | (in millions, except per share data)"",
+    ""assets__raw_value"": ""106618.0"",
+    ""assets__scale"": ""1000000"",
+    ""assets__start"": ""NOT_APPLICABLE"",
+    ""assets__unit"": ""USD"",
+    ""eps_diluted__end"": ""2023-12-31"",
+    ""eps_diluted__evidence"": ""Diluted | Year Ended December 31, 2023 | $4.30 | (in millions, except per share data)"",
+    ""eps_diluted__raw_value"": ""4.30"",
+    ""eps_diluted__scale"": ""1"",
+    ""eps_diluted__start"": ""2023-01-01"",
+    ""eps_diluted__unit"": ""USD/shares"",
+    ""revenue__end"": ""2023-12-31"",
+    ""revenue__evidence"": ""Total revenues; Year Ended December 31, 2023; 96,773; (in millions, except per share data)"",
+    ""revenue__raw_value"": ""96773.0"",
+    ""revenue__scale"": ""1000000"",
+    ""revenue__start"": ""2023-01-01"",
+    ""revenue__unit"": ""USD""
+  },
+  ""scoring"": {
+    ""scores"": {
+      ""assets__end"": {
+        ""score"": 0.97
+      },
+      ""assets__evidence"": {
+        ""score"": 0.84
+      },
+      ""assets__raw_value"": {
+        ""score"": 0.78
+      },
+      ""assets__scale"": {
+        ""score"": 0.95
+      },
+      ""assets__start"": {
+        ""score"": 0.92
+      },
+      ""assets__unit"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__end"": {
+        ""score"": 0.97
+      },
+      ""eps_diluted__evidence"": {
+        ""score"": 0.84
+      },
+      ""eps_diluted__raw_value"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__scale"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__start"": {
+        ""score"": 0.92
+      },
+      ""eps_diluted__unit"": {
+        ""score"": 0.89
+      },
+      ""revenue__end"": {
+        ""score"": 0.92
+      },
+      ""revenue__evidence"": {
+        ""score"": 0.78
+      },
+      ""revenue__raw_value"": {
+        ""score"": 0.84
+      },
+      ""revenue__scale"": {
+        ""score"": 0.92
+      },
+      ""revenue__start"": {
+        ""score"": 0.92
+      },
+      ""revenue__unit"": {
+        ""score"": 0.92
+      }
+    }
+  }
+}",2026-11-20 08:20:01.714000-08:00
+a6d4ab52-aeb9-47b5-8788-e74705c73874,PARSE_THEN_EXTRACT,"{
+  ""error"": null,
+  ""response"": {
+    ""assets__end"": ""2024-06-30"",
+    ""assets__evidence"": ""Balance Sheets (In millions), column June 30, 2024: \""Total assets | $ 512,163\"""",
+    ""assets__raw_value"": ""512163.0"",
+    ""assets__scale"": ""1000000"",
+    ""assets__start"": ""NOT_APPLICABLE"",
+    ""assets__unit"": ""USD"",
+    ""eps_diluted__end"": ""2024-06-30"",
+    ""eps_diluted__evidence"": ""Income Statements (In millions, except per share amounts), Year Ended June 30, 2024: \""Diluted | $ 11.80\"""",
+    ""eps_diluted__raw_value"": ""11.80"",
+    ""eps_diluted__scale"": ""1"",
+    ""eps_diluted__start"": ""2023-07-01"",
+    ""eps_diluted__unit"": ""USD/shares"",
+    ""revenue__end"": ""2024-06-30"",
+    ""revenue__evidence"": ""Income Statements: 'Total revenue' $ 245,122 under column 'Year Ended June 30, 2024'; table scale '(In millions, except per share amounts)'"",
+    ""revenue__raw_value"": ""245122.0"",
+    ""revenue__scale"": ""1000000"",
+    ""revenue__start"": ""2023-07-01"",
+    ""revenue__unit"": ""USD""
+  },
+  ""scoring"": {
+    ""scores"": {
+      ""assets__end"": {
+        ""score"": 0.97
+      },
+      ""assets__evidence"": {
+        ""score"": 0.89
+      },
+      ""assets__raw_value"": {
+        ""score"": 0.57
+      },
+      ""assets__scale"": {
+        ""score"": 0.97
+      },
+      ""assets__start"": {
+        ""score"": 0.95
+      },
+      ""assets__unit"": {
+        ""score"": 0.96
+      },
+      ""eps_diluted__end"": {
+        ""score"": 0.97
+      },
+      ""eps_diluted__evidence"": {
+        ""score"": 0.89
+      },
+      ""eps_diluted__raw_value"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__scale"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__start"": {
+        ""score"": 0.92
+      },
+      ""eps_diluted__unit"": {
+        ""score"": 0.87
+      },
+      ""revenue__end"": {
+        ""score"": 0.92
+      },
+      ""revenue__evidence"": {
+        ""score"": 0.84
+      },
+      ""revenue__raw_value"": {
+        ""score"": 0.78
+      },
+      ""revenue__scale"": {
+        ""score"": 0.92
+      },
+      ""revenue__start"": {
+        ""score"": 0.92
+      },
+      ""revenue__unit"": {
+        ""score"": 0.91
+      }
+    }
+  }
+}",2026-11-20 08:17:13.982000-08:00
+c03342f3-8257-4221-a874-9691779ec89a,PARSE_THEN_EXTRACT,"{
+  ""error"": null,
+  ""response"": {
+    ""assets__end"": ""2023-06-30"",
+    ""assets__evidence"": ""Total assets | $ 411,976 (column June 30, 2023; BALANCE SHEETS, (In millions))"",
+    ""assets__raw_value"": ""411976.0"",
+    ""assets__scale"": ""1000000"",
+    ""assets__start"": ""NOT_APPLICABLE"",
+    ""assets__unit"": ""USD"",
+    ""eps_diluted__end"": ""2023-06-30"",
+    ""eps_diluted__evidence"": ""Diluted | $ 9.68 (column Year Ended June 30, 2023; INCOME STATEMENTS, (In millions, except per share amounts))"",
+    ""eps_diluted__raw_value"": ""9.68"",
+    ""eps_diluted__scale"": ""1"",
+    ""eps_diluted__start"": ""2022-07-01"",
+    ""eps_diluted__unit"": ""USD/shares"",
+    ""revenue__end"": ""2023-06-30"",
+    ""revenue__evidence"": ""Income Statements, line \""Total revenue\"", column \""Year Ended June 30, 2023\"": $ 211,915; table scale note: \""(In millions, except per share amounts)\"""",
+    ""revenue__raw_value"": ""211915.0"",
+    ""revenue__scale"": ""1000000"",
+    ""revenue__start"": ""2022-07-01"",
+    ""revenue__unit"": ""USD""
+  },
+  ""scoring"": {
+    ""scores"": {
+      ""assets__end"": {
+        ""score"": 0.97
+      },
+      ""assets__evidence"": {
+        ""score"": 0.78
+      },
+      ""assets__raw_value"": {
+        ""score"": 0.78
+      },
+      ""assets__scale"": {
+        ""score"": 0.96
+      },
+      ""assets__start"": {
+        ""score"": 0.92
+      },
+      ""assets__unit"": {
+        ""score"": 0.96
+      },
+      ""eps_diluted__end"": {
+        ""score"": 0.97
+      },
+      ""eps_diluted__evidence"": {
+        ""score"": 0.78
+      },
+      ""eps_diluted__raw_value"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__scale"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__start"": {
+        ""score"": 0.92
+      },
+      ""eps_diluted__unit"": {
+        ""score"": 0.89
+      },
+      ""revenue__end"": {
+        ""score"": 0.92
+      },
+      ""revenue__evidence"": {
+        ""score"": 0.84
+      },
+      ""revenue__raw_value"": {
+        ""score"": 0.8
+      },
+      ""revenue__scale"": {
+        ""score"": 0.92
+      },
+      ""revenue__start"": {
+        ""score"": 0.92
+      },
+      ""revenue__unit"": {
+        ""score"": 0.91
+      }
+    }
+  }
+}",2026-11-20 08:17:13.982000-08:00
+a6d4ab52-aeb9-47b5-8788-e74705c73874,DIRECT_PDF,"{
+  ""error"": null,
+  ""response"": {
+    ""assets__end"": ""2024-06-30"",
+    ""assets__evidence"": ""Total assets | June 30, 2024 | $512,163 | (In millions)"",
+    ""assets__raw_value"": ""512163.00"",
+    ""assets__scale"": ""1000000"",
+    ""assets__start"": ""NOT_APPLICABLE"",
+    ""assets__unit"": ""USD"",
+    ""eps_diluted__end"": ""2024-06-30"",
+    ""eps_diluted__evidence"": ""Earnings per share: Diluted | Year Ended June 30, 2024 | $11.80 | (In millions, except per share amounts)"",
+    ""eps_diluted__raw_value"": ""11.80"",
+    ""eps_diluted__scale"": ""1"",
+    ""eps_diluted__start"": ""2023-07-01"",
+    ""eps_diluted__unit"": ""USD/shares"",
+    ""revenue__end"": ""2024-06-30"",
+    ""revenue__evidence"": ""Total revenue; column header 2024 (Year Ended June 30, 2024); (In millions, except per share amounts): 245,122"",
+    ""revenue__raw_value"": ""245122.0"",
+    ""revenue__scale"": ""1000000"",
+    ""revenue__start"": ""2023-07-01"",
+    ""revenue__unit"": ""USD""
+  },
+  ""scoring"": {
+    ""scores"": {
+      ""assets__end"": {
+        ""score"": 0.95
+      },
+      ""assets__evidence"": {
+        ""score"": 0.84
+      },
+      ""assets__raw_value"": {
+        ""score"": 0.78
+      },
+      ""assets__scale"": {
+        ""score"": 0.95
+      },
+      ""assets__start"": {
+        ""score"": 0.89
+      },
+      ""assets__unit"": {
+        ""score"": 0.92
+      },
+      ""eps_diluted__end"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__evidence"": {
+        ""score"": 0.84
+      },
+      ""eps_diluted__raw_value"": {
+        ""score"": 0.92
+      },
+      ""eps_diluted__scale"": {
+        ""score"": 0.92
+      },
+      ""eps_diluted__start"": {
+        ""score"": 0.92
+      },
+      ""eps_diluted__unit"": {
+        ""score"": 0.89
+      },
+      ""revenue__end"": {
+        ""score"": 0.92
+      },
+      ""revenue__evidence"": {
+        ""score"": 0.78
+      },
+      ""revenue__raw_value"": {
+        ""score"": 0.84
+      },
+      ""revenue__scale"": {
+        ""score"": 0.92
+      },
+      ""revenue__start"": {
+        ""score"": 0.92
+      },
+      ""revenue__unit"": {
+        ""score"": 0.91
+      }
+    }
+  }
+}",2026-11-20 08:16:31.369000-08:00
+c972e1aa-96d4-4cb1-9e1a-37025c4baf9a,PARSE_THEN_EXTRACT,"{
+  ""error"": null,
+  ""response"": {
+    ""assets__end"": ""2022-09-24"",
+    ""assets__evidence"": ""Total assets | $ 352,755 (column header: September 24, 2022; table note: (In millions, except number of shares which are reflected in thousands and par value))"",
+    ""assets__raw_value"": ""352755.0"",
+    ""assets__scale"": ""1000000"",
+    ""assets__start"": ""NOT_APPLICABLE"",
+    ""assets__unit"": ""USD"",
+    ""eps_basic__end"": ""2022-09-24"",
+    ""eps_basic__evidence"": ""Basic | $6.15 (Earnings per share; column header: Years ended September 24, 2022; table note: (In millions, except number of shares which are reflected in thousands and per share amounts))"",
+    ""eps_basic__raw_value"": ""6.15"",
+    ""eps_basic__scale"": ""1"",
+    ""eps_basic__start"": ""2021-09-26"",
+    ""eps_basic__unit"": ""USD/shares"",
+    ""eps_diluted__end"": ""2022-09-24"",
+    ""eps_diluted__evidence"": ""Diluted | $6.11 | column header: Years ended September 24, 2022 | table scale note: (In millions, except number of shares which are reflected in thousands and per share amounts)"",
+    ""eps_diluted__raw_value"": ""6.11"",
+    ""eps_diluted__scale"": ""1"",
+    ""eps_diluted__start"": ""2021-09-26"",
+    ""eps_diluted__unit"": ""USD/shares"",
+    ""equity__end"": ""2022-09-24"",
+    ""equity__evidence"": ""Total shareholders' equity | $ 50,672 | column header: September 24, 2022 | table scale note: (In millions, except number of shares which are reflected in thousands and par value)"",
+    ""equity__raw_value"": ""50672.0"",
+    ""equity__scale"": ""1000000"",
+    ""equity__start"": ""NOT_APPLICABLE"",
+    ""equity__unit"": ""USD"",
+    ""gross_profit__end"": ""2022-09-24"",
+    ""gross_profit__evidence"": ""Gross margin | 170,782 (column: Years ended September 24, 2022; table scale: In millions, except number of shares which are reflected in thousands and per share amounts)"",
+    ""gross_profit__raw_value"": ""170782.0"",
+    ""gross_profit__scale"": ""1000000"",
+    ""gross_profit__start"": ""2021-09-26"",
+    ""gross_profit__unit"": ""USD"",
+    ""liabilities__end"": ""2022-09-24"",
+    ""liabilities__evidence"": ""Total liabilities | 302,083 | column header September 24, 2022 | (In millions, except number of shares which are reflected in thousands and par value)"",
+    ""liabilities__raw_value"": ""302083.00"",
+    ""liabilities__scale"": ""1000000"",
+    ""liabilities__start"": ""NOT_APPLICABLE"",
+    ""liabilities__unit"": ""USD"",
+    ""net_income__end"": ""2022-09-24"",
+    ""net_income__evidence"": ""Net income | $99,803 | column header Years ended September 24, 2022 | (In millions, except number of shares which are reflected in thousands and per share amounts)"",
+    ""net_income__raw_value"": ""99803.00"",
+    ""net_income__scale"": ""1000000"",
+    ""net_income__start"": ""2021-09-26"",
+    ""net_income__unit"": ""USD"",
+    ""operating_cash_flow__end"": ""2022-09-24"",
+    ""operating_cash_flow__evidence"": ""Cash generated by operating activities | 122,151 | column header: Years ended September 24, 2022 | (In millions)"",
+    ""operating_cash_flow__raw_value"": ""122151.0"",
+    ""operating_cash_flow__scale"": ""1000000"",
+    ""operating_cash_flow__start"": ""2021-09-26"",
+    ""operating_cash_flow__unit"": ""USD"",
+    ""operating_income__end"": ""2022-09-24"",
+    ""operating_income__evidence"": ""Operating income | 119,437 | column header: Years ended September 24, 2022 | (In millions, except number of shares which are reflected in thousands and per share amounts)"",
+    ""operating_income__raw_value"": ""119437.0"",
+    ""operating_income__scale"": ""1000000"",
+    ""operating_income__start"": ""2021-09-26"",
+    ""operating_income__unit"": ""USD"",
+    ""revenue__end"": ""2022-09-24"",
+    ""revenue__evidence"": ""Line: \""Total net sales\"" 394,328; column header: \""Years ended September 24, 2022\""; scale note: \""(In millions, except number of shares which are reflected in thousands and per share amounts)\"""",
+    ""revenue__raw_value"": ""394328.0"",
+    ""revenue__scale"": ""1000000"",
+    ""revenue__start"": ""2021-09-26"",
+    ""revenue__unit"": ""USD""
+  },
+  ""scoring"": {
+    ""scores"": {
+      ""assets__end"": {
+        ""score"": 0.97
+      },
+      ""assets__evidence"": {
+        ""score"": 0.78
+      },
+      ""assets__raw_value"": {
+        ""score"": 0.84
+      },
+      ""assets__scale"": {
+        ""score"": 0.96
+      },
+      ""assets__start"": {
+        ""score"": 0.92
+      },
+      ""assets__unit"": {
+        ""score"": 0.97
+      },
+      ""eps_basic__end"": {
+        ""score"": 0.97
+      },
+      ""eps_basic__evidence"": {
+        ""score"": 0.78
+      },
+      ""eps_basic__raw_value"": {
+        ""score"": 0.96
+      },
+      ""eps_basic__scale"": {
+        ""score"": 0.96
+      },
+      ""eps_basic__start"": {
+        ""score"": 0.87
+      },
+      ""eps_basic__unit"": {
+        ""score"": 0.87
+      },
+      ""eps_diluted__end"": {
+        ""score"": 0.92
+      },
+      ""eps_diluted__evidence"": {
+        ""score"": 0.84
+      },
+      ""eps_diluted__raw_value"": {
+        ""score"": 0.92
+      },
+      ""eps_diluted__scale"": {
+        ""score"": 0.91
+      },
+      ""eps_diluted__start"": {
+        ""score"": 0.87
+      },
+      ""eps_diluted__unit"": {
+        ""score"": 0.87
+      },
+      ""equity__end"": {
+        ""score"": 0.92
+      },
+      ""equity__evidence"": {
+        ""score"": 0.84
+      },
+      ""equity__raw_value"": {
+        ""score"": 0.87
+      },
+      ""equity__scale"": {
+        ""score"": 0.92
+      },
+      ""equity__start"": {
+        ""score"": 0.89
+      },
+      ""equity__unit"": {
+        ""score"": 0.95
+      },
+      ""gross_profit__end"": {
+        ""score"": 0.95
+      },
+      ""gross_profit__evidence"": {
+        ""score"": 0.84
+      },
+      ""gross_profit__raw_value"": {
+        ""score"": 0.87
+      },
+      ""gross_profit__scale"": {
+        ""score"": 0.92
+      },
+      ""gross_profit__start"": {
+        ""score"": 0.92
+      },
+      ""gross_profit__unit"": {
+        ""score"": 0.95
+      },
+      ""liabilities__end"": {
+        ""score"": 0.97
+      },
+      ""liabilities__evidence"": {
+        ""score"": 0.89
+      },
+      ""liabilities__raw_value"": {
+        ""score"": 0.87
+      },
+      ""liabilities__scale"": {
+        ""score"": 0.96
+      },
+      ""liabilities__start"": {
+        ""score"": 0.92
+      },
+      ""liabilities__unit"": {
+        ""score"": 0.96
+      },
+      ""net_income__end"": {
+        ""score"": 0.97
+      },
+      ""net_income__evidence"": {
+        ""score"": 0.89
+      },
+      ""net_income__raw_value"": {
+        ""score"": 0.87
+      },
+      ""net_income__scale"": {
+        ""score"": 0.96
+      },
+      ""net_income__start"": {
+        ""score"": 0.89
+      },
+      ""net_income__unit"": {
+        ""score"": 0.92
+      },
+      ""operating_cash_flow__end"": {
+        ""score"": 0.95
+      },
+      ""operating_cash_flow__evidence"": {
+        ""score"": 0.78
+      },
+      ""operating_cash_flow__raw_value"": {
+        ""score"": 0.78
+      },
+      ""operating_cash_flow__scale"": {
+        ""score"": 0.95
+      },
+      ""operating_cash_flow__start"": {
+        ""score"": 0.89
+      },
+      ""operating_cash_flow__unit"": {
+        ""score"": 0.92
+      },
+      ""operating_income__end"": {
+        ""score"": 0.95
+      },
+      ""operating_income__evidence"": {
+        ""score"": 0.78
+      },
+      ""operating_income__raw_value"": {
+        ""score"": 0.87
+      },
+      ""operating_income__scale"": {
+        ""score"": 0.92
+      },
+      ""operating_income__start"": {
+        ""score"": 0.89
+      },
+      ""operating_income__unit"": {
+        ""score"": 0.95
+      },
+      ""revenue__end"": {
+        ""score"": 0.92
+      },
+      ""revenue__evidence"": {
+        ""score"": 0.78
+      },
+      ""revenue__raw_value"": {
+        ""score"": 0.87
+      },
+      ""revenue__scale"": {
+        ""score"": 0.92
+      },
+      ""revenue__start"": {
+        ""score"": 0.89
+      },
+      ""revenue__unit"": {
+        ""score"": 0.95
+      }
+    }
+  }
+}",2026-11-20 06:42:52.917000-08:00
+2404512f-d976-4b9c-ad98-918c7f376f4e,PARSE_THEN_EXTRACT,"{
+  ""error"": null,
+  ""response"": {
+    ""assets__end"": ""2025-09-27"",
+    ""assets__evidence"": ""Total assets | $ 359,241 (column header: September 27, 2025; table scale note: (In millions, except number of shares, which are reflected in thousands, and par value))"",
+    ""assets__raw_value"": ""359241.0"",
+    ""assets__scale"": ""1000000"",
+    ""assets__start"": ""NOT_APPLICABLE"",
+    ""assets__unit"": ""USD"",
+    ""eps_basic__end"": ""2025-09-27"",
+    ""eps_basic__evidence"": ""Earnings per share: Basic | $ 7.49 (column header: Years ended September 27, 2025; table scale note: (In millions, except number of shares, which are reflected in thousands, and per-share amounts))"",
+    ""eps_basic__raw_value"": ""7.49"",
+    ""eps_basic__scale"": ""1"",
+    ""eps_basic__start"": ""2024-09-29"",
+    ""eps_basic__unit"": ""USD/shares"",
+    ""eps_diluted__end"": ""2025-09-27"",
+    ""eps_diluted__evidence"": ""Diluted | $ 7.46 | column header 'September 27, 2025' (Years ended) | '(In millions, except number of shares, which are reflected in thousands, and per-share amounts)'"",
+    ""eps_diluted__raw_value"": ""7.46"",
+    ""eps_diluted__scale"": ""1"",
+    ""eps_diluted__start"": ""2024-09-29"",
+    ""eps_diluted__unit"": ""USD/shares"",
+    ""equity__end"": ""2025-09-27"",
+    ""equity__evidence"": ""Total shareholders' equity | $ 73,733 | column header 'September 27, 2025' | '(In millions, except number of shares, which are reflected in thousands, and par value)'"",
+    ""equity__raw_value"": ""73733.0"",
+    ""equity__scale"": ""1000000"",
+    ""equity__start"": ""NOT_APPLICABLE"",
+    ""equity__unit"": ""USD"",
+    ""gross_profit__end"": ""2025-09-27"",
+    ""gross_profit__evidence"": ""Gross margin | 195,201 under column 'September 27, 2025' (Years ended); scale note: (In millions, except number of shares, which are reflected in thousands, and per-share amounts)"",
+    ""gross_profit__raw_value"": ""195201.0"",
+    ""gross_profit__scale"": ""1000000"",
+    ""gross_profit__start"": ""2024-09-29"",
+    ""gross_profit__unit"": ""USD"",
+    ""liabilities__end"": ""2025-09-27"",
+    ""liabilities__evidence"": ""Total liabilities | 285,508 (column: September 27, 2025; table scale: In millions, except number of shares, which are reflected in thousands, and par value)"",
+    ""liabilities__raw_value"": ""285508.0"",
+    ""liabilities__scale"": ""1000000"",
+    ""liabilities__start"": ""NOT_APPLICABLE"",
+    ""liabilities__unit"": ""USD"",
+    ""net_income__end"": ""2025-09-27"",
+    ""net_income__evidence"": ""Net income | $ 112,010 (column: Year ended September 27, 2025; table scale: In millions, except number of shares, which are reflected in thousands, and per-share amounts)"",
+    ""net_income__raw_value"": ""112010.0"",
+    ""net_income__scale"": ""1000000"",
+    ""net_income__start"": ""2024-09-29"",
+    ""net_income__unit"": ""USD"",
+    ""operating_cash_flow__end"": ""2025-09-27"",
+    ""operating_cash_flow__evidence"": ""Cash generated by operating activities | 111,482 | Years ended September 27, 2025 | (In millions)"",
+    ""operating_cash_flow__raw_value"": ""111482.0"",
+    ""operating_cash_flow__scale"": ""1000000"",
+    ""operating_cash_flow__start"": ""2024-09-29"",
+    ""operating_cash_flow__unit"": ""USD"",
+    ""operating_income__end"": ""2025-09-27"",
+    ""operating_income__evidence"": ""Operating income | 133,050 | Years ended September 27, 2025 | (In millions, except number of shares, which are reflected in thousands, and per-share amounts)"",
+    ""operating_income__raw_value"": ""133050.0"",
+    ""operating_income__scale"": ""1000000"",
+    ""operating_income__start"": ""2024-09-29"",
+    ""operating_income__unit"": ""USD"",
+    ""revenue__end"": ""2025-09-27"",
+    ""revenue__evidence"": ""Total net sales | $ 416,161 | Column header: Years ended September 27, 2025 | Scale note: (In millions, except number of shares, which are reflected in thousands, and per-share amounts)"",
+    ""revenue__raw_value"": ""416161.0"",
+    ""revenue__scale"": ""1000000"",
+    ""revenue__start"": ""2024-09-29"",
+    ""revenue__unit"": ""USD""
+  },
+  ""scoring"": {
+    ""scores"": {
+      ""assets__end"": {
+        ""score"": 0.97
+      },
+      ""assets__evidence"": {
+        ""score"": 0.89
+      },
+      ""assets__raw_value"": {
+        ""score"": 0.87
+      },
+      ""assets__scale"": {
+        ""score"": 0.96
+      },
+      ""assets__start"": {
+        ""score"": 0.92
+      },
+      ""assets__unit"": {
+        ""score"": 0.97
+      },
+      ""eps_basic__end"": {
+        ""score"": 0.97
+      },
+      ""eps_basic__evidence"": {
+        ""score"": 0.89
+      },
+      ""eps_basic__raw_value"": {
+        ""score"": 0.96
+      },
+      ""eps_basic__scale"": {
+        ""score"": 0.96
+      },
+      ""eps_basic__start"": {
+        ""score"": 0.78
+      },
+      ""eps_basic__unit"": {
+        ""score"": 0.84
+      },
+      ""eps_diluted__end"": {
+        ""score"": 0.92
+      },
+      ""eps_diluted__evidence"": {
+        ""score"": 0.87
+      },
+      ""eps_diluted__raw_value"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__scale"": {
+        ""score"": 0.92
+      },
+      ""eps_diluted__start"": {
+        ""score"": 0.78
+      },
+      ""eps_diluted__unit"": {
+        ""score"": 0.84
+      },
+      ""equity__end"": {
+        ""score"": 0.92
+      },
+      ""equity__evidence"": {
+        ""score"": 0.87
+      },
+      ""equity__raw_value"": {
+        ""score"": 0.84
+      },
+      ""equity__scale"": {
+        ""score"": 0.92
+      },
+      ""equity__start"": {
+        ""score"": 0.89
+      },
+      ""equity__unit"": {
+        ""score"": 0.95
+      },
+      ""gross_profit__end"": {
+        ""score"": 0.95
+      },
+      ""gross_profit__evidence"": {
+        ""score"": 0.78
+      },
+      ""gross_profit__raw_value"": {
+        ""score"": 0.84
+      },
+      ""gross_profit__scale"": {
+        ""score"": 0.92
+      },
+      ""gross_profit__start"": {
+        ""score"": 0.89
+      },
+      ""gross_profit__unit"": {
+        ""score"": 0.95
+      },
+      ""liabilities__end"": {
+        ""score"": 0.97
+      },
+      ""liabilities__evidence"": {
+        ""score"": 0.89
+      },
+      ""liabilities__raw_value"": {
+        ""score"": 0.84
+      },
+      ""liabilities__scale"": {
+        ""score"": 0.95
+      },
+      ""liabilities__start"": {
+        ""score"": 0.89
+      },
+      ""liabilities__unit"": {
+        ""score"": 0.95
+      },
+      ""net_income__end"": {
+        ""score"": 0.97
+      },
+      ""net_income__evidence"": {
+        ""score"": 0.89
+      },
+      ""net_income__raw_value"": {
+        ""score"": 0.84
+      },
+      ""net_income__scale"": {
+        ""score"": 0.95
+      },
+      ""net_income__start"": {
+        ""score"": 0.89
+      },
+      ""net_income__unit"": {
+        ""score"": 0.92
+      },
+      ""operating_cash_flow__end"": {
+        ""score"": 0.95
+      },
+      ""operating_cash_flow__evidence"": {
+        ""score"": 0.78
+      },
+      ""operating_cash_flow__raw_value"": {
+        ""score"": 0.78
+      },
+      ""operating_cash_flow__scale"": {
+        ""score"": 0.95
+      },
+      ""operating_cash_flow__start"": {
+        ""score"": 0.89
+      },
+      ""operating_cash_flow__unit"": {
+        ""score"": 0.92
+      },
+      ""operating_income__end"": {
+        ""score"": 0.95
+      },
+      ""operating_income__evidence"": {
+        ""score"": 0.8
+      },
+      ""operating_income__raw_value"": {
+        ""score"": 0.87
+      },
+      ""operating_income__scale"": {
+        ""score"": 0.95
+      },
+      ""operating_income__start"": {
+        ""score"": 0.84
+      },
+      ""operating_income__unit"": {
+        ""score"": 0.96
+      },
+      ""revenue__end"": {
+        ""score"": 0.96
+      },
+      ""revenue__evidence"": {
+        ""score"": 0.73
+      },
+      ""revenue__raw_value"": {
+        ""score"": 0.87
+      },
+      ""revenue__scale"": {
+        ""score"": 0.95
+      },
+      ""revenue__start"": {
+        ""score"": 0.84
+      },
+      ""revenue__unit"": {
+        ""score"": 0.96
+      }
+    }
+  }
+}",2026-11-20 06:42:52.917000-08:00
+125c9802-3568-40b8-9ec8-fed15a8eb935,PARSE_THEN_EXTRACT,"{
+  ""error"": null,
+  ""response"": {
+    ""assets__end"": ""2023-09-30"",
+    ""assets__evidence"": ""Total assets | $ 352,583 (column header: September 30, 2023; table scale: In millions, except number of shares, which are reflected in thousands, and par value)"",
+    ""assets__raw_value"": ""352583.0"",
+    ""assets__scale"": ""1000000"",
+    ""assets__start"": ""NOT_APPLICABLE"",
+    ""assets__unit"": ""USD"",
+    ""eps_basic__end"": ""2023-09-30"",
+    ""eps_basic__evidence"": ""Earnings per share: Basic | $6.16 (column header: Years ended September 30, 2023; table scale: In millions, except number of shares, which are reflected in thousands, and per-share amounts)"",
+    ""eps_basic__raw_value"": ""6.16"",
+    ""eps_basic__scale"": ""1"",
+    ""eps_basic__start"": ""2022-09-25"",
+    ""eps_basic__unit"": ""USD/shares"",
+    ""eps_diluted__end"": ""2023-09-30"",
+    ""eps_diluted__evidence"": ""Diluted | $6.13 (Earnings per share, Years ended September 30, 2023; Consolidated Statements of Operations: In millions, except number of shares, which are reflected in thousands, and per-share amounts)"",
+    ""eps_diluted__raw_value"": ""6.13"",
+    ""eps_diluted__scale"": ""1"",
+    ""eps_diluted__start"": ""2022-09-25"",
+    ""eps_diluted__unit"": ""USD/shares"",
+    ""equity__end"": ""2023-09-30"",
+    ""equity__evidence"": ""Total shareholders' equity | $ 62,146 (column September 30, 2023; Consolidated Balance Sheets: In millions, except number of shares, which are reflected in thousands, and par value)"",
+    ""equity__raw_value"": ""62146.0"",
+    ""equity__scale"": ""1000000"",
+    ""equity__start"": ""NOT_APPLICABLE"",
+    ""equity__unit"": ""USD"",
+    ""gross_profit__end"": ""2023-09-30"",
+    ""gross_profit__evidence"": ""Gross margin | 169,148 under column 'September 30, 2023' (Years ended); scale note: (In millions, except number of shares, which are reflected in thousands, and per-share amounts)"",
+    ""gross_profit__raw_value"": ""169148.0"",
+    ""gross_profit__scale"": ""1000000"",
+    ""gross_profit__start"": ""2022-09-25"",
+    ""gross_profit__unit"": ""USD"",
+    ""liabilities__end"": ""2023-09-30"",
+    ""liabilities__evidence"": ""Total liabilities | 290,437 (column header: September 30, 2023; table scale: In millions, except number of shares, which are reflected in thousands, and par value)"",
+    ""liabilities__raw_value"": ""290437.0"",
+    ""liabilities__scale"": ""1000000"",
+    ""liabilities__start"": ""NOT_APPLICABLE"",
+    ""liabilities__unit"": ""USD"",
+    ""net_income__end"": ""2023-09-30"",
+    ""net_income__evidence"": ""Net income | $96,995 (column header: Years ended September 30, 2023; table scale: In millions, except number of shares, which are reflected in thousands, and per-share amounts)"",
+    ""net_income__raw_value"": ""96995.0"",
+    ""net_income__scale"": ""1000000"",
+    ""net_income__start"": ""2022-09-25"",
+    ""net_income__unit"": ""USD"",
+    ""operating_cash_flow__end"": ""2023-09-30"",
+    ""operating_cash_flow__evidence"": ""Cash generated by operating activities | 110,543 | column header \""Years ended September 30, 2023\"" | (In millions)"",
+    ""operating_cash_flow__raw_value"": ""110543.0"",
+    ""operating_cash_flow__scale"": ""1000000"",
+    ""operating_cash_flow__start"": ""2022-09-25"",
+    ""operating_cash_flow__unit"": ""USD"",
+    ""operating_income__end"": ""2023-09-30"",
+    ""operating_income__evidence"": ""Operating income | 114,301 | column header \""Years ended September 30, 2023\"" | (In millions, except number of shares, which are reflected in thousands, and per-share amounts)"",
+    ""operating_income__raw_value"": ""114301.0"",
+    ""operating_income__scale"": ""1000000"",
+    ""operating_income__start"": ""2022-09-25"",
+    ""operating_income__unit"": ""USD"",
+    ""revenue__end"": ""2023-09-30"",
+    ""revenue__evidence"": ""Statement line: \""Total net sales\"" $383,285; column header: \""Years ended September 30, 2023\""; table scale note: \""(In millions, except number of shares, which are reflected in thousands, and per-share amounts)\"""",
+    ""revenue__raw_value"": ""383285.0"",
+    ""revenue__scale"": ""1000000"",
+    ""revenue__start"": ""2022-09-25"",
+    ""revenue__unit"": ""USD""
+  },
+  ""scoring"": {
+    ""scores"": {
+      ""assets__end"": {
+        ""score"": 0.97
+      },
+      ""assets__evidence"": {
+        ""score"": 0.89
+      },
+      ""assets__raw_value"": {
+        ""score"": 0.78
+      },
+      ""assets__scale"": {
+        ""score"": 0.95
+      },
+      ""assets__start"": {
+        ""score"": 0.92
+      },
+      ""assets__unit"": {
+        ""score"": 0.95
+      },
+      ""eps_basic__end"": {
+        ""score"": 0.97
+      },
+      ""eps_basic__evidence"": {
+        ""score"": 0.89
+      },
+      ""eps_basic__raw_value"": {
+        ""score"": 0.95
+      },
+      ""eps_basic__scale"": {
+        ""score"": 0.95
+      },
+      ""eps_basic__start"": {
+        ""score"": 0.7
+      },
+      ""eps_basic__unit"": {
+        ""score"": 0.87
+      },
+      ""eps_diluted__end"": {
+        ""score"": 0.92
+      },
+      ""eps_diluted__evidence"": {
+        ""score"": 0.84
+      },
+      ""eps_diluted__raw_value"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__scale"": {
+        ""score"": 0.92
+      },
+      ""eps_diluted__start"": {
+        ""score"": 0.7
+      },
+      ""eps_diluted__unit"": {
+        ""score"": 0.87
+      },
+      ""equity__end"": {
+        ""score"": 0.92
+      },
+      ""equity__evidence"": {
+        ""score"": 0.84
+      },
+      ""equity__raw_value"": {
+        ""score"": 0.89
+      },
+      ""equity__scale"": {
+        ""score"": 0.92
+      },
+      ""equity__start"": {
+        ""score"": 0.84
+      },
+      ""equity__unit"": {
+        ""score"": 0.95
+      },
+      ""gross_profit__end"": {
+        ""score"": 0.95
+      },
+      ""gross_profit__evidence"": {
+        ""score"": 0.89
+      },
+      ""gross_profit__raw_value"": {
+        ""score"": 0.89
+      },
+      ""gross_profit__scale"": {
+        ""score"": 0.92
+      },
+      ""gross_profit__start"": {
+        ""score"": 0.84
+      },
+      ""gross_profit__unit"": {
+        ""score"": 0.95
+      },
+      ""liabilities__end"": {
+        ""score"": 0.95
+      },
+      ""liabilities__evidence"": {
+        ""score"": 0.89
+      },
+      ""liabilities__raw_value"": {
+        ""score"": 0.84
+      },
+      ""liabilities__scale"": {
+        ""score"": 0.95
+      },
+      ""liabilities__start"": {
+        ""score"": 0.89
+      },
+      ""liabilities__unit"": {
+        ""score"": 0.95
+      },
+      ""net_income__end"": {
+        ""score"": 0.95
+      },
+      ""net_income__evidence"": {
+        ""score"": 0.87
+      },
+      ""net_income__raw_value"": {
+        ""score"": 0.84
+      },
+      ""net_income__scale"": {
+        ""score"": 0.95
+      },
+      ""net_income__start"": {
+        ""score"": 0.84
+      },
+      ""net_income__unit"": {
+        ""score"": 0.92
+      },
+      ""operating_cash_flow__end"": {
+        ""score"": 0.95
+      },
+      ""operating_cash_flow__evidence"": {
+        ""score"": 0.78
+      },
+      ""operating_cash_flow__raw_value"": {
+        ""score"": 0.68
+      },
+      ""operating_cash_flow__scale"": {
+        ""score"": 0.92
+      },
+      ""operating_cash_flow__start"": {
+        ""score"": 0.84
+      },
+      ""operating_cash_flow__unit"": {
+        ""score"": 0.92
+      },
+      ""operating_income__end"": {
+        ""score"": 0.95
+      },
+      ""operating_income__evidence"": {
+        ""score"": 0.78
+      },
+      ""operating_income__raw_value"": {
+        ""score"": 0.84
+      },
+      ""operating_income__scale"": {
+        ""score"": 0.92
+      },
+      ""operating_income__start"": {
+        ""score"": 0.87
+      },
+      ""operating_income__unit"": {
+        ""score"": 0.95
+      },
+      ""revenue__end"": {
+        ""score"": 0.92
+      },
+      ""revenue__evidence"": {
+        ""score"": 0.78
+      },
+      ""revenue__raw_value"": {
+        ""score"": 0.8
+      },
+      ""revenue__scale"": {
+        ""score"": 0.92
+      },
+      ""revenue__start"": {
+        ""score"": 0.87
+      },
+      ""revenue__unit"": {
+        ""score"": 0.95
+      }
+    }
+  }
+}",2026-11-20 06:42:52.917000-08:00
+173a518a-f814-4b7e-97e2-b65f07b4b67d,PARSE_THEN_EXTRACT,"{
+  ""error"": null,
+  ""response"": {
+    ""assets__end"": ""2024-09-28"",
+    ""assets__evidence"": ""Total assets | $ 364,980 (column header: September 28, 2024; table note: (In millions, except number of shares, which are reflected in thousands, and par value))"",
+    ""assets__raw_value"": ""364980.0"",
+    ""assets__scale"": ""1000000"",
+    ""assets__start"": ""NOT_APPLICABLE"",
+    ""assets__unit"": ""USD"",
+    ""eps_basic__end"": ""2024-09-28"",
+    ""eps_basic__evidence"": ""Basic | $6.11 (Earnings per share: Basic; column header: Years ended September 28, 2024; table note: (In millions, except number of shares, which are reflected in thousands, and per-share amounts))"",
+    ""eps_basic__raw_value"": ""6.11"",
+    ""eps_basic__scale"": ""1"",
+    ""eps_basic__start"": ""2023-10-01"",
+    ""eps_basic__unit"": ""USD/shares"",
+    ""eps_diluted__end"": ""2024-09-28"",
+    ""eps_diluted__evidence"": ""Diluted | $6.08 (column: Years ended September 28, 2024; table scale: In millions, except number of shares, which are reflected in thousands, and per-share amounts)"",
+    ""eps_diluted__raw_value"": ""6.08"",
+    ""eps_diluted__scale"": ""1"",
+    ""eps_diluted__start"": ""2023-10-01"",
+    ""eps_diluted__unit"": ""USD/shares"",
+    ""equity__end"": ""2024-09-28"",
+    ""equity__evidence"": ""Total shareholders' equity | $56,950 (column: September 28, 2024; table scale: In millions, except number of shares, which are reflected in thousands, and par value)"",
+    ""equity__raw_value"": ""56950.0"",
+    ""equity__scale"": ""1000000"",
+    ""equity__start"": ""NOT_APPLICABLE"",
+    ""equity__unit"": ""USD"",
+    ""gross_profit__end"": ""2024-09-28"",
+    ""gross_profit__evidence"": ""Gross margin | 180,683 (column: Years ended September 28, 2024; scale: In millions, except number of shares, which are reflected in thousands, and per-share amounts)"",
+    ""gross_profit__raw_value"": ""180683.0"",
+    ""gross_profit__scale"": ""1000000"",
+    ""gross_profit__start"": ""2023-10-01"",
+    ""gross_profit__unit"": ""USD"",
+    ""liabilities__end"": ""2024-09-28"",
+    ""liabilities__evidence"": ""Total liabilities | 308,030 (column: September 28, 2024; Consolidated Balance Sheets, in millions, except number of shares, which are reflected in thousands, and par value)"",
+    ""liabilities__raw_value"": ""308030.0"",
+    ""liabilities__scale"": ""1000000"",
+    ""liabilities__start"": ""NOT_APPLICABLE"",
+    ""liabilities__unit"": ""USD"",
+    ""net_income__end"": ""2024-09-28"",
+    ""net_income__evidence"": ""Net income | $93,736 (column: Years ended September 28, 2024; Consolidated Statements of Operations, in millions, except number of shares, which are reflected in thousands, and per-share amounts)"",
+    ""net_income__raw_value"": ""93736.0"",
+    ""net_income__scale"": ""1000000"",
+    ""net_income__start"": ""2023-10-01"",
+    ""net_income__unit"": ""USD"",
+    ""operating_cash_flow__end"": ""2024-09-28"",
+    ""operating_cash_flow__evidence"": ""Cash generated by operating activities | 118,254 | Years ended September 28, 2024 | (In millions)"",
+    ""operating_cash_flow__raw_value"": ""118254.0"",
+    ""operating_cash_flow__scale"": ""1000000"",
+    ""operating_cash_flow__start"": ""2023-10-01"",
+    ""operating_cash_flow__unit"": ""USD"",
+    ""operating_income__end"": ""2024-09-28"",
+    ""operating_income__evidence"": ""Operating income | 123,216 | Years ended September 28, 2024 | (In millions, except number of shares, which are reflected in thousands, and per-share amounts)"",
+    ""operating_income__raw_value"": ""123216.0"",
+    ""operating_income__scale"": ""1000000"",
+    ""operating_income__start"": ""2023-10-01"",
+    ""operating_income__unit"": ""USD"",
+    ""revenue__end"": ""2024-09-28"",
+    ""revenue__evidence"": ""Total net sales | 391,035; column header: Years ended September 28, 2024; scale note: (In millions, except number of shares, which are reflected in thousands, and per-share amounts)"",
+    ""revenue__raw_value"": ""391035.0"",
+    ""revenue__scale"": ""1000000"",
+    ""revenue__start"": ""2023-10-01"",
+    ""revenue__unit"": ""USD""
+  },
+  ""scoring"": {
+    ""scores"": {
+      ""assets__end"": {
+        ""score"": 0.97
+      },
+      ""assets__evidence"": {
+        ""score"": 0.78
+      },
+      ""assets__raw_value"": {
+        ""score"": 0.78
+      },
+      ""assets__scale"": {
+        ""score"": 0.95
+      },
+      ""assets__start"": {
+        ""score"": 0.92
+      },
+      ""assets__unit"": {
+        ""score"": 0.97
+      },
+      ""eps_basic__end"": {
+        ""score"": 0.97
+      },
+      ""eps_basic__evidence"": {
+        ""score"": 0.78
+      },
+      ""eps_basic__raw_value"": {
+        ""score"": 0.96
+      },
+      ""eps_basic__scale"": {
+        ""score"": 0.96
+      },
+      ""eps_basic__start"": {
+        ""score"": 0.47
+      },
+      ""eps_basic__unit"": {
+        ""score"": 0.78
+      },
+      ""eps_diluted__end"": {
+        ""score"": 0.89
+      },
+      ""eps_diluted__evidence"": {
+        ""score"": 0.84
+      },
+      ""eps_diluted__raw_value"": {
+        ""score"": 0.92
+      },
+      ""eps_diluted__scale"": {
+        ""score"": 0.89
+      },
+      ""eps_diluted__start"": {
+        ""score"": 0.47
+      },
+      ""eps_diluted__unit"": {
+        ""score"": 0.78
+      },
+      ""equity__end"": {
+        ""score"": 0.89
+      },
+      ""equity__evidence"": {
+        ""score"": 0.84
+      },
+      ""equity__raw_value"": {
+        ""score"": 0.84
+      },
+      ""equity__scale"": {
+        ""score"": 0.92
+      },
+      ""equity__start"": {
+        ""score"": 0.89
+      },
+      ""equity__unit"": {
+        ""score"": 0.95
+      },
+      ""gross_profit__end"": {
+        ""score"": 0.95
+      },
+      ""gross_profit__evidence"": {
+        ""score"": 0.78
+      },
+      ""gross_profit__raw_value"": {
+        ""score"": 0.84
+      },
+      ""gross_profit__scale"": {
+        ""score"": 0.92
+      },
+      ""gross_profit__start"": {
+        ""score"": 0.78
+      },
+      ""gross_profit__unit"": {
+        ""score"": 0.95
+      },
+      ""liabilities__end"": {
+        ""score"": 0.97
+      },
+      ""liabilities__evidence"": {
+        ""score"": 0.89
+      },
+      ""liabilities__raw_value"": {
+        ""score"": 0.89
+      },
+      ""liabilities__scale"": {
+        ""score"": 0.96
+      },
+      ""liabilities__start"": {
+        ""score"": 0.92
+      },
+      ""liabilities__unit"": {
+        ""score"": 0.95
+      },
+      ""net_income__end"": {
+        ""score"": 0.97
+      },
+      ""net_income__evidence"": {
+        ""score"": 0.89
+      },
+      ""net_income__raw_value"": {
+        ""score"": 0.89
+      },
+      ""net_income__scale"": {
+        ""score"": 0.96
+      },
+      ""net_income__start"": {
+        ""score"": 0.57
+      },
+      ""net_income__unit"": {
+        ""score"": 0.89
+      },
+      ""operating_cash_flow__end"": {
+        ""score"": 0.92
+      },
+      ""operating_cash_flow__evidence"": {
+        ""score"": 0.68
+      },
+      ""operating_cash_flow__raw_value"": {
+        ""score"": 0.57
+      },
+      ""operating_cash_flow__scale"": {
+        ""score"": 0.92
+      },
+      ""operating_cash_flow__start"": {
+        ""score"": 0.57
+      },
+      ""operating_cash_flow__unit"": {
+        ""score"": 0.91
+      },
+      ""operating_income__end"": {
+        ""score"": 0.92
+      },
+      ""operating_income__evidence"": {
+        ""score"": 0.68
+      },
+      ""operating_income__raw_value"": {
+        ""score"": 0.57
+      },
+      ""operating_income__scale"": {
+        ""score"": 0.92
+      },
+      ""operating_income__start"": {
+        ""score"": 0.89
+      },
+      ""operating_income__unit"": {
+        ""score"": 0.95
+      },
+      ""revenue__end"": {
+        ""score"": 0.95
+      },
+      ""revenue__evidence"": {
+        ""score"": 0.78
+      },
+      ""revenue__raw_value"": {
+        ""score"": 0.57
+      },
+      ""revenue__scale"": {
+        ""score"": 0.92
+      },
+      ""revenue__start"": {
+        ""score"": 0.89
+      },
+      ""revenue__unit"": {
+        ""score"": 0.95
+      }
+    }
+  }
+}",2026-11-20 06:42:52.917000-08:00
+4792822c-4909-4d1d-88fe-92ce232dd829,PARSE_THEN_EXTRACT,"{
+  ""error"": null,
+  ""response"": {
+    ""assets__end"": ""2025-09-27"",
+    ""assets__evidence"": ""Total assets | $ 359,241 (column header: September 27, 2025; table scale: In millions, except number of shares, which are reflected in thousands, and par value)"",
+    ""assets__raw_value"": ""359241.0"",
+    ""assets__scale"": ""1000000"",
+    ""assets__start"": ""NOT_APPLICABLE"",
+    ""assets__unit"": ""USD"",
+    ""eps_diluted__end"": ""2025-09-27"",
+    ""eps_diluted__evidence"": ""Diluted | $ 7.46 (column header: Years ended September 27, 2025; table scale: In millions, except number of shares, which are reflected in thousands, and per-share amounts)"",
+    ""eps_diluted__raw_value"": ""7.46"",
+    ""eps_diluted__scale"": ""1"",
+    ""eps_diluted__start"": ""2024-09-29"",
+    ""eps_diluted__unit"": ""USD/shares"",
+    ""revenue__end"": ""2025-09-27"",
+    ""revenue__evidence"": ""Statement line \""Total net sales\"" under column \""September 27, 2025\"" (Years ended): $ 416,161; table scale note \""(In millions, except number of shares, which are reflected in thousands, and per-share amounts)\"""",
+    ""revenue__raw_value"": ""416161.0"",
+    ""revenue__scale"": ""1000000"",
+    ""revenue__start"": ""2024-09-29"",
+    ""revenue__unit"": ""USD""
+  },
+  ""scoring"": {
+    ""scores"": {
+      ""assets__end"": {
+        ""score"": 0.97
+      },
+      ""assets__evidence"": {
+        ""score"": 0.87
+      },
+      ""assets__raw_value"": {
+        ""score"": 0.68
+      },
+      ""assets__scale"": {
+        ""score"": 0.96
+      },
+      ""assets__start"": {
+        ""score"": 0.92
+      },
+      ""assets__unit"": {
+        ""score"": 0.97
+      },
+      ""eps_diluted__end"": {
+        ""score"": 0.97
+      },
+      ""eps_diluted__evidence"": {
+        ""score"": 0.87
+      },
+      ""eps_diluted__raw_value"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__scale"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__start"": {
+        ""score"": 0.89
+      },
+      ""eps_diluted__unit"": {
+        ""score"": 0.89
+      },
+      ""revenue__end"": {
+        ""score"": 0.95
+      },
+      ""revenue__evidence"": {
+        ""score"": 0.68
+      },
+      ""revenue__raw_value"": {
+        ""score"": 0.73
+      },
+      ""revenue__scale"": {
+        ""score"": 0.92
+      },
+      ""revenue__start"": {
+        ""score"": 0.89
+      },
+      ""revenue__unit"": {
+        ""score"": 0.92
+      }
+    }
+  }
+}",2026-11-20 05:44:46.438000-08:00
+16579a9b-62f9-4aec-b505-6eac047791c2,PARSE_THEN_EXTRACT,"{
+  ""error"": null,
+  ""response"": {
+    ""assets__end"": ""2024-09-28"",
+    ""assets__evidence"": ""Total assets | $ 364,980 (column header: September 28, 2024; scale note: In millions, except number of shares, which are reflected in thousands, and par value)"",
+    ""assets__raw_value"": ""364980.0"",
+    ""assets__scale"": ""1000000"",
+    ""assets__start"": ""NOT_APPLICABLE"",
+    ""assets__unit"": ""USD"",
+    ""eps_diluted__end"": ""2024-09-28"",
+    ""eps_diluted__evidence"": ""Diluted | $6.08 (column header: Years ended September 28, 2024; scale note: In millions, except number of shares, which are reflected in thousands, and per-share amounts)"",
+    ""eps_diluted__raw_value"": ""6.08"",
+    ""eps_diluted__scale"": ""1"",
+    ""eps_diluted__start"": ""2023-10-01"",
+    ""eps_diluted__unit"": ""USD/shares"",
+    ""revenue__end"": ""2024-09-28"",
+    ""revenue__evidence"": ""Total net sales | 391,035 — column 'September 28, 2024' (Years ended); table scale: (In millions, except number of shares, which are reflected in thousands, and per-share amounts)"",
+    ""revenue__raw_value"": ""391035.0"",
+    ""revenue__scale"": ""1000000"",
+    ""revenue__start"": ""2023-10-01"",
+    ""revenue__unit"": ""USD""
+  },
+  ""scoring"": {
+    ""scores"": {
+      ""assets__end"": {
+        ""score"": 0.97
+      },
+      ""assets__evidence"": {
+        ""score"": 0.89
+      },
+      ""assets__raw_value"": {
+        ""score"": 0.84
+      },
+      ""assets__scale"": {
+        ""score"": 0.95
+      },
+      ""assets__start"": {
+        ""score"": 0.92
+      },
+      ""assets__unit"": {
+        ""score"": 0.97
+      },
+      ""eps_diluted__end"": {
+        ""score"": 0.97
+      },
+      ""eps_diluted__evidence"": {
+        ""score"": 0.89
+      },
+      ""eps_diluted__raw_value"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__scale"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__start"": {
+        ""score"": 0.87
+      },
+      ""eps_diluted__unit"": {
+        ""score"": 0.87
+      },
+      ""revenue__end"": {
+        ""score"": 0.92
+      },
+      ""revenue__evidence"": {
+        ""score"": 0.78
+      },
+      ""revenue__raw_value"": {
+        ""score"": 0.78
+      },
+      ""revenue__scale"": {
+        ""score"": 0.92
+      },
+      ""revenue__start"": {
+        ""score"": 0.87
+      },
+      ""revenue__unit"": {
+        ""score"": 0.92
+      }
+    }
+  }
+}",2026-11-20 05:44:46.438000-08:00
+7ecb7863-87f4-4e15-8407-21b108984269,PARSE_THEN_EXTRACT,"{
+  ""error"": null,
+  ""response"": {
+    ""assets__end"": ""2021-09-25"",
+    ""assets__evidence"": ""Total assets | $ 351,002 (column header: September 25, 2021; table scale note: In millions, except number of shares which are reflected in thousands and par value)"",
+    ""assets__raw_value"": ""351002.0"",
+    ""assets__scale"": ""1000000"",
+    ""assets__start"": ""NOT_APPLICABLE"",
+    ""assets__unit"": ""USD"",
+    ""eps_diluted__end"": ""2021-09-25"",
+    ""eps_diluted__evidence"": ""Diluted | $ 5.61 (column header: Years ended September 25, 2021; table scale note: In millions, except number of shares which are reflected in thousands and per share amounts)"",
+    ""eps_diluted__raw_value"": ""5.61"",
+    ""eps_diluted__scale"": ""1"",
+    ""eps_diluted__start"": ""2020-09-27"",
+    ""eps_diluted__unit"": ""USD/shares"",
+    ""revenue__end"": ""2021-09-25"",
+    ""revenue__evidence"": ""Statement line: \""Total net sales\"" $ 365,817; column header: \""September 25, 2021\"" (Years ended); scale note: \""(In millions, except number of shares which are reflected in thousands and per share amounts)\"""",
+    ""revenue__raw_value"": ""365817.0"",
+    ""revenue__scale"": ""1000000"",
+    ""revenue__start"": ""2020-09-27"",
+    ""revenue__unit"": ""USD""
+  },
+  ""scoring"": {
+    ""scores"": {
+      ""assets__end"": {
+        ""score"": 0.97
+      },
+      ""assets__evidence"": {
+        ""score"": 0.89
+      },
+      ""assets__raw_value"": {
+        ""score"": 0.78
+      },
+      ""assets__scale"": {
+        ""score"": 0.95
+      },
+      ""assets__start"": {
+        ""score"": 0.92
+      },
+      ""assets__unit"": {
+        ""score"": 0.97
+      },
+      ""eps_diluted__end"": {
+        ""score"": 0.97
+      },
+      ""eps_diluted__evidence"": {
+        ""score"": 0.89
+      },
+      ""eps_diluted__raw_value"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__scale"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__start"": {
+        ""score"": 0.84
+      },
+      ""eps_diluted__unit"": {
+        ""score"": 0.87
+      },
+      ""revenue__end"": {
+        ""score"": 0.89
+      },
+      ""revenue__evidence"": {
+        ""score"": 0.78
+      },
+      ""revenue__raw_value"": {
+        ""score"": 0.73
+      },
+      ""revenue__scale"": {
+        ""score"": 0.91
+      },
+      ""revenue__start"": {
+        ""score"": 0.84
+      },
+      ""revenue__unit"": {
+        ""score"": 0.91
+      }
+    }
+  }
+}",2026-11-20 05:44:46.438000-08:00
+597859bc-81e1-4dbd-9c88-f51bf556432e,PARSE_THEN_EXTRACT,"{
+  ""error"": null,
+  ""response"": {
+    ""assets__end"": ""2022-09-24"",
+    ""assets__evidence"": ""Total assets | $ 352,755 (column header: September 24, 2022; table scale note: (In millions, except number of shares which are reflected in thousands and par value))"",
+    ""assets__raw_value"": ""352755.0"",
+    ""assets__scale"": ""1000000"",
+    ""assets__start"": ""NOT_APPLICABLE"",
+    ""assets__unit"": ""USD"",
+    ""eps_diluted__end"": ""2022-09-24"",
+    ""eps_diluted__evidence"": ""Diluted | $6.11 (column header: September 24, 2022, Years ended; table scale note: (In millions, except number of shares which are reflected in thousands and per share amounts))"",
+    ""eps_diluted__raw_value"": ""6.11"",
+    ""eps_diluted__scale"": ""1"",
+    ""eps_diluted__start"": ""2021-09-26"",
+    ""eps_diluted__unit"": ""USD/shares"",
+    ""revenue__end"": ""2022-09-24"",
+    ""revenue__evidence"": ""Total net sales: $394,328 in the column 'September 24, 2022' (Years ended); table in millions, except number of shares in thousands and per share amounts"",
+    ""revenue__raw_value"": ""394328.0"",
+    ""revenue__scale"": ""1000000"",
+    ""revenue__start"": ""2021-09-26"",
+    ""revenue__unit"": ""USD""
+  },
+  ""scoring"": {
+    ""scores"": {
+      ""assets__end"": {
+        ""score"": 0.95
+      },
+      ""assets__evidence"": {
+        ""score"": 0.78
+      },
+      ""assets__raw_value"": {
+        ""score"": 0.78
+      },
+      ""assets__scale"": {
+        ""score"": 0.95
+      },
+      ""assets__start"": {
+        ""score"": 0.92
+      },
+      ""assets__unit"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__end"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__evidence"": {
+        ""score"": 0.78
+      },
+      ""eps_diluted__raw_value"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__scale"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__start"": {
+        ""score"": 0.92
+      },
+      ""eps_diluted__unit"": {
+        ""score"": 0.92
+      },
+      ""revenue__end"": {
+        ""score"": 0.95
+      },
+      ""revenue__evidence"": {
+        ""score"": 0.78
+      },
+      ""revenue__raw_value"": {
+        ""score"": 0.78
+      },
+      ""revenue__scale"": {
+        ""score"": 0.92
+      },
+      ""revenue__start"": {
+        ""score"": 0.92
+      },
+      ""revenue__unit"": {
+        ""score"": 0.95
+      }
+    }
+  }
+}",2026-11-20 05:44:46.438000-08:00
+70194e16-12d8-40f8-be78-1de6cc54f7af,PARSE_THEN_EXTRACT,"{
+  ""error"": null,
+  ""response"": {
+    ""assets__end"": ""2023-09-30"",
+    ""assets__evidence"": ""Total assets | $ 352,583 (column header: September 30, 2023; CONSOLIDATED BALANCE SHEETS (In millions, except number of shares, which are reflected in thousands, and par value))"",
+    ""assets__raw_value"": ""352583.0"",
+    ""assets__scale"": ""1000000"",
+    ""assets__start"": ""NOT_APPLICABLE"",
+    ""assets__unit"": ""USD"",
+    ""eps_diluted__end"": ""2023-09-30"",
+    ""eps_diluted__evidence"": ""Diluted | $6.13 (column header: Years ended September 30, 2023; CONSOLIDATED STATEMENTS OF OPERATIONS (In millions, except number of shares, which are reflected in thousands, and per-share amounts))"",
+    ""eps_diluted__raw_value"": ""6.13"",
+    ""eps_diluted__scale"": ""1"",
+    ""eps_diluted__start"": ""2022-09-25"",
+    ""eps_diluted__unit"": ""USD/shares"",
+    ""revenue__end"": ""2023-09-30"",
+    ""revenue__evidence"": ""Statement line: \""Total net sales\"" $383,285; column header: \""Years ended September 30, 2023\""; table scale note: \""(In millions, except number of shares, which are reflected in thousands, and per-share amounts)\"""",
+    ""revenue__raw_value"": ""383285.0"",
+    ""revenue__scale"": ""1000000"",
+    ""revenue__start"": ""2022-09-25"",
+    ""revenue__unit"": ""USD""
+  },
+  ""scoring"": {
+    ""scores"": {
+      ""assets__end"": {
+        ""score"": 0.97
+      },
+      ""assets__evidence"": {
+        ""score"": 0.89
+      },
+      ""assets__raw_value"": {
+        ""score"": 0.78
+      },
+      ""assets__scale"": {
+        ""score"": 0.95
+      },
+      ""assets__start"": {
+        ""score"": 0.95
+      },
+      ""assets__unit"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__end"": {
+        ""score"": 0.97
+      },
+      ""eps_diluted__evidence"": {
+        ""score"": 0.89
+      },
+      ""eps_diluted__raw_value"": {
+        ""score"": 0.96
+      },
+      ""eps_diluted__scale"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__start"": {
+        ""score"": 0.7
+      },
+      ""eps_diluted__unit"": {
+        ""score"": 0.89
+      },
+      ""revenue__end"": {
+        ""score"": 0.92
+      },
+      ""revenue__evidence"": {
+        ""score"": 0.57
+      },
+      ""revenue__raw_value"": {
+        ""score"": 0.8
+      },
+      ""revenue__scale"": {
+        ""score"": 0.92
+      },
+      ""revenue__start"": {
+        ""score"": 0.7
+      },
+      ""revenue__unit"": {
+        ""score"": 0.91
+      }
+    }
+  }
+}",2026-11-20 05:44:46.438000-08:00
+7ecb7863-87f4-4e15-8407-21b108984269,DIRECT_PDF,"{
+  ""error"": null,
+  ""response"": {
+    ""assets__end"": ""2021-09-25"",
+    ""assets__evidence"": ""Total assets | September 25, 2021 | $351,002 | (In millions, except number of shares which are reflected in thousands and par value)"",
+    ""assets__raw_value"": ""351002.0"",
+    ""assets__scale"": ""1000000"",
+    ""assets__start"": ""NOT_APPLICABLE"",
+    ""assets__unit"": ""USD"",
+    ""eps_diluted__end"": ""2021-09-25"",
+    ""eps_diluted__evidence"": ""Diluted | September 25, 2021 | $5.61 | (In millions, except number of shares which are reflected in thousands and per share amounts)"",
+    ""eps_diluted__raw_value"": ""5.61"",
+    ""eps_diluted__scale"": ""1"",
+    ""eps_diluted__start"": ""2020-09-27"",
+    ""eps_diluted__unit"": ""USD/shares"",
+    ""revenue__end"": ""2021-09-25"",
+    ""revenue__evidence"": ""Line: Total net sales; Column: Years ended September 25, 2021; Scale: In millions, except number of shares which are reflected in thousands and per share amounts; Amount: 365,817"",
+    ""revenue__raw_value"": ""365817.0"",
+    ""revenue__scale"": ""1000000"",
+    ""revenue__start"": ""2020-09-27"",
+    ""revenue__unit"": ""USD""
+  },
+  ""scoring"": {
+    ""scores"": {
+      ""assets__end"": {
+        ""score"": 0.95
+      },
+      ""assets__evidence"": {
+        ""score"": 0.78
+      },
+      ""assets__raw_value"": {
+        ""score"": 0.87
+      },
+      ""assets__scale"": {
+        ""score"": 0.92
+      },
+      ""assets__start"": {
+        ""score"": 0.89
+      },
+      ""assets__unit"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__end"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__evidence"": {
+        ""score"": 0.78
+      },
+      ""eps_diluted__raw_value"": {
+        ""score"": 0.93
+      },
+      ""eps_diluted__scale"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__start"": {
+        ""score"": 0.87
+      },
+      ""eps_diluted__unit"": {
+        ""score"": 0.87
+      },
+      ""revenue__end"": {
+        ""score"": 0.89
+      },
+      ""revenue__evidence"": {
+        ""score"": 0.57
+      },
+      ""revenue__raw_value"": {
+        ""score"": 0.57
+      },
+      ""revenue__scale"": {
+        ""score"": 0.87
+      },
+      ""revenue__start"": {
+        ""score"": 0.87
+      },
+      ""revenue__unit"": {
+        ""score"": 0.89
+      }
+    }
+  }
+}",2026-11-20 05:43:41.528000-08:00
+f950be90-6e35-4ecd-acae-6c9e881e2579,DIRECT_PDF,"{
+  ""error"": null,
+  ""response"": {
+    ""assets__end"": ""2023-09-30"",
+    ""assets__evidence"": ""Total assets | September 30, 2023 | $352,583 | (In millions, except number of shares, which are reflected in thousands, and par value)"",
+    ""assets__raw_value"": ""352583.00"",
+    ""assets__scale"": ""1000000"",
+    ""assets__start"": ""NOT_APPLICABLE"",
+    ""assets__unit"": ""USD"",
+    ""eps_diluted__end"": ""2023-09-30"",
+    ""eps_diluted__evidence"": ""Earnings per share: Diluted | Years ended September 30, 2023 | $6.13 | (In millions, except number of shares, which are reflected in thousands, and per-share amounts)"",
+    ""eps_diluted__raw_value"": ""6.13"",
+    ""eps_diluted__scale"": ""1"",
+    ""eps_diluted__start"": ""2022-09-25"",
+    ""eps_diluted__unit"": ""USD/shares"",
+    ""revenue__end"": ""2023-09-30"",
+    ""revenue__evidence"": ""Total net sales; column September 30, 2023 (Years ended); 383,285; (In millions, except number of shares, which are reflected in thousands, and per-share amounts)"",
+    ""revenue__raw_value"": ""383285.0"",
+    ""revenue__scale"": ""1000000"",
+    ""revenue__start"": ""2022-09-25"",
+    ""revenue__unit"": ""USD""
+  },
+  ""scoring"": {
+    ""scores"": {
+      ""assets__end"": {
+        ""score"": 0.95
+      },
+      ""assets__evidence"": {
+        ""score"": 0.84
+      },
+      ""assets__raw_value"": {
+        ""score"": 0.78
+      },
+      ""assets__scale"": {
+        ""score"": 0.95
+      },
+      ""assets__start"": {
+        ""score"": 0.89
+      },
+      ""assets__unit"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__end"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__evidence"": {
+        ""score"": 0.84
+      },
+      ""eps_diluted__raw_value"": {
+        ""score"": 0.92
+      },
+      ""eps_diluted__scale"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__start"": {
+        ""score"": 0.84
+      },
+      ""eps_diluted__unit"": {
+        ""score"": 0.84
+      },
+      ""revenue__end"": {
+        ""score"": 0.87
+      },
+      ""revenue__evidence"": {
+        ""score"": 0.78
+      },
+      ""revenue__raw_value"": {
+        ""score"": 0.78
+      },
+      ""revenue__scale"": {
+        ""score"": 0.87
+      },
+      ""revenue__start"": {
+        ""score"": 0.84
+      },
+      ""revenue__unit"": {
+        ""score"": 0.89
+      }
+    }
+  }
+}",2026-11-19 04:53:39.455000-08:00
+f950be90-6e35-4ecd-acae-6c9e881e2579,PARSE_THEN_EXTRACT,"{
+  ""error"": null,
+  ""response"": {
+    ""assets__end"": ""2023-09-30"",
+    ""assets__evidence"": ""Total assets | $ 352,583 (column header: September 30, 2023; CONSOLIDATED BALANCE SHEETS, scale note: In millions, except number of shares, which are reflected in thousands, and par value)"",
+    ""assets__raw_value"": ""352583.0"",
+    ""assets__scale"": ""1000000"",
+    ""assets__start"": ""NOT_APPLICABLE"",
+    ""assets__unit"": ""USD"",
+    ""eps_diluted__end"": ""2023-09-30"",
+    ""eps_diluted__evidence"": ""Diluted | $6.13 (column header: Years ended September 30, 2023; CONSOLIDATED STATEMENTS OF OPERATIONS, scale note: In millions, except number of shares, which are reflected in thousands, and per-share amounts)"",
+    ""eps_diluted__raw_value"": ""6.13"",
+    ""eps_diluted__scale"": ""1"",
+    ""eps_diluted__start"": ""2022-09-25"",
+    ""eps_diluted__unit"": ""USD/shares"",
+    ""revenue__end"": ""2023-09-30"",
+    ""revenue__evidence"": ""Statement line: \""Total net sales\"" $383,285; column header: \""September 30, 2023\"" (Years ended); table scale note: \""(In millions, except number of shares, which are reflected in thousands, and per-share amounts)\"""",
+    ""revenue__raw_value"": ""383285.0"",
+    ""revenue__scale"": ""1000000"",
+    ""revenue__start"": ""2022-09-25"",
+    ""revenue__unit"": ""USD""
+  },
+  ""scoring"": {
+    ""scores"": {
+      ""assets__end"": {
+        ""score"": 0.97
+      },
+      ""assets__evidence"": {
+        ""score"": 0.78
+      },
+      ""assets__raw_value"": {
+        ""score"": 0.78
+      },
+      ""assets__scale"": {
+        ""score"": 0.95
+      },
+      ""assets__start"": {
+        ""score"": 0.89
+      },
+      ""assets__unit"": {
+        ""score"": 0.96
+      },
+      ""eps_diluted__end"": {
+        ""score"": 0.97
+      },
+      ""eps_diluted__evidence"": {
+        ""score"": 0.78
+      },
+      ""eps_diluted__raw_value"": {
+        ""score"": 0.96
+      },
+      ""eps_diluted__scale"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__start"": {
+        ""score"": 0.84
+      },
+      ""eps_diluted__unit"": {
+        ""score"": 0.89
+      },
+      ""revenue__end"": {
+        ""score"": 0.92
+      },
+      ""revenue__evidence"": {
+        ""score"": 0.78
+      },
+      ""revenue__raw_value"": {
+        ""score"": 0.78
+      },
+      ""revenue__scale"": {
+        ""score"": 0.92
+      },
+      ""revenue__start"": {
+        ""score"": 0.84
+      },
+      ""revenue__unit"": {
+        ""score"": 0.92
+      }
+    }
+  }
+}",2026-11-19 05:09:38.953000-08:00
+16579a9b-62f9-4aec-b505-6eac047791c2,DIRECT_PDF,"{
+  ""error"": null,
+  ""response"": {
+    ""assets__end"": ""2024-09-28"",
+    ""assets__evidence"": ""Total assets | September 28, 2024 | $ 364,980 | CONSOLIDATED BALANCE SHEETS (In millions, except number of shares, which are reflected in thousands, and par value)"",
+    ""assets__raw_value"": ""364980.0"",
+    ""assets__scale"": ""1000000"",
+    ""assets__start"": ""NOT_APPLICABLE"",
+    ""assets__unit"": ""USD"",
+    ""eps_diluted__end"": ""2024-09-28"",
+    ""eps_diluted__evidence"": ""Earnings per share: Diluted | Years ended September 28, 2024 | $ 6.08 | CONSOLIDATED STATEMENTS OF OPERATIONS (In millions, except number of shares, which are reflected in thousands, and per-share amounts)"",
+    ""eps_diluted__raw_value"": ""6.08"",
+    ""eps_diluted__scale"": ""1"",
+    ""eps_diluted__start"": ""2023-10-01"",
+    ""eps_diluted__unit"": ""USD/shares"",
+    ""revenue__end"": ""2024-09-28"",
+    ""revenue__evidence"": ""Total net sales; column 'Years ended September 28, 2024'; '(In millions, except number of shares, which are reflected in thousands, and per-share amounts)'; 391,035"",
+    ""revenue__raw_value"": ""391035.0"",
+    ""revenue__scale"": ""1000000"",
+    ""revenue__start"": ""2023-10-01"",
+    ""revenue__unit"": ""USD""
+  },
+  ""scoring"": {
+    ""scores"": {
+      ""assets__end"": {
+        ""score"": 0.97
+      },
+      ""assets__evidence"": {
+        ""score"": 0.84
+      },
+      ""assets__raw_value"": {
+        ""score"": 0.89
+      },
+      ""assets__scale"": {
+        ""score"": 0.95
+      },
+      ""assets__start"": {
+        ""score"": 0.92
+      },
+      ""assets__unit"": {
+        ""score"": 0.97
+      },
+      ""eps_diluted__end"": {
+        ""score"": 0.97
+      },
+      ""eps_diluted__evidence"": {
+        ""score"": 0.84
+      },
+      ""eps_diluted__raw_value"": {
+        ""score"": 0.96
+      },
+      ""eps_diluted__scale"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__start"": {
+        ""score"": 0.84
+      },
+      ""eps_diluted__unit"": {
+        ""score"": 0.84
+      },
+      ""revenue__end"": {
+        ""score"": 0.89
+      },
+      ""revenue__evidence"": {
+        ""score"": 0.78
+      },
+      ""revenue__raw_value"": {
+        ""score"": 0.78
+      },
+      ""revenue__scale"": {
+        ""score"": 0.89
+      },
+      ""revenue__start"": {
+        ""score"": 0.84
+      },
+      ""revenue__unit"": {
+        ""score"": 0.89
+      }
+    }
+  }
+}",2026-11-20 05:43:41.528000-08:00
+70194e16-12d8-40f8-be78-1de6cc54f7af,DIRECT_PDF,"{
+  ""error"": null,
+  ""response"": {
+    ""assets__end"": ""2023-09-30"",
+    ""assets__evidence"": ""Total assets | September 30, 2023 | $352,583 | (In millions, except number of shares, which are reflected in thousands, and par value)"",
+    ""assets__raw_value"": ""352583.00"",
+    ""assets__scale"": ""1000000"",
+    ""assets__start"": ""NOT_APPLICABLE"",
+    ""assets__unit"": ""USD"",
+    ""eps_diluted__end"": ""2023-09-30"",
+    ""eps_diluted__evidence"": ""Diluted | Earnings per share | Years ended September 30, 2023 | $6.13 | (In millions, except number of shares, which are reflected in thousands, and per-share amounts)"",
+    ""eps_diluted__raw_value"": ""6.13"",
+    ""eps_diluted__scale"": ""1"",
+    ""eps_diluted__start"": ""2022-09-25"",
+    ""eps_diluted__unit"": ""USD/shares"",
+    ""revenue__end"": ""2023-09-30"",
+    ""revenue__evidence"": ""Total net sales; column 'September 30, 2023' under 'Years ended'; 383,285; (In millions, except number of shares, which are reflected in thousands, and per-share amounts)"",
+    ""revenue__raw_value"": ""383285.0"",
+    ""revenue__scale"": ""1000000"",
+    ""revenue__start"": ""2022-09-25"",
+    ""revenue__unit"": ""USD""
+  },
+  ""scoring"": {
+    ""scores"": {
+      ""assets__end"": {
+        ""score"": 0.95
+      },
+      ""assets__evidence"": {
+        ""score"": 0.84
+      },
+      ""assets__raw_value"": {
+        ""score"": 0.84
+      },
+      ""assets__scale"": {
+        ""score"": 0.95
+      },
+      ""assets__start"": {
+        ""score"": 0.89
+      },
+      ""assets__unit"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__end"": {
+        ""score"": 0.92
+      },
+      ""eps_diluted__evidence"": {
+        ""score"": 0.84
+      },
+      ""eps_diluted__raw_value"": {
+        ""score"": 0.92
+      },
+      ""eps_diluted__scale"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__start"": {
+        ""score"": 0.89
+      },
+      ""eps_diluted__unit"": {
+        ""score"": 0.87
+      },
+      ""revenue__end"": {
+        ""score"": 0.92
+      },
+      ""revenue__evidence"": {
+        ""score"": 0.78
+      },
+      ""revenue__raw_value"": {
+        ""score"": 0.78
+      },
+      ""revenue__scale"": {
+        ""score"": 0.91
+      },
+      ""revenue__start"": {
+        ""score"": 0.89
+      },
+      ""revenue__unit"": {
+        ""score"": 0.92
+      }
+    }
+  }
+}",2026-11-20 05:43:41.528000-08:00
+597859bc-81e1-4dbd-9c88-f51bf556432e,DIRECT_PDF,"{
+  ""error"": null,
+  ""response"": {
+    ""assets__end"": ""2022-09-24"",
+    ""assets__evidence"": ""Total assets | September 24, 2022 | $352,755 | (In millions, except number of shares which are reflected in thousands and par value)"",
+    ""assets__raw_value"": ""352755.0"",
+    ""assets__scale"": ""1000000"",
+    ""assets__start"": ""NOT_APPLICABLE"",
+    ""assets__unit"": ""USD"",
+    ""eps_diluted__end"": ""2022-09-24"",
+    ""eps_diluted__evidence"": ""Earnings per share: Diluted | Year ended September 24, 2022 | $6.11 | (In millions, except number of shares which are reflected in thousands and per share amounts)"",
+    ""eps_diluted__raw_value"": ""6.11"",
+    ""eps_diluted__scale"": ""1"",
+    ""eps_diluted__start"": ""2021-09-26"",
+    ""eps_diluted__unit"": ""USD/shares"",
+    ""revenue__end"": ""2022-09-24"",
+    ""revenue__evidence"": ""Total net sales; column 'Years ended September 24, 2022'; '(In millions, except number of shares which are reflected in thousands and per share amounts)'; 394,328"",
+    ""revenue__raw_value"": ""394328.0"",
+    ""revenue__scale"": ""1000000"",
+    ""revenue__start"": ""2021-09-26"",
+    ""revenue__unit"": ""USD""
+  },
+  ""scoring"": {
+    ""scores"": {
+      ""assets__end"": {
+        ""score"": 0.97
+      },
+      ""assets__evidence"": {
+        ""score"": 0.78
+      },
+      ""assets__raw_value"": {
+        ""score"": 0.84
+      },
+      ""assets__scale"": {
+        ""score"": 0.95
+      },
+      ""assets__start"": {
+        ""score"": 0.92
+      },
+      ""assets__unit"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__end"": {
+        ""score"": 0.97
+      },
+      ""eps_diluted__evidence"": {
+        ""score"": 0.78
+      },
+      ""eps_diluted__raw_value"": {
+        ""score"": 0.96
+      },
+      ""eps_diluted__scale"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__start"": {
+        ""score"": 0.89
+      },
+      ""eps_diluted__unit"": {
+        ""score"": 0.87
+      },
+      ""revenue__end"": {
+        ""score"": 0.91
+      },
+      ""revenue__evidence"": {
+        ""score"": 0.68
+      },
+      ""revenue__raw_value"": {
+        ""score"": 0.68
+      },
+      ""revenue__scale"": {
+        ""score"": 0.91
+      },
+      ""revenue__start"": {
+        ""score"": 0.89
+      },
+      ""revenue__unit"": {
+        ""score"": 0.91
+      }
+    }
+  }
+}",2026-11-20 05:43:41.528000-08:00
+4792822c-4909-4d1d-88fe-92ce232dd829,DIRECT_PDF,"{
+  ""error"": null,
+  ""response"": {
+    ""assets__end"": ""2025-09-27"",
+    ""assets__evidence"": ""Total assets | September 27, 2025 | $ 359,241 | (In millions, except number of shares, which are reflected in thousands, and par value)"",
+    ""assets__raw_value"": ""359241.0"",
+    ""assets__scale"": ""1000000"",
+    ""assets__start"": ""NOT_APPLICABLE"",
+    ""assets__unit"": ""USD"",
+    ""eps_diluted__end"": ""2025-09-27"",
+    ""eps_diluted__evidence"": ""Diluted | September 27, 2025 | $ 7.46 | (In millions, except number of shares, which are reflected in thousands, and per-share amounts)"",
+    ""eps_diluted__raw_value"": ""7.46"",
+    ""eps_diluted__scale"": ""1"",
+    ""eps_diluted__start"": ""2024-09-29"",
+    ""eps_diluted__unit"": ""USD/shares"",
+    ""revenue__end"": ""2025-09-27"",
+    ""revenue__evidence"": ""Statement line: \""Total net sales\""; column header: \""Years ended September 27, 2025\""; scale note: \""(In millions, except number of shares, which are reflected in thousands, and per-share amounts)\""; amount: 416,161"",
+    ""revenue__raw_value"": ""416161.0"",
+    ""revenue__scale"": ""1000000"",
+    ""revenue__start"": ""2024-09-29"",
+    ""revenue__unit"": ""USD""
+  },
+  ""scoring"": {
+    ""scores"": {
+      ""assets__end"": {
+        ""score"": 0.97
+      },
+      ""assets__evidence"": {
+        ""score"": 0.84
+      },
+      ""assets__raw_value"": {
+        ""score"": 0.84
+      },
+      ""assets__scale"": {
+        ""score"": 0.95
+      },
+      ""assets__start"": {
+        ""score"": 0.92
+      },
+      ""assets__unit"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__end"": {
+        ""score"": 0.97
+      },
+      ""eps_diluted__evidence"": {
+        ""score"": 0.84
+      },
+      ""eps_diluted__raw_value"": {
+        ""score"": 0.96
+      },
+      ""eps_diluted__scale"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__start"": {
+        ""score"": 0.89
+      },
+      ""eps_diluted__unit"": {
+        ""score"": 0.89
+      },
+      ""revenue__end"": {
+        ""score"": 0.91
+      },
+      ""revenue__evidence"": {
+        ""score"": 0.78
+      },
+      ""revenue__raw_value"": {
+        ""score"": 0.78
+      },
+      ""revenue__scale"": {
+        ""score"": 0.92
+      },
+      ""revenue__start"": {
+        ""score"": 0.89
+      },
+      ""revenue__unit"": {
+        ""score"": 0.91
+      }
+    }
+  }
+}",2026-11-20 05:43:41.528000-08:00
+2404512f-d976-4b9c-ad98-918c7f376f4e,DIRECT_PDF,"{
+  ""error"": null,
+  ""response"": {
+    ""assets__end"": ""2025-09-27"",
+    ""assets__evidence"": ""Total assets; column header September 27, 2025; $359,241; table scale: (In millions, except number of shares, which are reflected in thousands, and par value)"",
+    ""assets__raw_value"": ""359241.0"",
+    ""assets__scale"": ""1000000"",
+    ""assets__start"": ""NOT_APPLICABLE"",
+    ""assets__unit"": ""USD"",
+    ""eps_basic__end"": ""2025-09-27"",
+    ""eps_basic__evidence"": ""Earnings per share: Basic; column header Years ended September 27, 2025; $7.49; table scale: (In millions, except number of shares, which are reflected in thousands, and per-share amounts)"",
+    ""eps_basic__raw_value"": ""7.49"",
+    ""eps_basic__scale"": ""1"",
+    ""eps_basic__start"": ""2024-09-29"",
+    ""eps_basic__unit"": ""USD/shares"",
+    ""eps_diluted__end"": ""2025-09-27"",
+    ""eps_diluted__evidence"": ""Diluted: $7.46; column header \""September 27, 2025\"" (Years ended); \""(In millions, except number of shares, which are reflected in thousands, and per-share amounts)\"""",
+    ""eps_diluted__raw_value"": ""7.46"",
+    ""eps_diluted__scale"": ""1"",
+    ""eps_diluted__start"": ""2024-09-29"",
+    ""eps_diluted__unit"": ""USD/shares"",
+    ""equity__end"": ""2025-09-27"",
+    ""equity__evidence"": ""Total shareholders' equity: 73,733; column header \""September 27, 2025\""; \""(In millions, except number of shares, which are reflected in thousands, and par value)\"""",
+    ""equity__raw_value"": ""73733.0"",
+    ""equity__scale"": ""1000000"",
+    ""equity__start"": ""NOT_APPLICABLE"",
+    ""equity__unit"": ""USD"",
+    ""gross_profit__end"": ""2025-09-27"",
+    ""gross_profit__evidence"": ""Gross margin; September 27, 2025 (Years ended); (In millions, except number of shares, which are reflected in thousands, and per-share amounts): 195,201"",
+    ""gross_profit__raw_value"": ""195201.0"",
+    ""gross_profit__scale"": ""1000000"",
+    ""gross_profit__start"": ""2024-09-29"",
+    ""gross_profit__unit"": ""USD"",
+    ""liabilities__end"": ""2025-09-27"",
+    ""liabilities__evidence"": ""Total liabilities | September 27, 2025 | 285,508 | (In millions, except number of shares, which are reflected in thousands, and par value)"",
+    ""liabilities__raw_value"": ""285508.0"",
+    ""liabilities__scale"": ""1000000"",
+    ""liabilities__start"": ""NOT_APPLICABLE"",
+    ""liabilities__unit"": ""USD"",
+    ""net_income__end"": ""2025-09-27"",
+    ""net_income__evidence"": ""Net income | September 27, 2025 | $112,010 | (In millions, except number of shares, which are reflected in thousands, and per-share amounts)"",
+    ""net_income__raw_value"": ""112010.0"",
+    ""net_income__scale"": ""1000000"",
+    ""net_income__start"": ""2024-09-29"",
+    ""net_income__unit"": ""USD"",
+    ""operating_cash_flow__end"": ""2025-09-27"",
+    ""operating_cash_flow__evidence"": ""Cash generated by operating activities; column September 27, 2025 (Years ended); 111,482; (In millions)"",
+    ""operating_cash_flow__raw_value"": ""111482.0"",
+    ""operating_cash_flow__scale"": ""1000000"",
+    ""operating_cash_flow__start"": ""2024-09-29"",
+    ""operating_cash_flow__unit"": ""USD"",
+    ""operating_income__end"": ""2025-09-27"",
+    ""operating_income__evidence"": ""Operating income; column September 27, 2025 (Years ended); 133,050; (In millions, except number of shares, which are reflected in thousands, and per-share amounts)"",
+    ""operating_income__raw_value"": ""133050.0"",
+    ""operating_income__scale"": ""1000000"",
+    ""operating_income__start"": ""2024-09-29"",
+    ""operating_income__unit"": ""USD"",
+    ""revenue__end"": ""2025-09-27"",
+    ""revenue__evidence"": ""Total net sales; column 'September 27, 2025' under 'Years ended': 416,161; '(In millions, except number of shares, which are reflected in thousands, and per-share amounts)'"",
+    ""revenue__raw_value"": ""416161.0"",
+    ""revenue__scale"": ""1000000"",
+    ""revenue__start"": ""2024-09-29"",
+    ""revenue__unit"": ""USD""
+  },
+  ""scoring"": {
+    ""scores"": {
+      ""assets__end"": {
+        ""score"": 0.97
+      },
+      ""assets__evidence"": {
+        ""score"": 0.89
+      },
+      ""assets__raw_value"": {
+        ""score"": 0.84
+      },
+      ""assets__scale"": {
+        ""score"": 0.96
+      },
+      ""assets__start"": {
+        ""score"": 0.92
+      },
+      ""assets__unit"": {
+        ""score"": 0.97
+      },
+      ""eps_basic__end"": {
+        ""score"": 0.97
+      },
+      ""eps_basic__evidence"": {
+        ""score"": 0.89
+      },
+      ""eps_basic__raw_value"": {
+        ""score"": 0.97
+      },
+      ""eps_basic__scale"": {
+        ""score"": 0.95
+      },
+      ""eps_basic__start"": {
+        ""score"": 0.78
+      },
+      ""eps_basic__unit"": {
+        ""score"": 0.84
+      },
+      ""eps_diluted__end"": {
+        ""score"": 0.91
+      },
+      ""eps_diluted__evidence"": {
+        ""score"": 0.84
+      },
+      ""eps_diluted__raw_value"": {
+        ""score"": 0.92
+      },
+      ""eps_diluted__scale"": {
+        ""score"": 0.92
+      },
+      ""eps_diluted__start"": {
+        ""score"": 0.78
+      },
+      ""eps_diluted__unit"": {
+        ""score"": 0.84
+      },
+      ""equity__end"": {
+        ""score"": 0.91
+      },
+      ""equity__evidence"": {
+        ""score"": 0.84
+      },
+      ""equity__raw_value"": {
+        ""score"": 0.89
+      },
+      ""equity__scale"": {
+        ""score"": 0.92
+      },
+      ""equity__start"": {
+        ""score"": 0.89
+      },
+      ""equity__unit"": {
+        ""score"": 0.92
+      },
+      ""gross_profit__end"": {
+        ""score"": 0.95
+      },
+      ""gross_profit__evidence"": {
+        ""score"": 0.78
+      },
+      ""gross_profit__raw_value"": {
+        ""score"": 0.89
+      },
+      ""gross_profit__scale"": {
+        ""score"": 0.92
+      },
+      ""gross_profit__start"": {
+        ""score"": 0.89
+      },
+      ""gross_profit__unit"": {
+        ""score"": 0.93
+      },
+      ""liabilities__end"": {
+        ""score"": 0.95
+      },
+      ""liabilities__evidence"": {
+        ""score"": 0.89
+      },
+      ""liabilities__raw_value"": {
+        ""score"": 0.87
+      },
+      ""liabilities__scale"": {
+        ""score"": 0.95
+      },
+      ""liabilities__start"": {
+        ""score"": 0.92
+      },
+      ""liabilities__unit"": {
+        ""score"": 0.95
+      },
+      ""net_income__end"": {
+        ""score"": 0.95
+      },
+      ""net_income__evidence"": {
+        ""score"": 0.89
+      },
+      ""net_income__raw_value"": {
+        ""score"": 0.87
+      },
+      ""net_income__scale"": {
+        ""score"": 0.95
+      },
+      ""net_income__start"": {
+        ""score"": 0.84
+      },
+      ""net_income__unit"": {
+        ""score"": 0.89
+      },
+      ""operating_cash_flow__end"": {
+        ""score"": 0.92
+      },
+      ""operating_cash_flow__evidence"": {
+        ""score"": 0.78
+      },
+      ""operating_cash_flow__raw_value"": {
+        ""score"": 0.78
+      },
+      ""operating_cash_flow__scale"": {
+        ""score"": 0.92
+      },
+      ""operating_cash_flow__start"": {
+        ""score"": 0.84
+      },
+      ""operating_cash_flow__unit"": {
+        ""score"": 0.89
+      },
+      ""operating_income__end"": {
+        ""score"": 0.92
+      },
+      ""operating_income__evidence"": {
+        ""score"": 0.78
+      },
+      ""operating_income__raw_value"": {
+        ""score"": 0.87
+      },
+      ""operating_income__scale"": {
+        ""score"": 0.92
+      },
+      ""operating_income__start"": {
+        ""score"": 0.89
+      },
+      ""operating_income__unit"": {
+        ""score"": 0.95
+      },
+      ""revenue__end"": {
+        ""score"": 0.95
+      },
+      ""revenue__evidence"": {
+        ""score"": 0.78
+      },
+      ""revenue__raw_value"": {
+        ""score"": 0.84
+      },
+      ""revenue__scale"": {
+        ""score"": 0.92
+      },
+      ""revenue__start"": {
+        ""score"": 0.89
+      },
+      ""revenue__unit"": {
+        ""score"": 0.95
+      }
+    }
+  }
+}",2026-11-20 06:42:19.689000-08:00
+1b2bf4db-2f09-4bd1-9d60-b2dab87cc104,DIRECT_PDF,"{
+  ""error"": null,
+  ""response"": {
+    ""assets__end"": ""2021-09-25"",
+    ""assets__evidence"": ""Total assets; column header \""September 25, 2021\""; $351,002; table scale note: \""(In millions, except number of shares which are reflected in thousands and par value)\"""",
+    ""assets__raw_value"": ""351002.0"",
+    ""assets__scale"": ""1000000"",
+    ""assets__start"": ""NOT_APPLICABLE"",
+    ""assets__unit"": ""USD"",
+    ""eps_basic__end"": ""2021-09-25"",
+    ""eps_basic__evidence"": ""Earnings per share: Basic; column header \""September 25, 2021\"" (Years ended); $5.67; table scale note: \""(In millions, except number of shares which are reflected in thousands and per share amounts)\"""",
+    ""eps_basic__raw_value"": ""5.67"",
+    ""eps_basic__scale"": ""1"",
+    ""eps_basic__start"": ""2020-09-27"",
+    ""eps_basic__unit"": ""USD/shares"",
+    ""eps_diluted__end"": ""2021-09-25"",
+    ""eps_diluted__evidence"": ""Diluted $5.61 — Earnings per share: Diluted; column 'September 25, 2021' (Years ended); table scale: (In millions, except number of shares which are reflected in thousands and per share amounts)"",
+    ""eps_diluted__raw_value"": ""5.61"",
+    ""eps_diluted__scale"": ""1"",
+    ""eps_diluted__start"": ""2020-09-27"",
+    ""eps_diluted__unit"": ""USD/shares"",
+    ""equity__end"": ""2021-09-25"",
+    ""equity__evidence"": ""Total shareholders' equity: 63,090; column 'September 25, 2021'; table scale: (In millions, except number of shares which are reflected in thousands and par value)"",
+    ""equity__raw_value"": ""63090.0"",
+    ""equity__scale"": ""1000000"",
+    ""equity__start"": ""NOT_APPLICABLE"",
+    ""equity__unit"": ""USD"",
+    ""gross_profit__end"": ""2021-09-25"",
+    ""gross_profit__evidence"": ""Gross margin 152,836; column header 'September 25, 2021' (Years ended); table scale note: (In millions, except number of shares which are reflected in thousands and per share amounts)"",
+    ""gross_profit__raw_value"": ""152836.0"",
+    ""gross_profit__scale"": ""1000000"",
+    ""gross_profit__start"": ""2020-09-27"",
+    ""gross_profit__unit"": ""USD"",
+    ""liabilities__end"": ""2021-09-25"",
+    ""liabilities__evidence"": ""Total liabilities; column header September 25, 2021; 287,912; (In millions, except number of shares which are reflected in thousands and par value)"",
+    ""liabilities__raw_value"": ""287912.0"",
+    ""liabilities__scale"": ""1000000"",
+    ""liabilities__start"": ""NOT_APPLICABLE"",
+    ""liabilities__unit"": ""USD"",
+    ""net_income__end"": ""2021-09-25"",
+    ""net_income__evidence"": ""Net income; column header Years ended September 25, 2021; 94,680; (In millions, except number of shares which are reflected in thousands and per share amounts)"",
+    ""net_income__raw_value"": ""94680.0"",
+    ""net_income__scale"": ""1000000"",
+    ""net_income__start"": ""2020-09-27"",
+    ""net_income__unit"": ""USD"",
+    ""operating_cash_flow__end"": ""2021-09-25"",
+    ""operating_cash_flow__evidence"": ""Cash generated by operating activities; September 25, 2021 (Years ended); 104,038; (In millions)"",
+    ""operating_cash_flow__raw_value"": ""104038.0"",
+    ""operating_cash_flow__scale"": ""1000000"",
+    ""operating_cash_flow__start"": ""2020-09-27"",
+    ""operating_cash_flow__unit"": ""USD"",
+    ""operating_income__end"": ""2021-09-25"",
+    ""operating_income__evidence"": ""Operating income; September 25, 2021 (Years ended); 108,949; (In millions, except number of shares which are reflected in thousands and per share amounts)"",
+    ""operating_income__raw_value"": ""108949.0"",
+    ""operating_income__scale"": ""1000000"",
+    ""operating_income__start"": ""2020-09-27"",
+    ""operating_income__unit"": ""USD"",
+    ""revenue__end"": ""2021-09-25"",
+    ""revenue__evidence"": ""Total net sales; column 'September 25, 2021' (Years ended): $365,817; table scale: 'In millions, except number of shares which are reflected in thousands and per share amounts'"",
+    ""revenue__raw_value"": ""365817.0"",
+    ""revenue__scale"": ""1000000"",
+    ""revenue__start"": ""2020-09-27"",
+    ""revenue__unit"": ""USD""
+  },
+  ""scoring"": {
+    ""scores"": {
+      ""assets__end"": {
+        ""score"": 0.97
+      },
+      ""assets__evidence"": {
+        ""score"": 0.89
+      },
+      ""assets__raw_value"": {
+        ""score"": 0.84
+      },
+      ""assets__scale"": {
+        ""score"": 0.97
+      },
+      ""assets__start"": {
+        ""score"": 0.92
+      },
+      ""assets__unit"": {
+        ""score"": 0.97
+      },
+      ""eps_basic__end"": {
+        ""score"": 0.97
+      },
+      ""eps_basic__evidence"": {
+        ""score"": 0.89
+      },
+      ""eps_basic__raw_value"": {
+        ""score"": 0.97
+      },
+      ""eps_basic__scale"": {
+        ""score"": 0.96
+      },
+      ""eps_basic__start"": {
+        ""score"": 0.78
+      },
+      ""eps_basic__unit"": {
+        ""score"": 0.84
+      },
+      ""eps_diluted__end"": {
+        ""score"": 0.92
+      },
+      ""eps_diluted__evidence"": {
+        ""score"": 0.87
+      },
+      ""eps_diluted__raw_value"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__scale"": {
+        ""score"": 0.92
+      },
+      ""eps_diluted__start"": {
+        ""score"": 0.78
+      },
+      ""eps_diluted__unit"": {
+        ""score"": 0.84
+      },
+      ""equity__end"": {
+        ""score"": 0.92
+      },
+      ""equity__evidence"": {
+        ""score"": 0.87
+      },
+      ""equity__raw_value"": {
+        ""score"": 0.92
+      },
+      ""equity__scale"": {
+        ""score"": 0.92
+      },
+      ""equity__start"": {
+        ""score"": 0.89
+      },
+      ""equity__unit"": {
+        ""score"": 0.92
+      },
+      ""gross_profit__end"": {
+        ""score"": 0.92
+      },
+      ""gross_profit__evidence"": {
+        ""score"": 0.84
+      },
+      ""gross_profit__raw_value"": {
+        ""score"": 0.91
+      },
+      ""gross_profit__scale"": {
+        ""score"": 0.92
+      },
+      ""gross_profit__start"": {
+        ""score"": 0.89
+      },
+      ""gross_profit__unit"": {
+        ""score"": 0.92
+      },
+      ""liabilities__end"": {
+        ""score"": 0.97
+      },
+      ""liabilities__evidence"": {
+        ""score"": 0.89
+      },
+      ""liabilities__raw_value"": {
+        ""score"": 0.84
+      },
+      ""liabilities__scale"": {
+        ""score"": 0.96
+      },
+      ""liabilities__start"": {
+        ""score"": 0.92
+      },
+      ""liabilities__unit"": {
+        ""score"": 0.96
+      },
+      ""net_income__end"": {
+        ""score"": 0.97
+      },
+      ""net_income__evidence"": {
+        ""score"": 0.89
+      },
+      ""net_income__raw_value"": {
+        ""score"": 0.84
+      },
+      ""net_income__scale"": {
+        ""score"": 0.96
+      },
+      ""net_income__start"": {
+        ""score"": 0.89
+      },
+      ""net_income__unit"": {
+        ""score"": 0.92
+      },
+      ""operating_cash_flow__end"": {
+        ""score"": 0.95
+      },
+      ""operating_cash_flow__evidence"": {
+        ""score"": 0.84
+      },
+      ""operating_cash_flow__raw_value"": {
+        ""score"": 0.78
+      },
+      ""operating_cash_flow__scale"": {
+        ""score"": 0.95
+      },
+      ""operating_cash_flow__start"": {
+        ""score"": 0.89
+      },
+      ""operating_cash_flow__unit"": {
+        ""score"": 0.92
+      },
+      ""operating_income__end"": {
+        ""score"": 0.95
+      },
+      ""operating_income__evidence"": {
+        ""score"": 0.84
+      },
+      ""operating_income__raw_value"": {
+        ""score"": 0.87
+      },
+      ""operating_income__scale"": {
+        ""score"": 0.92
+      },
+      ""operating_income__start"": {
+        ""score"": 0.89
+      },
+      ""operating_income__unit"": {
+        ""score"": 0.95
+      },
+      ""revenue__end"": {
+        ""score"": 0.92
+      },
+      ""revenue__evidence"": {
+        ""score"": 0.78
+      },
+      ""revenue__raw_value"": {
+        ""score"": 0.84
+      },
+      ""revenue__scale"": {
+        ""score"": 0.92
+      },
+      ""revenue__start"": {
+        ""score"": 0.89
+      },
+      ""revenue__unit"": {
+        ""score"": 0.95
+      }
+    }
+  }
+}",2026-11-20 06:42:19.689000-08:00
+c972e1aa-96d4-4cb1-9e1a-37025c4baf9a,DIRECT_PDF,"{
+  ""error"": null,
+  ""response"": {
+    ""assets__end"": ""2022-09-24"",
+    ""assets__evidence"": ""Total assets; column header September 24, 2022; $352,755; table scale: (In millions, except number of shares which are reflected in thousands and par value)"",
+    ""assets__raw_value"": ""352755.0"",
+    ""assets__scale"": ""1000000"",
+    ""assets__start"": ""NOT_APPLICABLE"",
+    ""assets__unit"": ""USD"",
+    ""eps_basic__end"": ""2022-09-24"",
+    ""eps_basic__evidence"": ""Earnings per share: Basic; column header September 24, 2022; $6.15; table scale: (In millions, except number of shares which are reflected in thousands and per share amounts)"",
+    ""eps_basic__raw_value"": ""6.15"",
+    ""eps_basic__scale"": ""1"",
+    ""eps_basic__start"": ""2021-09-26"",
+    ""eps_basic__unit"": ""USD/shares"",
+    ""eps_diluted__end"": ""2022-09-24"",
+    ""eps_diluted__evidence"": ""Diluted | Years ended September 24, 2022 | $6.11 | (In millions, except number of shares which are reflected in thousands and per share amounts)"",
+    ""eps_diluted__raw_value"": ""6.11"",
+    ""eps_diluted__scale"": ""1"",
+    ""eps_diluted__start"": ""2021-09-26"",
+    ""eps_diluted__unit"": ""USD/shares"",
+    ""equity__end"": ""2022-09-24"",
+    ""equity__evidence"": ""Total shareholders' equity | September 24, 2022 | 50,672 | (In millions, except number of shares which are reflected in thousands and par value)"",
+    ""equity__raw_value"": ""50672"",
+    ""equity__scale"": ""1000000"",
+    ""equity__start"": ""NOT_APPLICABLE"",
+    ""equity__unit"": ""USD"",
+    ""gross_profit__end"": ""2022-09-24"",
+    ""gross_profit__evidence"": ""Gross margin 170,782; column 'Years ended September 24, 2022'; '(In millions, except number of shares which are reflected in thousands and per share amounts)'"",
+    ""gross_profit__raw_value"": ""170782"",
+    ""gross_profit__scale"": ""1000000"",
+    ""gross_profit__start"": ""2021-09-26"",
+    ""gross_profit__unit"": ""USD"",
+    ""liabilities__end"": ""2022-09-24"",
+    ""liabilities__evidence"": ""Total liabilities | September 24, 2022 | 302,083 | (In millions, except number of shares which are reflected in thousands and par value)"",
+    ""liabilities__raw_value"": ""302083.0"",
+    ""liabilities__scale"": ""1000000"",
+    ""liabilities__start"": ""NOT_APPLICABLE"",
+    ""liabilities__unit"": ""USD"",
+    ""net_income__end"": ""2022-09-24"",
+    ""net_income__evidence"": ""Net income | September 24, 2022 | $99,803 | (In millions, except number of shares which are reflected in thousands and per share amounts)"",
+    ""net_income__raw_value"": ""99803.0"",
+    ""net_income__scale"": ""1000000"",
+    ""net_income__start"": ""2021-09-26"",
+    ""net_income__unit"": ""USD"",
+    ""operating_cash_flow__end"": ""2022-09-24"",
+    ""operating_cash_flow__evidence"": ""Cash generated by operating activities; column \""September 24, 2022\"" (Years ended): 122,151; (In millions)"",
+    ""operating_cash_flow__raw_value"": ""122151.0"",
+    ""operating_cash_flow__scale"": ""1000000"",
+    ""operating_cash_flow__start"": ""2021-09-26"",
+    ""operating_cash_flow__unit"": ""USD"",
+    ""operating_income__end"": ""2022-09-24"",
+    ""operating_income__evidence"": ""Operating income; column \""September 24, 2022\"" (Years ended): 119,437; (In millions, except number of shares which are reflected in thousands and per share amounts)"",
+    ""operating_income__raw_value"": ""119437"",
+    ""operating_income__scale"": ""1000000"",
+    ""operating_income__start"": ""2021-09-26"",
+    ""operating_income__unit"": ""USD"",
+    ""revenue__end"": ""2022-09-24"",
+    ""revenue__evidence"": ""Statement line: Total net sales; column header: Years ended September 24, 2022; table scale note: (In millions, except number of shares which are reflected in thousands and per share amounts); amount 394,328"",
+    ""revenue__raw_value"": ""394328"",
+    ""revenue__scale"": ""1000000"",
+    ""revenue__start"": ""2021-09-26"",
+    ""revenue__unit"": ""USD""
+  },
+  ""scoring"": {
+    ""scores"": {
+      ""assets__end"": {
+        ""score"": 0.97
+      },
+      ""assets__evidence"": {
+        ""score"": 0.89
+      },
+      ""assets__raw_value"": {
+        ""score"": 0.84
+      },
+      ""assets__scale"": {
+        ""score"": 0.96
+      },
+      ""assets__start"": {
+        ""score"": 0.95
+      },
+      ""assets__unit"": {
+        ""score"": 0.97
+      },
+      ""eps_basic__end"": {
+        ""score"": 0.97
+      },
+      ""eps_basic__evidence"": {
+        ""score"": 0.89
+      },
+      ""eps_basic__raw_value"": {
+        ""score"": 0.96
+      },
+      ""eps_basic__scale"": {
+        ""score"": 0.95
+      },
+      ""eps_basic__start"": {
+        ""score"": 0.84
+      },
+      ""eps_basic__unit"": {
+        ""score"": 0.84
+      },
+      ""eps_diluted__end"": {
+        ""score"": 0.92
+      },
+      ""eps_diluted__evidence"": {
+        ""score"": 0.78
+      },
+      ""eps_diluted__raw_value"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__scale"": {
+        ""score"": 0.89
+      },
+      ""eps_diluted__start"": {
+        ""score"": 0.84
+      },
+      ""eps_diluted__unit"": {
+        ""score"": 0.84
+      },
+      ""equity__end"": {
+        ""score"": 0.92
+      },
+      ""equity__evidence"": {
+        ""score"": 0.84
+      },
+      ""equity__raw_value"": {
+        ""score"": 0.95
+      },
+      ""equity__scale"": {
+        ""score"": 0.92
+      },
+      ""equity__start"": {
+        ""score"": 0.89
+      },
+      ""equity__unit"": {
+        ""score"": 0.95
+      },
+      ""gross_profit__end"": {
+        ""score"": 0.92
+      },
+      ""gross_profit__evidence"": {
+        ""score"": 0.84
+      },
+      ""gross_profit__raw_value"": {
+        ""score"": 0.95
+      },
+      ""gross_profit__scale"": {
+        ""score"": 0.92
+      },
+      ""gross_profit__start"": {
+        ""score"": 0.89
+      },
+      ""gross_profit__unit"": {
+        ""score"": 0.95
+      },
+      ""liabilities__end"": {
+        ""score"": 0.95
+      },
+      ""liabilities__evidence"": {
+        ""score"": 0.87
+      },
+      ""liabilities__raw_value"": {
+        ""score"": 0.89
+      },
+      ""liabilities__scale"": {
+        ""score"": 0.95
+      },
+      ""liabilities__start"": {
+        ""score"": 0.89
+      },
+      ""liabilities__unit"": {
+        ""score"": 0.92
+      },
+      ""net_income__end"": {
+        ""score"": 0.95
+      },
+      ""net_income__evidence"": {
+        ""score"": 0.87
+      },
+      ""net_income__raw_value"": {
+        ""score"": 0.91
+      },
+      ""net_income__scale"": {
+        ""score"": 0.95
+      },
+      ""net_income__start"": {
+        ""score"": 0.84
+      },
+      ""net_income__unit"": {
+        ""score"": 0.92
+      },
+      ""operating_cash_flow__end"": {
+        ""score"": 0.92
+      },
+      ""operating_cash_flow__evidence"": {
+        ""score"": 0.78
+      },
+      ""operating_cash_flow__raw_value"": {
+        ""score"": 0.78
+      },
+      ""operating_cash_flow__scale"": {
+        ""score"": 0.92
+      },
+      ""operating_cash_flow__start"": {
+        ""score"": 0.84
+      },
+      ""operating_cash_flow__unit"": {
+        ""score"": 0.92
+      },
+      ""operating_income__end"": {
+        ""score"": 0.92
+      },
+      ""operating_income__evidence"": {
+        ""score"": 0.78
+      },
+      ""operating_income__raw_value"": {
+        ""score"": 0.95
+      },
+      ""operating_income__scale"": {
+        ""score"": 0.92
+      },
+      ""operating_income__start"": {
+        ""score"": 0.89
+      },
+      ""operating_income__unit"": {
+        ""score"": 0.92
+      },
+      ""revenue__end"": {
+        ""score"": 0.92
+      },
+      ""revenue__evidence"": {
+        ""score"": 0.84
+      },
+      ""revenue__raw_value"": {
+        ""score"": 0.89
+      },
+      ""revenue__scale"": {
+        ""score"": 0.92
+      },
+      ""revenue__start"": {
+        ""score"": 0.89
+      },
+      ""revenue__unit"": {
+        ""score"": 0.92
+      }
+    }
+  }
+}",2026-11-20 06:42:19.689000-08:00
+173a518a-f814-4b7e-97e2-b65f07b4b67d,DIRECT_PDF,"{
+  ""error"": null,
+  ""response"": {
+    ""assets__end"": ""2024-09-28"",
+    ""assets__evidence"": ""Total assets; column September 28, 2024: $ 364,980; CONSOLIDATED BALANCE SHEETS (In millions, except number of shares, which are reflected in thousands, and par value)"",
+    ""assets__raw_value"": ""364980.0"",
+    ""assets__scale"": ""1000000"",
+    ""assets__start"": ""NOT_APPLICABLE"",
+    ""assets__unit"": ""USD"",
+    ""eps_basic__end"": ""2024-09-28"",
+    ""eps_basic__evidence"": ""Earnings per share: Basic; column Years ended September 28, 2024: $ 6.11; CONSOLIDATED STATEMENTS OF OPERATIONS (In millions, except number of shares, which are reflected in thousands, and per-share amounts)"",
+    ""eps_basic__raw_value"": ""6.11"",
+    ""eps_basic__scale"": ""1"",
+    ""eps_basic__start"": ""2023-10-01"",
+    ""eps_basic__unit"": ""USD/shares"",
+    ""eps_diluted__end"": ""2024-09-28"",
+    ""eps_diluted__evidence"": ""Diluted (Earnings per share), Years ended September 28, 2024: $6.08; statements in millions, except number of shares (in thousands) and per-share amounts"",
+    ""eps_diluted__raw_value"": ""6.08"",
+    ""eps_diluted__scale"": ""1"",
+    ""eps_diluted__start"": ""2023-10-01"",
+    ""eps_diluted__unit"": ""USD/shares"",
+    ""equity__end"": ""2024-09-28"",
+    ""equity__evidence"": ""Total shareholders' equity, September 28, 2024: 56,950 (In millions, except number of shares, which are reflected in thousands, and par value)"",
+    ""equity__raw_value"": ""56950.0"",
+    ""equity__scale"": ""1000000"",
+    ""equity__start"": ""NOT_APPLICABLE"",
+    ""equity__unit"": ""USD"",
+    ""gross_profit__end"": ""2024-09-28"",
+    ""gross_profit__evidence"": ""Gross margin 180,683; column 'Years ended September 28, 2024'; '(In millions, except number of shares, which are reflected in thousands, and per-share amounts)'"",
+    ""gross_profit__raw_value"": ""180683.0"",
+    ""gross_profit__scale"": ""1000000"",
+    ""gross_profit__start"": ""2023-10-01"",
+    ""gross_profit__unit"": ""USD"",
+    ""liabilities__end"": ""2024-09-28"",
+    ""liabilities__evidence"": ""Total liabilities | September 28, 2024 | 308,030 | (In millions, except number of shares, which are reflected in thousands, and par value)"",
+    ""liabilities__raw_value"": ""308030.0"",
+    ""liabilities__scale"": ""1000000"",
+    ""liabilities__start"": ""NOT_APPLICABLE"",
+    ""liabilities__unit"": ""USD"",
+    ""net_income__end"": ""2024-09-28"",
+    ""net_income__evidence"": ""Net income | Years ended September 28, 2024 | $93,736 | (In millions, except number of shares, which are reflected in thousands, and per-share amounts)"",
+    ""net_income__raw_value"": ""93736.0"",
+    ""net_income__scale"": ""1000000"",
+    ""net_income__start"": ""2023-10-01"",
+    ""net_income__unit"": ""USD"",
+    ""operating_cash_flow__end"": ""2024-09-28"",
+    ""operating_cash_flow__evidence"": ""Cash generated by operating activities; Years ended September 28, 2024; 118,254 (In millions)"",
+    ""operating_cash_flow__raw_value"": ""118254.0"",
+    ""operating_cash_flow__scale"": ""1000000"",
+    ""operating_cash_flow__start"": ""2023-10-01"",
+    ""operating_cash_flow__unit"": ""USD"",
+    ""operating_income__end"": ""2024-09-28"",
+    ""operating_income__evidence"": ""Operating income; Years ended September 28, 2024; 123,216 (In millions, except number of shares, which are reflected in thousands, and per-share amounts)"",
+    ""operating_income__raw_value"": ""123216.0"",
+    ""operating_income__scale"": ""1000000"",
+    ""operating_income__start"": ""2023-10-01"",
+    ""operating_income__unit"": ""USD"",
+    ""revenue__end"": ""2024-09-28"",
+    ""revenue__evidence"": ""Total net sales: 391,035 under the 'September 28, 2024' column of 'Years ended'; table scale: (In millions, except number of shares, which are reflected in thousands, and per-share amounts)"",
+    ""revenue__raw_value"": ""391035.0"",
+    ""revenue__scale"": ""1000000"",
+    ""revenue__start"": ""2023-10-01"",
+    ""revenue__unit"": ""USD""
+  },
+  ""scoring"": {
+    ""scores"": {
+      ""assets__end"": {
+        ""score"": 0.95
+      },
+      ""assets__evidence"": {
+        ""score"": 0.89
+      },
+      ""assets__raw_value"": {
+        ""score"": 0.89
+      },
+      ""assets__scale"": {
+        ""score"": 0.95
+      },
+      ""assets__start"": {
+        ""score"": 0.92
+      },
+      ""assets__unit"": {
+        ""score"": 0.92
+      },
+      ""eps_basic__end"": {
+        ""score"": 0.95
+      },
+      ""eps_basic__evidence"": {
+        ""score"": 0.89
+      },
+      ""eps_basic__raw_value"": {
+        ""score"": 0.95
+      },
+      ""eps_basic__scale"": {
+        ""score"": 0.95
+      },
+      ""eps_basic__start"": {
+        ""score"": 0.78
+      },
+      ""eps_basic__unit"": {
+        ""score"": 0.84
+      },
+      ""eps_diluted__end"": {
+        ""score"": 0.92
+      },
+      ""eps_diluted__evidence"": {
+        ""score"": 0.84
+      },
+      ""eps_diluted__raw_value"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__scale"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__start"": {
+        ""score"": 0.78
+      },
+      ""eps_diluted__unit"": {
+        ""score"": 0.84
+      },
+      ""equity__end"": {
+        ""score"": 0.92
+      },
+      ""equity__evidence"": {
+        ""score"": 0.87
+      },
+      ""equity__raw_value"": {
+        ""score"": 0.89
+      },
+      ""equity__scale"": {
+        ""score"": 0.92
+      },
+      ""equity__start"": {
+        ""score"": 0.87
+      },
+      ""equity__unit"": {
+        ""score"": 0.92
+      },
+      ""gross_profit__end"": {
+        ""score"": 0.95
+      },
+      ""gross_profit__evidence"": {
+        ""score"": 0.84
+      },
+      ""gross_profit__raw_value"": {
+        ""score"": 0.89
+      },
+      ""gross_profit__scale"": {
+        ""score"": 0.95
+      },
+      ""gross_profit__start"": {
+        ""score"": 0.89
+      },
+      ""gross_profit__unit"": {
+        ""score"": 0.95
+      },
+      ""liabilities__end"": {
+        ""score"": 0.96
+      },
+      ""liabilities__evidence"": {
+        ""score"": 0.89
+      },
+      ""liabilities__raw_value"": {
+        ""score"": 0.92
+      },
+      ""liabilities__scale"": {
+        ""score"": 0.95
+      },
+      ""liabilities__start"": {
+        ""score"": 0.92
+      },
+      ""liabilities__unit"": {
+        ""score"": 0.96
+      },
+      ""net_income__end"": {
+        ""score"": 0.96
+      },
+      ""net_income__evidence"": {
+        ""score"": 0.87
+      },
+      ""net_income__raw_value"": {
+        ""score"": 0.92
+      },
+      ""net_income__scale"": {
+        ""score"": 0.95
+      },
+      ""net_income__start"": {
+        ""score"": 0.73
+      },
+      ""net_income__unit"": {
+        ""score"": 0.92
+      },
+      ""operating_cash_flow__end"": {
+        ""score"": 0.92
+      },
+      ""operating_cash_flow__evidence"": {
+        ""score"": 0.84
+      },
+      ""operating_cash_flow__raw_value"": {
+        ""score"": 0.78
+      },
+      ""operating_cash_flow__scale"": {
+        ""score"": 0.92
+      },
+      ""operating_cash_flow__start"": {
+        ""score"": 0.73
+      },
+      ""operating_cash_flow__unit"": {
+        ""score"": 0.92
+      },
+      ""operating_income__end"": {
+        ""score"": 0.92
+      },
+      ""operating_income__evidence"": {
+        ""score"": 0.84
+      },
+      ""operating_income__raw_value"": {
+        ""score"": 0.89
+      },
+      ""operating_income__scale"": {
+        ""score"": 0.92
+      },
+      ""operating_income__start"": {
+        ""score"": 0.89
+      },
+      ""operating_income__unit"": {
+        ""score"": 0.95
+      },
+      ""revenue__end"": {
+        ""score"": 0.95
+      },
+      ""revenue__evidence"": {
+        ""score"": 0.78
+      },
+      ""revenue__raw_value"": {
+        ""score"": 0.87
+      },
+      ""revenue__scale"": {
+        ""score"": 0.92
+      },
+      ""revenue__start"": {
+        ""score"": 0.89
+      },
+      ""revenue__unit"": {
+        ""score"": 0.95
+      }
+    }
+  }
+}",2026-11-20 06:42:19.689000-08:00
+125c9802-3568-40b8-9ec8-fed15a8eb935,DIRECT_PDF,"{
+  ""error"": null,
+  ""response"": {
+    ""assets__end"": ""2023-09-30"",
+    ""assets__evidence"": ""Total assets | September 30, 2023 | $352,583 (In millions, except number of shares, which are reflected in thousands, and par value)"",
+    ""assets__raw_value"": ""352583.0"",
+    ""assets__scale"": ""1000000"",
+    ""assets__start"": ""NOT_APPLICABLE"",
+    ""assets__unit"": ""USD"",
+    ""eps_basic__end"": ""2023-09-30"",
+    ""eps_basic__evidence"": ""Earnings per share: Basic | September 30, 2023 | $6.16 (In millions, except number of shares, which are reflected in thousands, and per-share amounts)"",
+    ""eps_basic__raw_value"": ""6.16"",
+    ""eps_basic__scale"": ""1"",
+    ""eps_basic__start"": ""2022-09-25"",
+    ""eps_basic__unit"": ""USD/shares"",
+    ""eps_diluted__end"": ""2023-09-30"",
+    ""eps_diluted__evidence"": ""Statement line: Earnings per share: Diluted; column header: Years ended September 30, 2023; amount $6.13; scale note: (In millions, except number of shares, which are reflected in thousands, and per-share amounts)"",
+    ""eps_diluted__raw_value"": ""6.13"",
+    ""eps_diluted__scale"": ""1"",
+    ""eps_diluted__start"": ""2022-09-25"",
+    ""eps_diluted__unit"": ""USD/shares"",
+    ""equity__end"": ""2023-09-30"",
+    ""equity__evidence"": ""Statement line: Total shareholders' equity; column header: September 30, 2023; amount 62,146; scale note: (In millions, except number of shares, which are reflected in thousands, and par value)"",
+    ""equity__raw_value"": ""62146.0"",
+    ""equity__scale"": ""1000000"",
+    ""equity__start"": ""NOT_APPLICABLE"",
+    ""equity__unit"": ""USD"",
+    ""gross_profit__end"": ""2023-09-30"",
+    ""gross_profit__evidence"": ""Gross margin | Years ended September 30, 2023 | 169,148 | (In millions, except number of shares, which are reflected in thousands, and per-share amounts)"",
+    ""gross_profit__raw_value"": ""169148.0"",
+    ""gross_profit__scale"": ""1000000"",
+    ""gross_profit__start"": ""2022-09-25"",
+    ""gross_profit__unit"": ""USD"",
+    ""liabilities__end"": ""2023-09-30"",
+    ""liabilities__evidence"": ""Total liabilities | September 30, 2023 | 290,437 | (In millions, except number of shares, which are reflected in thousands, and par value)"",
+    ""liabilities__raw_value"": ""290437.0"",
+    ""liabilities__scale"": ""1000000"",
+    ""liabilities__start"": ""NOT_APPLICABLE"",
+    ""liabilities__unit"": ""USD"",
+    ""net_income__end"": ""2023-09-30"",
+    ""net_income__evidence"": ""Net income | Years ended September 30, 2023 | 96,995 | (In millions, except number of shares, which are reflected in thousands, and per-share amounts)"",
+    ""net_income__raw_value"": ""96995.0"",
+    ""net_income__scale"": ""1000000"",
+    ""net_income__start"": ""2022-09-25"",
+    ""net_income__unit"": ""USD"",
+    ""operating_cash_flow__end"": ""2023-09-30"",
+    ""operating_cash_flow__evidence"": ""Cash generated by operating activities; column header September 30, 2023 (Years ended); 110,543; (In millions)"",
+    ""operating_cash_flow__raw_value"": ""110543.0"",
+    ""operating_cash_flow__scale"": ""1000000"",
+    ""operating_cash_flow__start"": ""2022-09-25"",
+    ""operating_cash_flow__unit"": ""USD"",
+    ""operating_income__end"": ""2023-09-30"",
+    ""operating_income__evidence"": ""Operating income; column header September 30, 2023 (Years ended); 114,301; (In millions, except number of shares, which are reflected in thousands, and per-share amounts)"",
+    ""operating_income__raw_value"": ""114301.0"",
+    ""operating_income__scale"": ""1000000"",
+    ""operating_income__start"": ""2022-09-25"",
+    ""operating_income__unit"": ""USD"",
+    ""revenue__end"": ""2023-09-30"",
+    ""revenue__evidence"": ""Total net sales; column 'Years ended September 30, 2023'; 383,285; scale: (In millions, except number of shares, which are reflected in thousands, and per-share amounts)"",
+    ""revenue__raw_value"": ""383285.0"",
+    ""revenue__scale"": ""1000000"",
+    ""revenue__start"": ""2022-09-25"",
+    ""revenue__unit"": ""USD""
+  },
+  ""scoring"": {
+    ""scores"": {
+      ""assets__end"": {
+        ""score"": 0.97
+      },
+      ""assets__evidence"": {
+        ""score"": 0.89
+      },
+      ""assets__raw_value"": {
+        ""score"": 0.89
+      },
+      ""assets__scale"": {
+        ""score"": 0.97
+      },
+      ""assets__start"": {
+        ""score"": 0.95
+      },
+      ""assets__unit"": {
+        ""score"": 0.97
+      },
+      ""eps_basic__end"": {
+        ""score"": 0.97
+      },
+      ""eps_basic__evidence"": {
+        ""score"": 0.89
+      },
+      ""eps_basic__raw_value"": {
+        ""score"": 0.96
+      },
+      ""eps_basic__scale"": {
+        ""score"": 0.96
+      },
+      ""eps_basic__start"": {
+        ""score"": 0.87
+      },
+      ""eps_basic__unit"": {
+        ""score"": 0.87
+      },
+      ""eps_diluted__end"": {
+        ""score"": 0.92
+      },
+      ""eps_diluted__evidence"": {
+        ""score"": 0.84
+      },
+      ""eps_diluted__raw_value"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__scale"": {
+        ""score"": 0.92
+      },
+      ""eps_diluted__start"": {
+        ""score"": 0.87
+      },
+      ""eps_diluted__unit"": {
+        ""score"": 0.87
+      },
+      ""equity__end"": {
+        ""score"": 0.92
+      },
+      ""equity__evidence"": {
+        ""score"": 0.84
+      },
+      ""equity__raw_value"": {
+        ""score"": 0.92
+      },
+      ""equity__scale"": {
+        ""score"": 0.92
+      },
+      ""equity__start"": {
+        ""score"": 0.89
+      },
+      ""equity__unit"": {
+        ""score"": 0.95
+      },
+      ""gross_profit__end"": {
+        ""score"": 0.95
+      },
+      ""gross_profit__evidence"": {
+        ""score"": 0.84
+      },
+      ""gross_profit__raw_value"": {
+        ""score"": 0.92
+      },
+      ""gross_profit__scale"": {
+        ""score"": 0.92
+      },
+      ""gross_profit__start"": {
+        ""score"": 0.87
+      },
+      ""gross_profit__unit"": {
+        ""score"": 0.95
+      },
+      ""liabilities__end"": {
+        ""score"": 0.95
+      },
+      ""liabilities__evidence"": {
+        ""score"": 0.84
+      },
+      ""liabilities__raw_value"": {
+        ""score"": 0.87
+      },
+      ""liabilities__scale"": {
+        ""score"": 0.95
+      },
+      ""liabilities__start"": {
+        ""score"": 0.89
+      },
+      ""liabilities__unit"": {
+        ""score"": 0.92
+      },
+      ""net_income__end"": {
+        ""score"": 0.92
+      },
+      ""net_income__evidence"": {
+        ""score"": 0.84
+      },
+      ""net_income__raw_value"": {
+        ""score"": 0.89
+      },
+      ""net_income__scale"": {
+        ""score"": 0.95
+      },
+      ""net_income__start"": {
+        ""score"": 0.89
+      },
+      ""net_income__unit"": {
+        ""score"": 0.92
+      },
+      ""operating_cash_flow__end"": {
+        ""score"": 0.92
+      },
+      ""operating_cash_flow__evidence"": {
+        ""score"": 0.87
+      },
+      ""operating_cash_flow__raw_value"": {
+        ""score"": 0.8
+      },
+      ""operating_cash_flow__scale"": {
+        ""score"": 0.95
+      },
+      ""operating_cash_flow__start"": {
+        ""score"": 0.89
+      },
+      ""operating_cash_flow__unit"": {
+        ""score"": 0.92
+      },
+      ""operating_income__end"": {
+        ""score"": 0.92
+      },
+      ""operating_income__evidence"": {
+        ""score"": 0.87
+      },
+      ""operating_income__raw_value"": {
+        ""score"": 0.87
+      },
+      ""operating_income__scale"": {
+        ""score"": 0.92
+      },
+      ""operating_income__start"": {
+        ""score"": 0.84
+      },
+      ""operating_income__unit"": {
+        ""score"": 0.92
+      },
+      ""revenue__end"": {
+        ""score"": 0.92
+      },
+      ""revenue__evidence"": {
+        ""score"": 0.78
+      },
+      ""revenue__raw_value"": {
+        ""score"": 0.84
+      },
+      ""revenue__scale"": {
+        ""score"": 0.92
+      },
+      ""revenue__start"": {
+        ""score"": 0.84
+      },
+      ""revenue__unit"": {
+        ""score"": 0.92
+      }
+    }
+  }
+}",2026-11-20 06:42:19.689000-08:00
+1b2bf4db-2f09-4bd1-9d60-b2dab87cc104,PARSE_THEN_EXTRACT,"{
+  ""error"": null,
+  ""response"": {
+    ""assets__end"": ""2021-09-25"",
+    ""assets__evidence"": ""Total assets | $ 351,002 (column header: September 25, 2021; table note: In millions, except number of shares which are reflected in thousands and par value)"",
+    ""assets__raw_value"": ""351002.0"",
+    ""assets__scale"": ""1000000"",
+    ""assets__start"": ""NOT_APPLICABLE"",
+    ""assets__unit"": ""USD"",
+    ""eps_basic__end"": ""2021-09-25"",
+    ""eps_basic__evidence"": ""Earnings per share: Basic | $ 5.67 (column header: Years ended September 25, 2021; table note: In millions, except number of shares which are reflected in thousands and per share amounts)"",
+    ""eps_basic__raw_value"": ""5.67"",
+    ""eps_basic__scale"": ""1"",
+    ""eps_basic__start"": ""2020-09-27"",
+    ""eps_basic__unit"": ""USD/shares"",
+    ""eps_diluted__end"": ""2021-09-25"",
+    ""eps_diluted__evidence"": ""Diluted | $ 5.61 | column header \""September 25, 2021\"" (Years ended) | \""In millions, except number of shares which are reflected in thousands and per share amounts\"""",
+    ""eps_diluted__raw_value"": ""5.61"",
+    ""eps_diluted__scale"": ""1"",
+    ""eps_diluted__start"": ""2020-09-27"",
+    ""eps_diluted__unit"": ""USD/shares"",
+    ""equity__end"": ""2021-09-25"",
+    ""equity__evidence"": ""Total shareholders' equity | $ 63,090 | column header \""September 25, 2021\"" | \""In millions, except number of shares which are reflected in thousands and par value\"""",
+    ""equity__raw_value"": ""63090.0"",
+    ""equity__scale"": ""1000000"",
+    ""equity__start"": ""NOT_APPLICABLE"",
+    ""equity__unit"": ""USD"",
+    ""gross_profit__end"": ""2021-09-25"",
+    ""gross_profit__evidence"": ""Gross margin | 152,836 | column 'September 25, 2021' (Years ended) | (In millions, except number of shares which are reflected in thousands and per share amounts)"",
+    ""gross_profit__raw_value"": ""152836.0"",
+    ""gross_profit__scale"": ""1000000"",
+    ""gross_profit__start"": ""2020-09-27"",
+    ""gross_profit__unit"": ""USD"",
+    ""liabilities__end"": ""2021-09-25"",
+    ""liabilities__evidence"": ""Total liabilities | 287,912 (column: September 25, 2021; Consolidated Balance Sheets; scale: In millions, except number of shares which are reflected in thousands and par value)"",
+    ""liabilities__raw_value"": ""287912.0"",
+    ""liabilities__scale"": ""1000000"",
+    ""liabilities__start"": ""NOT_APPLICABLE"",
+    ""liabilities__unit"": ""USD"",
+    ""net_income__end"": ""2021-09-25"",
+    ""net_income__evidence"": ""Net income | $ 94,680 (column: Years ended September 25, 2021; Consolidated Statements of Operations; scale: In millions, except number of shares which are reflected in thousands and per share amounts)"",
+    ""net_income__raw_value"": ""94680.0"",
+    ""net_income__scale"": ""1000000"",
+    ""net_income__start"": ""2020-09-27"",
+    ""net_income__unit"": ""USD"",
+    ""operating_cash_flow__end"": ""2021-09-25"",
+    ""operating_cash_flow__evidence"": ""Cash generated by operating activities | 104,038 | column header 'September 25, 2021' (Years ended) | (In millions)"",
+    ""operating_cash_flow__raw_value"": ""104038.0"",
+    ""operating_cash_flow__scale"": ""1000000"",
+    ""operating_cash_flow__start"": ""2020-09-27"",
+    ""operating_cash_flow__unit"": ""USD"",
+    ""operating_income__end"": ""2021-09-25"",
+    ""operating_income__evidence"": ""Operating income | 108,949 | column header 'September 25, 2021' (Years ended) | (In millions, except number of shares which are reflected in thousands and per share amounts)"",
+    ""operating_income__raw_value"": ""108949.00"",
+    ""operating_income__scale"": ""1000000"",
+    ""operating_income__start"": ""2020-09-27"",
+    ""operating_income__unit"": ""USD"",
+    ""revenue__end"": ""2021-09-25"",
+    ""revenue__evidence"": ""Total net sales | $ 365,817 | column header September 25, 2021 (Years ended) | (In millions, except number of shares which are reflected in thousands and per share amounts)"",
+    ""revenue__raw_value"": ""365817.00"",
+    ""revenue__scale"": ""1000000"",
+    ""revenue__start"": ""2020-09-27"",
+    ""revenue__unit"": ""USD""
+  },
+  ""scoring"": {
+    ""scores"": {
+      ""assets__end"": {
+        ""score"": 0.97
+      },
+      ""assets__evidence"": {
+        ""score"": 0.89
+      },
+      ""assets__raw_value"": {
+        ""score"": 0.84
+      },
+      ""assets__scale"": {
+        ""score"": 0.96
+      },
+      ""assets__start"": {
+        ""score"": 0.92
+      },
+      ""assets__unit"": {
+        ""score"": 0.97
+      },
+      ""eps_basic__end"": {
+        ""score"": 0.97
+      },
+      ""eps_basic__evidence"": {
+        ""score"": 0.89
+      },
+      ""eps_basic__raw_value"": {
+        ""score"": 0.95
+      },
+      ""eps_basic__scale"": {
+        ""score"": 0.95
+      },
+      ""eps_basic__start"": {
+        ""score"": 0.84
+      },
+      ""eps_basic__unit"": {
+        ""score"": 0.87
+      },
+      ""eps_diluted__end"": {
+        ""score"": 0.92
+      },
+      ""eps_diluted__evidence"": {
+        ""score"": 0.78
+      },
+      ""eps_diluted__raw_value"": {
+        ""score"": 0.92
+      },
+      ""eps_diluted__scale"": {
+        ""score"": 0.92
+      },
+      ""eps_diluted__start"": {
+        ""score"": 0.84
+      },
+      ""eps_diluted__unit"": {
+        ""score"": 0.87
+      },
+      ""equity__end"": {
+        ""score"": 0.92
+      },
+      ""equity__evidence"": {
+        ""score"": 0.8
+      },
+      ""equity__raw_value"": {
+        ""score"": 0.84
+      },
+      ""equity__scale"": {
+        ""score"": 0.92
+      },
+      ""equity__start"": {
+        ""score"": 0.89
+      },
+      ""equity__unit"": {
+        ""score"": 0.95
+      },
+      ""gross_profit__end"": {
+        ""score"": 0.95
+      },
+      ""gross_profit__evidence"": {
+        ""score"": 0.78
+      },
+      ""gross_profit__raw_value"": {
+        ""score"": 0.84
+      },
+      ""gross_profit__scale"": {
+        ""score"": 0.92
+      },
+      ""gross_profit__start"": {
+        ""score"": 0.84
+      },
+      ""gross_profit__unit"": {
+        ""score"": 0.95
+      },
+      ""liabilities__end"": {
+        ""score"": 0.95
+      },
+      ""liabilities__evidence"": {
+        ""score"": 0.78
+      },
+      ""liabilities__raw_value"": {
+        ""score"": 0.78
+      },
+      ""liabilities__scale"": {
+        ""score"": 0.95
+      },
+      ""liabilities__start"": {
+        ""score"": 0.89
+      },
+      ""liabilities__unit"": {
+        ""score"": 0.95
+      },
+      ""net_income__end"": {
+        ""score"": 0.95
+      },
+      ""net_income__evidence"": {
+        ""score"": 0.78
+      },
+      ""net_income__raw_value"": {
+        ""score"": 0.8
+      },
+      ""net_income__scale"": {
+        ""score"": 0.95
+      },
+      ""net_income__start"": {
+        ""score"": 0.92
+      },
+      ""net_income__unit"": {
+        ""score"": 0.95
+      },
+      ""operating_cash_flow__end"": {
+        ""score"": 0.95
+      },
+      ""operating_cash_flow__evidence"": {
+        ""score"": 0.78
+      },
+      ""operating_cash_flow__raw_value"": {
+        ""score"": 0.78
+      },
+      ""operating_cash_flow__scale"": {
+        ""score"": 0.95
+      },
+      ""operating_cash_flow__start"": {
+        ""score"": 0.92
+      },
+      ""operating_cash_flow__unit"": {
+        ""score"": 0.95
+      },
+      ""operating_income__end"": {
+        ""score"": 0.95
+      },
+      ""operating_income__evidence"": {
+        ""score"": 0.84
+      },
+      ""operating_income__raw_value"": {
+        ""score"": 0.68
+      },
+      ""operating_income__scale"": {
+        ""score"": 0.95
+      },
+      ""operating_income__start"": {
+        ""score"": 0.92
+      },
+      ""operating_income__unit"": {
+        ""score"": 0.95
+      },
+      ""revenue__end"": {
+        ""score"": 0.95
+      },
+      ""revenue__evidence"": {
+        ""score"": 0.68
+      },
+      ""revenue__raw_value"": {
+        ""score"": 0.68
+      },
+      ""revenue__scale"": {
+        ""score"": 0.95
+      },
+      ""revenue__start"": {
+        ""score"": 0.92
+      },
+      ""revenue__unit"": {
+        ""score"": 0.95
+      }
+    }
+  }
+}",2026-11-20 06:42:52.917000-08:00
+c03342f3-8257-4221-a874-9691779ec89a,DIRECT_PDF,"{
+  ""error"": null,
+  ""response"": {
+    ""assets__end"": ""2023-06-30"",
+    ""assets__evidence"": ""Total assets; column header June 30, 2023: $411,976; table scale note: (In millions)"",
+    ""assets__raw_value"": ""411976.0"",
+    ""assets__scale"": ""1000000"",
+    ""assets__start"": ""NOT_APPLICABLE"",
+    ""assets__unit"": ""USD"",
+    ""eps_diluted__end"": ""2023-06-30"",
+    ""eps_diluted__evidence"": ""Earnings per share: Diluted; column Year Ended June 30, 2023: $9.68; table scale note: (In millions, except per share amounts)"",
+    ""eps_diluted__raw_value"": ""9.68"",
+    ""eps_diluted__scale"": ""1"",
+    ""eps_diluted__start"": ""2022-07-01"",
+    ""eps_diluted__unit"": ""USD/shares"",
+    ""revenue__end"": ""2023-06-30"",
+    ""revenue__evidence"": ""Total revenue; Year Ended June 30, 2023; (In millions, except per share amounts); 211,915"",
+    ""revenue__raw_value"": ""211915.0"",
+    ""revenue__scale"": ""1000000"",
+    ""revenue__start"": ""2022-07-01"",
+    ""revenue__unit"": ""USD""
+  },
+  ""scoring"": {
+    ""scores"": {
+      ""assets__end"": {
+        ""score"": 0.95
+      },
+      ""assets__evidence"": {
+        ""score"": 0.89
+      },
+      ""assets__raw_value"": {
+        ""score"": 0.84
+      },
+      ""assets__scale"": {
+        ""score"": 0.95
+      },
+      ""assets__start"": {
+        ""score"": 0.92
+      },
+      ""assets__unit"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__end"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__evidence"": {
+        ""score"": 0.89
+      },
+      ""eps_diluted__raw_value"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__scale"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__start"": {
+        ""score"": 0.92
+      },
+      ""eps_diluted__unit"": {
+        ""score"": 0.89
+      },
+      ""revenue__end"": {
+        ""score"": 0.92
+      },
+      ""revenue__evidence"": {
+        ""score"": 0.78
+      },
+      ""revenue__raw_value"": {
+        ""score"": 0.8
+      },
+      ""revenue__scale"": {
+        ""score"": 0.92
+      },
+      ""revenue__start"": {
+        ""score"": 0.92
+      },
+      ""revenue__unit"": {
+        ""score"": 0.92
+      }
+    }
+  }
+}",2026-11-20 08:16:31.369000-08:00
+758197a6-9c9b-4803-a2db-e4a9c0c528f9,DIRECT_PDF,"{
+  ""error"": null,
+  ""response"": {
+    ""assets__end"": ""2024-12-31"",
+    ""assets__evidence"": ""Total assets | December 31, 2024 | $122,070 (in millions, except per share data)"",
+    ""assets__raw_value"": ""122070."",
+    ""assets__scale"": ""1000000"",
+    ""assets__start"": ""NOT_APPLICABLE"",
+    ""assets__unit"": ""USD"",
+    ""eps_diluted__end"": ""2024-12-31"",
+    ""eps_diluted__evidence"": ""Diluted | Year Ended December 31, 2024 | $2.04 (in millions, except per share data)"",
+    ""eps_diluted__raw_value"": ""2.04"",
+    ""eps_diluted__scale"": ""1"",
+    ""eps_diluted__start"": ""2024-01-01"",
+    ""eps_diluted__unit"": ""USD/shares"",
+    ""revenue__end"": ""2024-12-31"",
+    ""revenue__evidence"": ""Statement line: \""Total revenues\""; column header: \""Year Ended December 31, 2024\""; table scale note: \""(in millions, except per share data)\""; amount 97,690"",
+    ""revenue__raw_value"": ""97690.0"",
+    ""revenue__scale"": ""1000000"",
+    ""revenue__start"": ""2024-01-01"",
+    ""revenue__unit"": ""USD""
+  },
+  ""scoring"": {
+    ""scores"": {
+      ""assets__end"": {
+        ""score"": 0.95
+      },
+      ""assets__evidence"": {
+        ""score"": 0.84
+      },
+      ""assets__raw_value"": {
+        ""score"": 0.78
+      },
+      ""assets__scale"": {
+        ""score"": 0.95
+      },
+      ""assets__start"": {
+        ""score"": 0.92
+      },
+      ""assets__unit"": {
+        ""score"": 0.92
+      },
+      ""eps_diluted__end"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__evidence"": {
+        ""score"": 0.84
+      },
+      ""eps_diluted__raw_value"": {
+        ""score"": 0.92
+      },
+      ""eps_diluted__scale"": {
+        ""score"": 0.92
+      },
+      ""eps_diluted__start"": {
+        ""score"": 0.92
+      },
+      ""eps_diluted__unit"": {
+        ""score"": 0.89
+      },
+      ""revenue__end"": {
+        ""score"": 0.92
+      },
+      ""revenue__evidence"": {
+        ""score"": 0.84
+      },
+      ""revenue__raw_value"": {
+        ""score"": 0.84
+      },
+      ""revenue__scale"": {
+        ""score"": 0.92
+      },
+      ""revenue__start"": {
+        ""score"": 0.92
+      },
+      ""revenue__unit"": {
+        ""score"": 0.92
+      }
+    }
+  }
+}",2026-11-20 08:20:01.714000-08:00
+8f84bf88-030b-4428-905d-d953723ba4a2,PARSE_THEN_EXTRACT,"{
+  ""error"": null,
+  ""response"": {
+    ""assets__end"": ""2024-12-31"",
+    ""assets__evidence"": ""Total assets | $ 122,070 | column header \""December 31, 2024\"" | Consolidated Balance Sheets (in millions, except per share data)"",
+    ""assets__raw_value"": ""122070"",
+    ""assets__scale"": ""1000000"",
+    ""assets__start"": ""NOT_APPLICABLE"",
+    ""assets__unit"": ""USD"",
+    ""eps_diluted__end"": ""2024-12-31"",
+    ""eps_diluted__evidence"": ""Diluted | $ 2.04 | column header \""2024\"" (Year Ended December 31) | Consolidated Statements of Operations (in millions, except per share data)"",
+    ""eps_diluted__raw_value"": ""2.04"",
+    ""eps_diluted__scale"": ""1"",
+    ""eps_diluted__start"": ""2024-01-01"",
+    ""eps_diluted__unit"": ""USD/shares"",
+    ""revenue__end"": ""2024-12-31"",
+    ""revenue__evidence"": ""Total revenues | Year Ended December 31, 2024 | $ 97,690 (in millions, except per share data)"",
+    ""revenue__raw_value"": ""97690"",
+    ""revenue__scale"": ""1000000"",
+    ""revenue__start"": ""2024-01-01"",
+    ""revenue__unit"": ""USD""
+  },
+  ""scoring"": {
+    ""scores"": {
+      ""assets__end"": {
+        ""score"": 0.97
+      },
+      ""assets__evidence"": {
+        ""score"": 0.89
+      },
+      ""assets__raw_value"": {
+        ""score"": 0.97
+      },
+      ""assets__scale"": {
+        ""score"": 0.97
+      },
+      ""assets__start"": {
+        ""score"": 0.92
+      },
+      ""assets__unit"": {
+        ""score"": 0.97
+      },
+      ""eps_diluted__end"": {
+        ""score"": 0.97
+      },
+      ""eps_diluted__evidence"": {
+        ""score"": 0.89
+      },
+      ""eps_diluted__raw_value"": {
+        ""score"": 0.97
+      },
+      ""eps_diluted__scale"": {
+        ""score"": 0.95
+      },
+      ""eps_diluted__start"": {
+        ""score"": 0.92
+      },
+      ""eps_diluted__unit"": {
+        ""score"": 0.92
+      },
+      ""revenue__end"": {
+        ""score"": 0.91
+      },
+      ""revenue__evidence"": {
+        ""score"": 0.78
+      },
+      ""revenue__raw_value"": {
+        ""score"": 0.87
+      },
+      ""revenue__scale"": {
+        ""score"": 0.92
+      },
+      ""revenue__start"": {
+        ""score"": 0.92
+      },
+      ""revenue__unit"": {
+        ""score"": 0.93
+      }
+    }
+  }
+}",2026-11-20 09:10:18.726000-08:00

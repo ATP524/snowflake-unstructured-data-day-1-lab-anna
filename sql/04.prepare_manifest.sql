@@ -5,8 +5,10 @@ USE SCHEMA atp524;
 
 -- Step 04: prepare report_manifest for every report in the scope set in
 -- python/00.set_session_variables.ipynb (lab_settings: ticker + year range).
+-- Inputs:  lab_settings, PDFs on @annual_report_pdfs (02), sec_facts (03), ingest_log.
+-- Outputs: report_manifest rows (one per staged PDF) with period_start/end + sec_accession.
+-- Calls AI: no. Safe to re-run: yes; approved reports are never changed.
 -- Run after 02.ingest_annual_report_pdfs.py and 03.ingest_sec_ground_truth.py.
--- Safe to re-run; approved reports are never changed.
 -- Next: 05.locate_statement_pages.sql (page ranges + approval), then 06.check_readiness.sql.
 -- See ../README.md and ../docs/LOCAL_SETUP.md for execution examples.
 
