@@ -106,10 +106,12 @@ table comment.
 | --- | --- | --- | --- | --- | --- |
 | `lab_settings` | CONFIG | the scope (exactly one row) | `setting_id` | 00 | 02, 03, 04-09 |
 | `metric_catalog` | CONFIG | one extractable metric | `metric_id` | 01 | 06, 08, 09 |
-| `statement_heading_patterns` | CONFIG | one heading wording per statement type | statement_type, pattern | 01 | 05 |
+| `metric_sec_concepts` | CONFIG | one accepted SEC concept per metric: preference 1 = `metric_catalog.sec_concept`, higher = a recorded fallback with its `reason` | metric_id, concept (FK metric_catalog) | 01 | 06 (`metric_ground_truth`) |
+| `statement_heading_patterns` | CONFIG | one heading wording per statement type, with the report it was `added_for` (written once) | statement_type, pattern | 01 | 05, 06 |
 | `@annual_report_pdfs` | RAW | one PDF file `<TICKER>/<YEAR>.pdf` | path | 02 (or `load_starter`) | 04, 05, 07, 08 |
 | `sec_facts` | RAW | one XBRL observation (concept, unit, period, filing) | unique: ticker, accession, concept, unit, start/end date, form, fiscal year/period, frame | 03 | 04, 06, 07, 09 |
-| `ingest_log` | RAW | one download/load attempt | none (event log) | 02, 03 | people (04 shows it) |
+| `ingest_log` | RAW | one download/load attempt | none (event log) | 02, 03 | people (04 shows it), `report_status` |
+| `ddl_applied` | RAW | one DDL file the runner applied without error, with its SHA-256 | file_name | runner (`sql_runner.record_ddl_applied`) | runner (`sql_runner.ddl_status`) |
 | `statement_page_scan` | RAW | one page used to locate statements: `TEXT` (free text layer), `WINDOW` (AI parse), `TOC` (legacy) | relative_path, scan_type, page_index | 05 | 05 |
 | `parse_results` | RAW | one AI_PARSE_DOCUMENT result per run | run_id (FK lab_runs) | 08 | 08, 09 |
 | `extraction_results` | RAW | one AI_EXTRACT result per run and method | run_id, method (FK lab_runs) | 08 | 06, 09 |
@@ -117,10 +119,13 @@ table comment.
 | `synthetic_ground_truth` | RAW | one expected answer per synthetic PDF and metric | relative_path, metric_id | 11 | 12, 13 |
 | `report_manifest` | CURATED | one staged annual report | relative_path | 04, 05 (manual override in 04) | 06-08 |
 | `lab_runs` | CURATED | one report in one 08 batch, with its exact questions | run_id (FK report_manifest) | 08 | 06, 08, 09 |
+| `metric_ground_truth` | ANALYSIS | one report period (ticker, accession, fiscal start/end) x metric: the SEC value from the report's own 10-K and which concept supplied it (`concept_used`, `preference_used`) | ticker, sec_accession, period_start, period_end, metric_id | 06 (view) | 06, 09, `report_status` |
 | `report_readiness` | ANALYSIS | one in-scope report | relative_path | 06 (view) | 06, 07, 08 |
 | `pipeline_coverage` | ANALYSIS | one year in scope (built from the scope) | ticker, report_year | 06 (view) | 06, 09, runner |
+| `heading_pattern_usage` | ANALYSIS | one heading pattern, with the reports it matches today (all companies and years) | statement_type, pattern | 06 (view) | people, export |
 | `parsed_pages` | ANALYSIS | one parsed page of one run | run_id, page_index | 08 (view) | 08, 09 |
 | `metric_evaluation` (+ `extracted_fields`, `normalized_extractions`, `sec_reference`, `compared_values`) | ANALYSIS | one metric x method x run | run_id, method, metric_id | 09 (views) | 09, 10 |
+| `report_status` | ANALYSIS | one ticker-year the lab has touched, ALL companies (scope, `ingest_log`, stage or manifest), including years whose PDF was never found: status, `next_step`, ground truth X/10, latest scores | ticker, report_year | 09 (view) | export `SUMMARY.md`, 10, people |
 
 ## 4. Verified end-to-end run
 
@@ -206,3 +211,102 @@ Run on 2026-11-20 with `python/00.run_pipeline.ipynb`, scope AAPL 2021-2025, bot
     because the scaled number would miss SEC by 1,000 times. On every existing row the
     new rule agreed (120 currency rows, all scale 1000000 with "millions" quoted), so no
     earlier result changed. 10 tests it with 9 cases.
+- **Loose ends closed (2026-11-20).**
+  - *One question version for every report:* all 9 reports re-extracted with the new
+    raw-value wording and all 10 metrics, through step 00 + `00.run_pipeline.ipynb` only
+    (`RUN_INGESTION = False`, `RUN_AI_STEPS = True`, `include_all_metrics = TRUE` for the
+    run; all three put back to their defaults afterwards). prompt_version `48bdb48a...`.
+    05 parsed no new pages and 07 made no new calls; 08 ran 18 AI_EXTRACT and 9
+    AI_PARSE_DOCUMENT calls.
+
+    | Company | Reports | Metrics | Passed (both methods) |
+    | --- | --- | --- | --- |
+    | AAPL 2021-2025 | 5 | 10 | 100 / 100 |
+    | MSFT 2023-2024 | 2 | 10 | 40 / 40 |
+    | TSLA 2023-2024 | 2 | 10 | 40 / 40 |
+
+    Standing check afterwards (both gates off, AAPL scope): 05, 07 and 08 SKIPPED,
+    10 passes 32 of 32.
+  - *AAPL `locator_method` recorded:* approved reports with no method now join 05 as
+    `check_only`. They are never AI-parsed, and step 6 sets only `locator_method`, only
+    when the current locator reproduces the approved range exactly. AAPL 2021-2025: all
+    `TEXT+INDEX`, ranges, approvals and review notes unchanged, 0 new pages parsed.
+  - *Every locator outcome tested:* the outcome rules moved into `locator_decision`
+    (01), which 05 calls. 10 section 5 tests it with 8 cases covering `TEXT+INDEX`,
+    `TEXT`, `MANUAL_REVIEW`, `AI_FALLBACK` and `NOT_FOUND`. These are rule tests with
+    made-up inputs; no real report has yet produced `MANUAL_REVIEW` or `AI_FALLBACK`.
+- **Heading-pattern provenance without maintenance (2026-11-20).** A pattern is matched
+  against every report; it is not tied to a company or year. Hand-written "verified on"
+  labels would need editing after every new company or year, so they were replaced:
+  - `statement_heading_patterns.added_for` (was `example_source`): the one report that
+    first needed the wording, written once and never edited. 01 renamed the column once
+    and trimmed old multi-report labels (e.g. "AAPL, TSLA 2023" became "AAPL 2023").
+  - View `heading_pattern_usage` (06) computes which reports each pattern matches from
+    the stored pages, using 05's rules. Adding MSFT/TSLA 2021-2025, or a new company,
+    needs no edit to 01 unless a new wording appears (05 then reports `NOT_FOUND`).
+    A pattern with `reports_matched = 0` is no longer used by any stored report.
+  - 10 checks that every pattern has an `added_for` naming one report.
+- **Parity: AAPL, MSFT and TSLA 2021-2025 (2026-11-21).** All through step 00 and
+  `00.run_pipeline.ipynb`, 10 metrics, one question version (`48bdb48a...`):
+
+  | Company | Ticker-years | Evaluated | Passed (both methods) | Located by |
+  | --- | --- | --- | --- | --- |
+  | AAPL | 2021-2025 | 5 | 100 / 100 | `TEXT+INDEX` |
+  | MSFT | 2021-2025 | 5 | 100 / 100 | `TEXT` |
+  | TSLA | 2021-2025 | 4 | 80 / 80 | `TEXT+INDEX` |
+
+  The two TSLA gaps and how each is handled:
+  - **TSLA 2022: SEC tags revenue differently (fixed with a recorded fallback).** Tesla's
+    own FY2022 10-K (accession `0000950170-23-001409`) reports total revenue as
+    `Revenues` (81,462 million), not the primary concept
+    `RevenueFromContractWithCustomerExcludingAssessedTax`. Later 10-Ks restate the same
+    FY2022 value under the primary concept, and wherever a filing reports both the values
+    are equal. The rule lives in ONE place:
+    - CONFIG table `metric_sec_concepts` (01): preference 1 is each metric's own concept;
+      `revenue -> Revenues` is preference 2, with that evidence in `reason`. A new fallback
+      is a reviewed row, never an automatic search for "some revenue tag".
+    - View `metric_ground_truth` (06): per report period and metric, the lowest
+      preference that has a value in the report's own 10-K and period, plus
+      `concept_used`. `report_readiness` (06), the 06 detail query and `sec_reference`
+      (09) all read it, so readiness and scoring cannot disagree.
+    - Proof it changed nothing else: all 426 `metric_evaluation` rows that existed before
+      were identical afterwards (value, row counts, status). The fallback is used for
+      exactly 1 of 140 report-metric values (TSLA 2022 revenue).
+    - 10 checks: exactly one preference 1 per metric and it equals `sec_concept`; every
+      row has a reason; no orphan metric; a fallback is used only when the own 10-K has no
+      primary value.
+    - Result: TSLA 2022 `READY`, extracted (10 metrics), 20 / 20 PASS. Revenue was scored
+      against `Revenues`; `metric_evaluation.sec_concept_used` records that.
+  - **TSLA 2021: known gap, no PDF on annualreports.com (documented, not worked around).**
+    Step 02 tried the course's source (annualreports.com) and logged `MISSING` / "No valid
+    PDF found at tested URLs" in `ingest_log`. SEC facts for that filing are loaded
+    (accession `0000950170-22-000796`), but SEC EDGAR serves the 10-K as HTML, not as a
+    PDF, and the lab compares PDF extraction against SEC. A third-party PDF host was
+    considered and left out of scope: it would need an admin change to the network rule
+    behind `PUBLIC_FILING_ACCESS`. The gap is visible, not hidden: `report_status` shows
+    TSLA 2021 as `Stopped at 02` with next step "02 PDF not found (No valid PDF found at
+    tested URLs)", and `SUMMARY.md` lists it under "Not complete". If a PDF is obtained
+    later, upload it to `@annual_report_pdfs/TSLA/2021.pdf` and run the pipeline with TSLA
+    2021 in scope (04 onward picks it up).
+- **One status view for every report (2026-11-21).** `pipeline_coverage` (06) stays
+  scope-only, because the runner and 08 choose their work from the scope. `report_status`
+  (end of 09, because it shows each report's latest scores) has one row per ticker-year
+  the lab has touched across all companies, from the scope, `ingest_log`, the stage and
+  the manifest, so a year that never got a PDF still has a row. Its `status` is
+  `Stopped at 02/04/05/06`, `Ready, not extracted`, `Extracted, not evaluated` or
+  `Evaluated`, and `next_step` says what to do. The export's `SUMMARY.md` reads only this
+  view (sections: every report, not complete, not passing, run history, files). 10 checks
+  that every attempted or manifest ticker-year has a row.
+- **Runner skips 01 when it has nothing to do (2026-11-21).** 01 is safe to re-run but
+  repeated about 19 seconds of work per run. The runner calls `sql_runner.ddl_status`:
+  01 is skipped (`SKIPPED (schema up to date)` in the step summary) only when
+  `ddl_applied` holds the current SHA-256 of `sql/01.ddls.sql` AND every table and
+  function the file creates exists. An edited file, a new schema, or a dropped
+  table/function runs it again; after a successful run the runner records the hash
+  (`record_ddl_applied`). Running 01 directly is always safe and is how to force it.
+  Seed rows (catalog, patterns, concepts) are not part of the check; 10 tests them.
+  Unit tests cover every branch (unchanged, never applied, edited, missing table,
+  missing function, check failing).
+
+  Validation after all of the above: 10 passes 39 of 39 (plus 10, 6, 9 and 8 rule cases);
+  54 unit tests pass; standing check (both gates off, AAPL scope) has no `FAILED` step.

@@ -1,0 +1,12 @@
+METRIC_ID,CONCEPT,PREFERENCE,REASON
+assets,Assets,1,primary concept (metric_catalog.sec_concept)
+eps_basic,EarningsPerShareBasic,1,primary concept (metric_catalog.sec_concept)
+eps_diluted,EarningsPerShareDiluted,1,primary concept (metric_catalog.sec_concept)
+gross_profit,GrossProfit,1,primary concept (metric_catalog.sec_concept)
+liabilities,Liabilities,1,primary concept (metric_catalog.sec_concept)
+net_income,NetIncomeLoss,1,primary concept (metric_catalog.sec_concept)
+operating_income,OperatingIncomeLoss,1,primary concept (metric_catalog.sec_concept)
+revenue,RevenueFromContractWithCustomerExcludingAssessedTax,1,primary concept (metric_catalog.sec_concept)
+equity,StockholdersEquity,1,primary concept (metric_catalog.sec_concept)
+operating_cash_flow,NetCashProvidedByUsedInOperatingActivities,1,primary concept (metric_catalog.sec_concept)
+revenue,Revenues,2,"Some older 10-Ks tag total revenue as Revenues instead of the primary concept (TSLA FY2022, accession 0000950170-23-001409: 81,462 million). Later 10-Ks restate the same FY2022 value under the primary concept, and wherever a filing reports both, the values are equal."

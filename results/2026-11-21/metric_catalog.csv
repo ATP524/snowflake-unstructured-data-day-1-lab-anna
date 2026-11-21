@@ -1,0 +1,11 @@
+METRIC_ID,METRIC_DESCRIPTION,SEC_CONCEPT,EXPECTED_UNIT,PERIOD_TYPE,ABSOLUTE_TOLERANCE,RELATIVE_TOLERANCE
+assets,Total consolidated assets,Assets,USD,instant,1000000.0,0.0001
+eps_basic,Basic earnings per share attributable to parent common shareholders; not adjusted EPS,EarningsPerShareBasic,USD/shares,duration,0.01,0.0
+eps_diluted,Diluted earnings per share attributable to parent common shareholders; not adjusted EPS,EarningsPerShareDiluted,USD/shares,duration,0.01,0.0
+gross_profit,Consolidated gross profit,GrossProfit,USD,duration,1000000.0,0.0001
+liabilities,Total consolidated liabilities,Liabilities,USD,instant,1000000.0,0.0001
+net_income,"Net income or loss attributable to parent, excluding noncontrolling interests",NetIncomeLoss,USD,duration,1000000.0,0.0001
+operating_income,Consolidated operating income or loss,OperatingIncomeLoss,USD,duration,1000000.0,0.0001
+revenue,Revenue from contracts with customers excluding assessed tax,RevenueFromContractWithCustomerExcludingAssessedTax,USD,duration,1000000.0,0.0001
+equity,"Stockholders equity attributable to parent, excluding noncontrolling interests",StockholdersEquity,USD,instant,1000000.0,0.0001
+operating_cash_flow,Net cash provided by or used in consolidated operating activities,NetCashProvidedByUsedInOperatingActivities,USD,duration,1000000.0,0.0001

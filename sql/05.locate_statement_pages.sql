@@ -18,6 +18,8 @@ USE SCHEMA atp524;
 --   3. WINDOW (AI): AI_PARSE_DOCUMENT on 15 pages from the Item 8 page
 --   4. propose page_ranges from statement headings at the top of the AI-parsed pages
 --   5. write every result to report_manifest (AUTO-APPROVED or AUTO-REJECTED)
+--   6. approved reports with no locator_method (check_only): record the method, only if
+--      the locator reproduces their approved range exactly (free; nothing else changes)
 -- A report is never skipped silently: whatever is not found is named in review_notes.
 -- Approved reports are never changed.
 -- Inputs:  lab_settings (scope + limits), statement_heading_patterns, report_manifest (04),
@@ -31,13 +33,16 @@ USE SCHEMA atp524;
 -- Cost: 15 AI-parsed pages per new report (AI_FALLBACK: up to ai_fallback_page_cap).
 -- Run after 04.prepare_manifest.sql; next is 06.check_readiness.sql.
 
--- The reports this run will work on: unapproved, in scope.
+-- The reports this run will work on: unapproved, in scope. Approved reports located before
+-- locator_method existed join as check_only: the free steps run for them, but they are never
+-- AI-parsed and only their locator_method is recorded (step 6), never their pages or approval.
 CREATE OR REPLACE TEMPORARY TABLE locate_targets AS
-SELECT m.relative_path
+SELECT m.relative_path, COALESCE(m.approved, FALSE) AS check_only
 FROM report_manifest m
 JOIN lab_settings s
   ON m.ticker = s.ticker AND m.report_year BETWEEN s.first_year AND s.last_year
-WHERE NOT COALESCE(m.approved, FALSE);
+WHERE NOT COALESCE(m.approved, FALSE)
+   OR m.locator_method IS NULL;
 
 SELECT * FROM locate_targets ORDER BY relative_path;
 
@@ -109,17 +114,13 @@ WITH txt AS (
     QUALIFY ROW_NUMBER() OVER (PARTITION BY t.relative_path ORDER BY agreeing_pages DESC, page_offset) = 1
 )
 SELECT t.relative_path,
+       t.check_only,
        i8.item8_page,
        idx.index_printed,
        IFF(o.agreeing_pages >= 3, o.page_offset, NULL) AS page_offset,
        idx.index_printed + IFF(o.agreeing_pages >= 3, o.page_offset, NULL) AS index_pdf_page,
-       CASE
-           WHEN NOT COALESCE(tl.has_text, FALSE)                       THEN 'AI_FALLBACK'
-           WHEN i8.item8_page IS NULL                                  THEN 'NOT_FOUND'
-           WHEN index_pdf_page IS NULL                                 THEN 'TEXT'
-           WHEN ABS(index_pdf_page - i8.item8_page) <= 2               THEN 'TEXT+INDEX'
-           ELSE 'MANUAL_REVIEW'
-       END AS locator_method,
+       -- the outcome rules live in locator_decision (01) so 10 can test every outcome
+       locator_decision(tl.has_text, i8.item8_page, index_pdf_page) AS locator_method,
        CASE locator_method
            WHEN 'AI_FALLBACK' THEN 0
            WHEN 'TEXT'        THEN i8.item8_page
@@ -137,7 +138,7 @@ SELECT relative_path, locator_method, item8_page, index_printed, page_offset, in
        window_start, window_start + window_pages AS window_end_exclusive
 FROM locate_windows ORDER BY relative_path;
 
--- Step 3 (AI): parse each report's window (only if not yet parsed).
+-- Step 3 (AI): parse each report's window (only if not yet parsed; never for check_only).
 INSERT INTO statement_page_scan (relative_path, scan_type, page_index, printed_page, content)
 WITH parsed AS (
     SELECT w.relative_path,
@@ -148,6 +149,7 @@ WITH parsed AS (
                                     'start', w.window_start, 'end', w.window_start + w.window_pages)))) AS doc
     FROM locate_windows w
     WHERE w.window_start IS NOT NULL
+      AND NOT w.check_only
       AND NOT EXISTS (SELECT 1 FROM statement_page_scan p
                       WHERE p.relative_path = w.relative_path AND p.scan_type = 'WINDOW')
 )
@@ -230,6 +232,30 @@ SET page_ranges    = IFF(p.passes_rules, p.proposed_page_ranges, t.page_ranges),
 FROM page_range_proposal p
 WHERE t.relative_path = p.relative_path
   AND NOT COALESCE(t.approved, FALSE);
+
+-- Step 6: for approved reports located before locator_method existed (check_only), record
+-- how the current locator finds them, but ONLY when it reproduces the approved range
+-- exactly. Nothing else on the row changes. If the ranges differ or no stored WINDOW pages
+-- exist, locator_method stays NULL and the query below shows why.
+UPDATE report_manifest t
+SET locator_method = p.locator_method
+FROM page_range_proposal p
+JOIN locate_targets c ON c.relative_path = p.relative_path AND c.check_only
+WHERE t.relative_path = p.relative_path
+  AND t.approved
+  AND t.locator_method IS NULL
+  AND p.passes_rules
+  AND EQUAL_NULL(p.proposed_page_ranges, t.page_ranges);
+
+SELECT c.relative_path, p.locator_method AS rederived_method,
+       p.proposed_page_ranges AS rederived_range, m.page_ranges AS approved_range,
+       IFF(m.locator_method IS NOT NULL, 'recorded',
+           'left NULL: re-derived range differs or no stored pages') AS outcome
+FROM locate_targets c
+JOIN report_manifest m ON m.relative_path = c.relative_path
+LEFT JOIN page_range_proposal p ON p.relative_path = c.relative_path
+WHERE c.check_only
+ORDER BY c.relative_path;
 
 SELECT m.relative_path, m.page_ranges, m.approved, m.locator_method, m.review_notes
 FROM report_manifest m

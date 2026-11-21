@@ -11,8 +11,10 @@ USE SCHEMA atp524;
 -- DATA LAYERS (logical now; see docs/ARCHITECTURE.md and docs/PRODUCTION.md for the
 -- physical dbt layout these map to):
 --   CONFIG   settings and reference data people edit       lab_settings, metric_catalog,
+--                                                          metric_sec_concepts,
 --                                                          statement_heading_patterns
 --   RAW      landed as received, never edited             stage PDFs, sec_facts, ingest_log,
+--                                                          ddl_applied,
 --                                                          statement_page_scan, parse_results,
 --                                                          extraction_results, extracted_values,
 --                                                          synthetic_ground_truth
@@ -69,43 +71,64 @@ END;
 $$;
 
 -- Grain: one heading wording per statement type. Key: (statement_type, pattern).
--- 05 matches these ILIKE patterns against the TOP of each page (first 200 characters).
+-- 05 matches these ILIKE patterns against the TOP of each page (first 200 characters),
+-- for every report: a pattern is not tied to a company or year.
 -- Companies word their statements differently; add a row here (not code in 05) when a
 -- new company's report is AUTO-REJECTED with a heading NOT FOUND.
 --   item8_heading  the "Item 8. Financial Statements and Supplementary Data" page (anchor)
 --   index_page     the Item 8 index that lists every heading (excluded from matching)
 --   operations, comprehensive, balance_sheet, equity, cash_flows, first_notes
+-- added_for: the report that first needed this wording. Written once, never edited.
+-- Which reports a pattern matches today is NOT recorded here: the heading_pattern_usage
+-- view (06) computes it from the stored pages, so it never needs maintaining.
 CREATE TABLE IF NOT EXISTS statement_heading_patterns (
     statement_type STRING NOT NULL,
     pattern STRING NOT NULL,
-    example_source STRING        -- the report where this wording was verified
+    added_for STRING NOT NULL    -- e.g. 'MSFT 2023'
 );
+-- Older schemas named the column example_source and wrote multi-report labels such as
+-- 'AAPL, TSLA 2023' into it: rename it once and keep only the first report.
+EXECUTE IMMEDIATE $$
+BEGIN
+    IF (EXISTS (SELECT 1 FROM information_schema.columns
+                WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'STATEMENT_HEADING_PATTERNS'
+                  AND column_name = 'EXAMPLE_SOURCE')) THEN
+        ALTER TABLE statement_heading_patterns RENAME COLUMN example_source TO added_for;
+        UPDATE statement_heading_patterns
+        SET added_for = SPLIT_PART(added_for, ',', 1)
+                        || IFF(CONTAINS(added_for, ','), ' ' || SPLIT_PART(added_for, ' ', -1), '');
+    END IF;
+    RETURN 'statement_heading_patterns.added_for present';
+END;
+$$;
 
+-- Inserts new wordings only; existing rows (and their added_for) are never changed.
 MERGE INTO statement_heading_patterns t
 USING (
-    SELECT column1 AS statement_type, column2 AS pattern, column3 AS example_source
+    SELECT column1 AS statement_type, column2 AS pattern, column3 AS added_for
     FROM VALUES
-      ('item8_heading', '%Financial Statements and Supplementary Data%', 'AAPL, MSFT, TSLA 2023'),
-      ('index_page',    '%Index to Consolidated Financial Statements%',  'AAPL, TSLA 2023'),
-      ('operations',    '%CONSOLIDATED STATEMENTS OF OPERATIONS%',       'AAPL, TSLA 2023'),
+      ('item8_heading', '%Financial Statements and Supplementary Data%', 'AAPL 2023'),
+      ('index_page',    '%Index to Consolidated Financial Statements%',  'AAPL 2023'),
+      ('operations',    '%CONSOLIDATED STATEMENTS OF OPERATIONS%',       'AAPL 2023'),
       ('operations',    '%INCOME STATEMENTS%',                           'MSFT 2023'),
-      ('comprehensive', '%STATEMENTS OF COMPREHENSIVE INCOME%',          'AAPL, TSLA 2023'),
+      ('comprehensive', '%STATEMENTS OF COMPREHENSIVE INCOME%',          'AAPL 2023'),
       ('comprehensive', '%COMPREHENSIVE INCOME STATEMENTS%',             'MSFT 2023'),
-      ('balance_sheet', '%CONSOLIDATED BALANCE SHEETS%',                 'AAPL, TSLA 2023'),
+      ('balance_sheet', '%CONSOLIDATED BALANCE SHEETS%',                 'AAPL 2023'),
       ('balance_sheet', '%BALANCE SHEETS%',                              'MSFT 2023'),
       ('equity',        '%CONSOLIDATED STATEMENTS OF SHAREHOLDERS%',     'AAPL 2023'),
       ('equity',        '%STOCKHOLDERS%EQUITY STATEMENTS%',              'MSFT 2023'),
       ('equity',        '%STATEMENTS OF REDEEMABLE NONCONTROLLING INTERESTS AND EQUITY%', 'TSLA 2023'),
-      ('cash_flows',    '%CONSOLIDATED STATEMENTS OF CASH FLOWS%',       'AAPL, TSLA 2023'),
+      ('cash_flows',    '%CONSOLIDATED STATEMENTS OF CASH FLOWS%',       'AAPL 2023'),
       ('cash_flows',    '%CASH FLOWS STATEMENTS%',                       'MSFT 2023'),
-      ('first_notes',   '%Notes to Consolidated Financial Statements%',  'AAPL, TSLA 2023'),
+      ('first_notes',   '%Notes to Consolidated Financial Statements%',  'AAPL 2023'),
       ('first_notes',   '%NOTES TO FINANCIAL STATEMENTS%',               'MSFT 2023')
 ) s ON t.statement_type = s.statement_type AND t.pattern = s.pattern
-WHEN NOT MATCHED THEN INSERT (statement_type, pattern, example_source)
-VALUES (s.statement_type, s.pattern, s.example_source);
+WHEN NOT MATCHED THEN INSERT (statement_type, pattern, added_for)
+VALUES (s.statement_type, s.pattern, s.added_for);
 
 -- Grain: one row per metric the lab can extract. Key: metric_id.
--- No automatic revenue-tag fallback: different concepts may mean different things.
+-- sec_concept is the primary SEC concept. Fallback concepts are never automatic: each
+-- one is a recorded row with its evidence in metric_sec_concepts (below).
 -- Tolerances allow small presentation-rounding differences and are configurable.
 CREATE TABLE IF NOT EXISTS metric_catalog (
     metric_id STRING NOT NULL,
@@ -144,6 +167,33 @@ WHEN NOT MATCHED THEN INSERT (
     s.period_type, s.absolute_tolerance, s.relative_tolerance
 );
 
+-- Grain: one accepted SEC XBRL concept per metric. Key: (metric_id, concept).
+-- preference 1 is the metric's own concept (metric_catalog.sec_concept). A higher
+-- preference is a recorded fallback, used ONLY when the report's own 10-K has no value
+-- for any lower preference for that period (see metric_ground_truth in 06). Each fallback
+-- states why it is the same quantity. Do not add a fallback without that evidence.
+CREATE TABLE IF NOT EXISTS metric_sec_concepts (
+    metric_id STRING NOT NULL,
+    concept STRING NOT NULL,
+    preference INT NOT NULL,
+    reason STRING NOT NULL
+);
+
+MERGE INTO metric_sec_concepts t
+USING (
+    SELECT metric_id, sec_concept AS concept, 1 AS preference,
+           'primary concept (metric_catalog.sec_concept)' AS reason
+    FROM metric_catalog
+    UNION ALL
+    SELECT 'revenue', 'Revenues', 2,
+           'Some older 10-Ks tag total revenue as Revenues instead of the primary concept '
+           || '(TSLA FY2022, accession 0000950170-23-001409: 81,462 million). Later 10-Ks '
+           || 'restate the same FY2022 value under the primary concept, and wherever a filing '
+           || 'reports both, the values are equal.'
+) s ON t.metric_id = s.metric_id AND t.concept = s.concept
+WHEN NOT MATCHED THEN INSERT (metric_id, concept, preference, reason)
+VALUES (s.metric_id, s.concept, s.preference, s.reason);
+
 -- =====================================================================================
 -- RAW (append or upsert only; never hand-edited)
 -- =====================================================================================
@@ -169,6 +219,16 @@ CREATE TABLE IF NOT EXISTS ingest_log (
     status STRING,
     detail STRING,
     logged_at TIMESTAMP_LTZ DEFAULT CURRENT_TIMESTAMP()
+);
+
+-- Grain: one DDL file the runner has applied successfully. Key: file_name.
+-- Written by the runner (python/sql_runner.py record_ddl_applied) after this file runs
+-- without error. The runner skips 01 only when this file's SHA-256 matches AND every
+-- table and function it creates exists; any edit here, or a dropped object, re-runs it.
+CREATE TABLE IF NOT EXISTS ddl_applied (
+    file_name STRING NOT NULL,
+    sha256 STRING NOT NULL,
+    applied_at TIMESTAMP_LTZ DEFAULT CURRENT_TIMESTAMP()
 );
 
 -- Grain: one parsed PDF page used to locate statements. Key: (relative_path, scan_type,
@@ -333,6 +393,29 @@ class PageText:
                 yield (i, text)
 $$;
 
+-- How 05 located a report's statement pages, from three facts found in the free text pass:
+-- does the PDF have a text layer, which page has the Item 8 heading, and which PDF page the
+-- report's index points to (NULL if there is no usable index). Kept as a function so every
+-- outcome is tested in 10, including ones no real report has produced yet.
+--   AI_FALLBACK    no text layer (scanned PDF)
+--   NOT_FOUND      text, but no Item 8 heading matched
+--   TEXT           heading found, no index
+--   TEXT+INDEX     heading found and the index agrees within 2 pages
+--   MANUAL_REVIEW  heading and index disagree by more than 2 pages
+CREATE OR REPLACE FUNCTION locator_decision(has_text BOOLEAN, item8_page INT, index_pdf_page INT)
+RETURNS STRING
+LANGUAGE SQL
+AS
+$$
+    CASE
+        WHEN NOT COALESCE(has_text, FALSE)        THEN 'AI_FALLBACK'
+        WHEN item8_page IS NULL                   THEN 'NOT_FOUND'
+        WHEN index_pdf_page IS NULL               THEN 'TEXT'
+        WHEN ABS(index_pdf_page - item8_page) <= 2 THEN 'TEXT+INDEX'
+        ELSE 'MANUAL_REVIEW'
+    END
+$$;
+
 -- =====================================================================================
 -- KEYS: add each declared constraint if it is missing (works for new and existing
 -- schemas, so this file stays safe to re-run). Not enforced by Snowflake; tested in 10.
@@ -356,7 +439,10 @@ DECLARE
             (11, 'FK_PARSE_RESULTS_RUN',     'ALTER TABLE parse_results ADD CONSTRAINT fk_parse_results_run FOREIGN KEY (run_id) REFERENCES lab_runs (run_id)'),
             (12, 'PK_EXTRACTION_RESULTS',    'ALTER TABLE extraction_results ADD CONSTRAINT pk_extraction_results PRIMARY KEY (run_id, method)'),
             (13, 'FK_EXTRACTION_RESULTS_RUN','ALTER TABLE extraction_results ADD CONSTRAINT fk_extraction_results_run FOREIGN KEY (run_id) REFERENCES lab_runs (run_id)'),
-            (14, 'PK_STATEMENT_HEADING_PATTERNS', 'ALTER TABLE statement_heading_patterns ADD CONSTRAINT pk_statement_heading_patterns PRIMARY KEY (statement_type, pattern)')
+            (14, 'PK_STATEMENT_HEADING_PATTERNS', 'ALTER TABLE statement_heading_patterns ADD CONSTRAINT pk_statement_heading_patterns PRIMARY KEY (statement_type, pattern)'),
+            (15, 'PK_METRIC_SEC_CONCEPTS',   'ALTER TABLE metric_sec_concepts ADD CONSTRAINT pk_metric_sec_concepts PRIMARY KEY (metric_id, concept)'),
+            (16, 'FK_METRIC_SEC_CONCEPTS_METRIC', 'ALTER TABLE metric_sec_concepts ADD CONSTRAINT fk_metric_sec_concepts_metric FOREIGN KEY (metric_id) REFERENCES metric_catalog (metric_id)'),
+            (17, 'PK_DDL_APPLIED',           'ALTER TABLE ddl_applied ADD CONSTRAINT pk_ddl_applied PRIMARY KEY (file_name)')
         ) k
         WHERE k.name NOT IN (SELECT constraint_name FROM information_schema.table_constraints
                              WHERE constraint_schema = CURRENT_SCHEMA())
@@ -377,8 +463,10 @@ $$;
 COMMENT ON TABLE lab_settings IS 'CONFIG. Grain: exactly one row (setting_id = 1): ticker + year range every step processes, plus page-locator limits. Set in python/00.set_session_variables.ipynb.';
 COMMENT ON TABLE statement_heading_patterns IS 'CONFIG. Grain: one heading wording per statement type. Key: statement_type, pattern. Read by 05.';
 COMMENT ON TABLE metric_catalog IS 'CONFIG. Grain: one row per extractable metric. Key: metric_id.';
+COMMENT ON TABLE metric_sec_concepts IS 'CONFIG. Grain: one accepted SEC concept per metric. Key: metric_id, concept. preference 1 = primary; higher = recorded fallback used only when the primary is absent from the report''s own 10-K.';
 COMMENT ON TABLE sec_facts IS 'RAW. Grain: one SEC XBRL observation (concept, unit, period, filing). Unique key: ticker, accession, concept, unit, start_date, end_date, form, fiscal_year, fiscal_period, frame. Loaded by 03.';
 COMMENT ON TABLE ingest_log IS 'RAW. Grain: one download/load attempt (event log, no natural key). Written by 02 and 03.';
+COMMENT ON TABLE ddl_applied IS 'RAW. Grain: one DDL file applied by the runner. Key: file_name. sha256 of the file text; the runner re-runs 01 when it differs or an object is missing.';
 COMMENT ON TABLE statement_page_scan IS 'RAW. Grain: one parsed PDF page used to locate statements. Key: relative_path, scan_type, page_index. Written by 05.';
 COMMENT ON TABLE parse_results IS 'RAW. Grain: one AI_PARSE_DOCUMENT result per run. Key: run_id. Written by 08.';
 COMMENT ON TABLE extraction_results IS 'RAW. Grain: one AI_EXTRACT result per run and method. Key: run_id, method. Written by 08.';

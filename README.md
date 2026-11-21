@@ -9,15 +9,15 @@ Files are numbered in the order they run. You set **one scope**, a ticker and a 
 | Step | File | What you do | Calls AI? |
 | --- | --- | --- | --- |
 | 00 | `python/00.set_session_variables.ipynb` | Session settings, SEC contact, and the scope: ticker + first/last year (`lab_settings`) | No |
-| 01 | `sql/01.ddls.sql` | Create the lab tables, grouped by layer, with declared keys and grain comments | No |
+| 01 | `sql/01.ddls.sql` | Create the lab tables, grouped by layer, with declared keys and grain comments (the runner skips it when unchanged and complete) | No |
 | 02 | `python/02.ingest_annual_report_pdfs.py` | Ingest the scope's PDFs into the stage | No |
 | 03 | `python/03.ingest_sec_ground_truth.py` | Ingest the scope's SEC ground truth into a table | No |
 | 04 | `sql/04.prepare_manifest.sql` | Manifest rows plus proposed fiscal dates and accession for every report in scope | No |
 | 05 | `sql/05.locate_statement_pages.sql` | Find statement pages and approve every unapproved report in scope | Yes (parsing 15 pages per new report; finding them is free) |
-| 06 | `sql/06.check_readiness.sql` | `report_readiness` (READY / NOT READY) and `pipeline_coverage` (per-year step status) | No |
+| 06 | `sql/06.check_readiness.sql` | `metric_ground_truth` (the one SEC-value rule), `report_readiness` (READY / NOT READY) and `pipeline_coverage` (per-year step status) | No |
 | 07 | `sql/07.first_extraction.sql` | First hands-on `AI_EXTRACT`: three metrics per READY report | Yes (one call per new report) |
 | 08 | `sql/08.extract_reports.ipynb` | Run both extraction paths for every READY report, as one batch (export a `.sql` copy with `python/export_notebook_sql.py`) | Yes |
-| 09 | `sql/09.evaluate_results.sql` | Compare the latest batch with SEC ground truth; per-year coverage check | No |
+| 09 | `sql/09.evaluate_results.sql` | Compare the latest batch with SEC ground truth; per-year coverage check; `report_status` (every ticker-year, all companies) | No |
 | 10 | `sql/10.validation.sql` | Data-quality tests: unique keys, not-null, relationships, accepted values | No |
 | 11 | `python/11.generate_synthetic_batch.py` | If time: generate synthetic PDFs and ground truth | No |
 | 12 | `sql/12.evaluate_synthetic_simple.sql` | Compare the two paths on the synthetic batch | Yes |
@@ -29,7 +29,8 @@ Unnumbered Python files are modules that numbered steps import, not steps you ru
 
 - **Standing check:** before every class and after any code edit, Run All with both gates `False`. It is free and verifies the whole pipeline wiring; expect no `FAILED` step and every step 10 check passing.
 - **One source per step:** to change a step, edit that step's own file (`sql/NN...`, the 08 notebook, `python/NN...`), then run it. Never paste step SQL into the runner; a unit test enforces this.
-- **Save your work and results:** `workspace_export.ipynb` writes every table and result view to `results/<date>/` (CSV plus the staged PDFs and a `SUMMARY.md`) and then zips the whole workspace, so the export contains both code and results.
+- **Save your work and results:** `workspace_export.ipynb` writes every table and result view to `results/<date>/` (CSV plus the staged PDFs and a `SUMMARY.md`) and then zips the whole workspace, so the export contains both code and results. `SUMMARY.md` is built from `report_status` alone, so every ticker-year appears, including ones that stopped early.
+- **Known gap: TSLA 2021.** annualreports.com (the course's PDF source) has no Tesla 2021 annual report, and SEC EDGAR serves 10-Ks as HTML, not PDF. The lab does not work around this: `report_status` and `SUMMARY.md` show TSLA 2021 as `Stopped at 02` with the reason. Uploading a PDF to `@annual_report_pdfs/TSLA/2021.pdf` later would let 04 onward pick it up. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for this and for the TSLA 2022 revenue tag (`metric_sec_concepts`).
 
 **How it fits together:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) has the pipeline flow diagram, the data layers (CONFIG, RAW, CURATED, ANALYSIS), and a catalog of every table with its grain, key, writer and readers. [docs/PRODUCTION.md](docs/PRODUCTION.md) maps the lab to dbt models and tests and to a scheduled Snowflake Task DAG.
 
@@ -339,7 +340,7 @@ The five reports vary company names and financial values but share a layout. The
 | Table/stage not found | SQL and Python must select the same database and student schema |
 | Live download fails | External access integration, `requests`, contact User-Agent, and `ingest_log` |
 | No approved report | Run `04.prepare_manifest.sql` and `05.locate_statement_pages.sql`, then check `06.check_readiness.sql`; for an `AUTO-REJECTED` report use the manual override in `04` |
-| A year is missing from results | `SELECT * FROM pipeline_coverage` (step 06): its `next_step` column names the step that year still needs |
+| A year is missing from results | `SELECT * FROM pipeline_coverage` (step 06) for the scope, or `SELECT * FROM report_status` (step 09) for every company and year: `next_step` names the step that year still needs |
 | `lab_settings must contain exactly one row` | Run the **Choose what to process** cell in `00.set_session_variables.ipynb` |
 | Missing text-path result | Inspect parsing errors, Markdown, and input length |
 | Fixture hash mismatch | Restore the pinned files; do not bypass checks |

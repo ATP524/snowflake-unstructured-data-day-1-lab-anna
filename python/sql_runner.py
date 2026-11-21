@@ -7,8 +7,10 @@ SQL cells into a .sql file.
     from sql_runner import run_sql_file
     results = run_sql_file(session, "sql/04.prepare_manifest.sql")
 """
+import hashlib
 import io
 import json
+import re
 from pathlib import Path
 
 
@@ -146,3 +148,69 @@ def run_sql_file(session, path, show=True, tag=True):
     print(f"== {path.name}")
     return run_sql_text(session, text, label=path.name, show=show,
                         query_tag=f"lab:{path.name}" if tag else None)
+
+
+# ---------------------------------------------------------------------------------
+# DDL skip check (used by the runner for 01.ddls.sql). 01 is safe to re-run but slow;
+# the runner skips it only when it provably has nothing to do.
+# ---------------------------------------------------------------------------------
+_DDL_OBJECT = re.compile(
+    r"^\s*CREATE\s+(?:OR\s+REPLACE\s+)?(TABLE|FUNCTION)\s+(?:IF\s+NOT\s+EXISTS\s+)?([A-Za-z_][A-Za-z0-9_]*)",
+    re.IGNORECASE | re.MULTILINE)
+
+
+def ddl_objects(text):
+    """Tables and functions a DDL file creates: {'TABLE': {...}, 'FUNCTION': {...}} (upper case)."""
+    found = {"TABLE": set(), "FUNCTION": set()}
+    for kind, name in _DDL_OBJECT.findall(text):
+        found[kind.upper()].add(name.upper())
+    return found
+
+
+def file_sha256(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def ddl_status(session, path):
+    """Return (up_to_date, reason) for a DDL file in the current schema.
+
+    Up to date only when ddl_applied holds this file's current SHA-256 AND every table
+    and function the file creates exists. Anything else (first run, an edited file, a
+    dropped object, or the check itself failing) means "run it".
+    """
+    path = Path(path)
+    sha = file_sha256(path)
+    try:
+        rows = session.sql("SELECT sha256, applied_at FROM ddl_applied WHERE file_name = ?",
+                           params=[path.name]).collect()
+    except Exception:
+        return False, "no ddl_applied record yet (new schema or first run)"
+    if not rows:
+        return False, f"{path.name} has never been applied by the runner"
+    if rows[0][0] != sha:
+        return False, f"{path.name} changed since it was last applied ({rows[0][1]:%Y-%m-%d %H:%M})"
+    wanted = ddl_objects(path.read_text())
+    existing = {
+        "TABLE": {r[0].upper() for r in session.sql(
+            "SELECT table_name FROM information_schema.tables "
+            "WHERE table_schema = CURRENT_SCHEMA() AND table_type = 'BASE TABLE'").collect()},
+        "FUNCTION": {r[0].upper() for r in session.sql(
+            "SELECT function_name FROM information_schema.functions "
+            "WHERE function_schema = CURRENT_SCHEMA()").collect()},
+    }
+    missing = sorted(f"{kind.lower()} {name}" for kind in wanted for name in wanted[kind] - existing[kind])
+    if missing:
+        return False, "missing: " + ", ".join(missing)
+    count = sum(len(v) for v in wanted.values())
+    return True, f"unchanged since {rows[0][1]:%Y-%m-%d %H:%M}; all {count} tables and functions exist"
+
+
+def record_ddl_applied(session, path):
+    """Record that `path` ran without error (call only after a successful run)."""
+    path = Path(path)
+    session.sql(
+        "MERGE INTO ddl_applied t USING (SELECT ? AS file_name, ? AS sha256) s "
+        "ON t.file_name = s.file_name "
+        "WHEN MATCHED THEN UPDATE SET sha256 = s.sha256, applied_at = CURRENT_TIMESTAMP() "
+        "WHEN NOT MATCHED THEN INSERT (file_name, sha256) VALUES (s.file_name, s.sha256)",
+        params=[path.name, file_sha256(path)]).collect()

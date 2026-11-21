@@ -4,7 +4,9 @@ USE WAREHOUSE compute_wh;
 USE SCHEMA atp524;
 
 -- Step 10: data quality tests. Run after 09.evaluate_results.sql (also safe at any time).
--- Inputs: every lab table and the lab_number function from 09. Outputs: result sets only.
+-- Inputs: every lab table, the lab_number / lab_scale_matches_evidence functions from 09
+-- and the locator_decision function from 01.
+-- Outputs: result sets only.
 -- Calls AI: no. Modifies data: no.
 --
 -- Each check returns one row: check_type | object | rule | failures | status.
@@ -26,6 +28,15 @@ WITH checks AS (
            COUNT(*) - COUNT(DISTINCT metric_id) FROM metric_catalog
     UNION ALL SELECT 'unique', 'statement_heading_patterns', 'statement_type, pattern',
            COUNT(*) - COUNT(DISTINCT statement_type, pattern) FROM statement_heading_patterns
+    UNION ALL SELECT 'unique', 'metric_sec_concepts', 'metric_id, concept; exactly one preference 1 per metric',
+           COUNT(*) - COUNT(DISTINCT metric_id, concept)
+           + (SELECT COUNT(*) FROM metric_catalog c
+              WHERE (SELECT COUNT(*) FROM metric_sec_concepts k
+                     WHERE k.metric_id = c.metric_id AND k.preference = 1) <> 1)
+           FROM metric_sec_concepts
+    UNION ALL SELECT 'unique', 'ddl_applied', 'file_name; sha256 is a 64-character hex digest',
+           COUNT(*) - COUNT(DISTINCT file_name) + COUNT_IF(NOT REGEXP_LIKE(sha256, '[0-9a-f]{64}'))
+           FROM ddl_applied
     UNION ALL SELECT 'unique', 'sec_facts', 'ticker, accession, concept, unit, start_date, end_date, form, fiscal_year, fiscal_period, frame',
            COUNT(*) - (SELECT COUNT(*) FROM (SELECT DISTINCT ticker, accession, concept, unit, start_date, end_date,
                                                    form, fiscal_year, fiscal_period, frame FROM sec_facts)) FROM sec_facts
@@ -50,6 +61,9 @@ WITH checks AS (
     UNION ALL SELECT 'not_null', 'lab_settings', 'ticker, first_year, last_year, max_statement_pages, ai_fallback_page_cap',
            COUNT_IF(ticker IS NULL OR first_year IS NULL OR last_year IS NULL
                     OR max_statement_pages IS NULL OR ai_fallback_page_cap IS NULL) FROM lab_settings
+    UNION ALL SELECT 'not_null', 'statement_heading_patterns', 'statement_type, pattern, added_for (one report, e.g. MSFT 2023)',
+           COUNT_IF(statement_type IS NULL OR pattern IS NULL OR added_for IS NULL
+                    OR NOT REGEXP_LIKE(added_for, '[A-Z.]+ [0-9]{4}')) FROM statement_heading_patterns
     UNION ALL SELECT 'not_null', 'sec_facts', 'ticker, accession, concept, unit, end_date',
            COUNT_IF(ticker IS NULL OR accession IS NULL OR concept IS NULL OR unit IS NULL OR end_date IS NULL) FROM sec_facts
     UNION ALL SELECT 'not_null', 'report_manifest', 'relative_path, ticker, report_year',
@@ -96,6 +110,28 @@ WITH checks AS (
            + COUNT_IF(statement_type NOT IN ('item8_heading', 'index_page', 'operations', 'comprehensive',
                                              'balance_sheet', 'equity', 'cash_flows', 'first_notes'))
            FROM statement_heading_patterns
+    UNION ALL SELECT 'accepted_values', 'metric_sec_concepts', 'preference 1 = metric_catalog.sec_concept; every row has a reason',
+           COUNT_IF(k.preference = 1 AND k.concept <> c.sec_concept)
+           + COUNT_IF(k.reason IS NULL OR TRIM(k.reason) = '')
+           FROM metric_sec_concepts k JOIN metric_catalog c ON c.metric_id = k.metric_id
+    UNION ALL SELECT 'relationships', 'metric_sec_concepts.metric_id', '-> metric_catalog.metric_id',
+           COUNT(*) FROM metric_sec_concepts k
+           WHERE NOT EXISTS (SELECT 1 FROM metric_catalog c WHERE c.metric_id = k.metric_id)
+    UNION ALL SELECT 'accepted_values', 'metric_ground_truth', 'a fallback concept is used only when the own 10-K has no primary value',
+           COUNT(*) FROM metric_ground_truth g JOIN metric_catalog c ON c.metric_id = g.metric_id
+           WHERE g.preference_used > 1
+             AND EXISTS (SELECT 1 FROM sec_facts s
+                         WHERE s.ticker = g.ticker AND s.accession = g.sec_accession
+                           AND s.concept = c.sec_concept AND s.unit = c.expected_unit
+                           AND s.form = '10-K' AND s.end_date = g.period_end
+                           AND ((c.period_type = 'instant'  AND s.start_date IS NULL)
+                             OR (c.period_type = 'duration' AND s.start_date = g.period_start)))
+    UNION ALL SELECT 'relationships', 'report_status', 'every attempted, staged or manifest ticker-year has a row (none hidden)',
+           (SELECT COUNT(*) FROM (
+                SELECT ticker, fiscal_year AS report_year FROM ingest_log WHERE source = 'PDF' AND fiscal_year > 0
+                UNION SELECT ticker, report_year FROM report_manifest) w
+            WHERE NOT EXISTS (SELECT 1 FROM report_status r
+                              WHERE r.ticker = w.ticker AND r.report_year = w.report_year))
     UNION ALL SELECT 'accepted_values', 'metric_catalog.period_type', 'instant, duration',
            COUNT_IF(period_type NOT IN ('instant', 'duration')) FROM metric_catalog
     UNION ALL SELECT 'accepted_values', 'report_manifest.review_notes', 'AUTO-APPROVED / AUTO-REJECTED / HUMAN-REVIEWED prefix when approved',
@@ -155,5 +191,24 @@ WITH cases AS (
         ('missing evidence',         1000000,    NULL, FALSE)
 )
 SELECT label, lab_scale_matches_evidence(scale, evidence) AS actual,
+       IFF(actual = expected, 'PASS', 'FAIL') AS test_status
+FROM cases;
+
+-- 5. Page-locator outcomes used by 05 (locator_decision, defined in 01). Covers every
+-- outcome, including ones no real report has produced yet. Expect every row to say PASS.
+WITH cases AS (
+    SELECT column1 AS label, column2::BOOLEAN AS has_text, column3::INT AS item8_page,
+           column4::INT AS index_pdf_page, column5::STRING AS expected
+    FROM VALUES
+        ('index agrees exactly (AAPL, TSLA)',  TRUE,  30,   30,   'TEXT+INDEX'),
+        ('index 2 pages off still agrees',     TRUE,  30,   32,   'TEXT+INDEX'),
+        ('no index (MSFT)',                    TRUE,  43,   NULL, 'TEXT'),
+        ('index 3 pages off',                  TRUE,  30,   33,   'MANUAL_REVIEW'),
+        ('index far before heading',           TRUE,  46,   10,   'MANUAL_REVIEW'),
+        ('text but no Item 8 heading',         TRUE,  NULL, 30,   'NOT_FOUND'),
+        ('scanned PDF, no text layer',         FALSE, NULL, NULL, 'AI_FALLBACK'),
+        ('no text pass result at all',         NULL,  NULL, NULL, 'AI_FALLBACK')
+)
+SELECT label, locator_decision(has_text, item8_page, index_pdf_page) AS actual,
        IFF(actual = expected, 'PASS', 'FAIL') AS test_status
 FROM cases;

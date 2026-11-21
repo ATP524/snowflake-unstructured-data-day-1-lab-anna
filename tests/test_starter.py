@@ -142,6 +142,23 @@ class StarterTests(unittest.TestCase):
                 self.assertIn(method, ddl)
                 self.assertIn("'%s'" % method, validation)
         self.assertIn("CREATE OR REPLACE FUNCTION pdf_page_text", ddl)
+        # one tested decision function; check_only (approved) reports are never AI-parsed
+        # and step 6 changes only their locator_method
+        self.assertIn("CREATE OR REPLACE FUNCTION locator_decision", ddl)
+        self.assertIn("locator_decision(", code)
+        self.assertIn("NOT w.check_only", inserts[1])
+        updates = [s for s in statements if s.lstrip().upper().startswith("UPDATE")]
+        self.assertEqual(len(updates), 2)
+        backfill = updates[1]
+        self.assertRegex(backfill, r"SET locator_method = p\.locator_method\s+FROM")
+        self.assertIn("EQUAL_NULL(p.proposed_page_ranges, t.page_ranges)", backfill)
+        self.assertIn("locator_decision(has_text, item8_page, index_pdf_page)", validation)
+        import re
+        section = validation.split("-- 5. Page-locator outcomes")[1]
+        for method in ("TEXT+INDEX", "TEXT", "AI_FALLBACK", "MANUAL_REVIEW", "NOT_FOUND"):
+            with self.subTest(expected_outcome=method):
+                # each outcome is the expected value of at least one test case row
+                self.assertRegex(section, r",\s*'%s'\)" % re.escape(method))
 
     def test_step_08_is_notebook_only_and_every_insert_is_guarded(self):
         from sql_runner import notebook_sql_text, split_sql
@@ -212,6 +229,81 @@ class StarterTests(unittest.TestCase):
                 continue
             for keyword in ("INSERT INTO", "MERGE INTO", "CREATE ", "UPDATE ", "DELETE FROM", "AI_EXTRACT(", "AI_PARSE_DOCUMENT("):
                 self.assertNotIn(keyword, source.upper() if keyword.isupper() else source, keyword)
+
+    def test_ddl_objects_lists_every_table_and_function_in_01(self):
+        from sql_runner import ddl_objects
+        found = ddl_objects((ROOT / "sql" / "01.ddls.sql").read_text())
+        for table in ("LAB_SETTINGS", "METRIC_SEC_CONCEPTS", "DDL_APPLIED", "REPORT_MANIFEST", "LAB_RUNS"):
+            self.assertIn(table, found["TABLE"])
+        self.assertEqual(found["FUNCTION"], {"PDF_PAGE_TEXT", "LOCATOR_DECISION"})
+
+    def _ddl_session(self, applied_sha, tables, functions):
+        from datetime import datetime
+        session = MagicMock()
+        def sql(text, params=None):
+            q = MagicMock()
+            if "FROM ddl_applied" in text:
+                q.collect.return_value = [] if applied_sha is None else [(applied_sha, datetime(2026, 11, 21))]
+            elif "information_schema.tables" in text:
+                q.collect.return_value = [(t,) for t in tables]
+            elif "information_schema.functions" in text:
+                q.collect.return_value = [(f,) for f in functions]
+            return q
+        session.sql.side_effect = sql
+        return session
+
+    def test_runner_skips_01_only_when_unchanged_and_complete(self):
+        from sql_runner import ddl_objects, ddl_status, file_sha256
+        path = ROOT / "sql" / "01.ddls.sql"
+        objs = ddl_objects(path.read_text())
+        sha = file_sha256(path)
+        ok, why = ddl_status(self._ddl_session(sha, objs["TABLE"], objs["FUNCTION"]), path)
+        self.assertTrue(ok, why)
+        ok, why = ddl_status(self._ddl_session(None, objs["TABLE"], objs["FUNCTION"]), path)
+        self.assertFalse(ok)
+        ok, why = ddl_status(self._ddl_session("an-older-hash", objs["TABLE"], objs["FUNCTION"]), path)
+        self.assertFalse(ok); self.assertIn("changed", why)
+        ok, why = ddl_status(self._ddl_session(sha, objs["TABLE"] - {"METRIC_SEC_CONCEPTS"}, objs["FUNCTION"]), path)
+        self.assertFalse(ok); self.assertIn("table METRIC_SEC_CONCEPTS", why)
+        ok, why = ddl_status(self._ddl_session(sha, objs["TABLE"], set()), path)
+        self.assertFalse(ok); self.assertIn("function LOCATOR_DECISION", why)
+        broken = MagicMock(); broken.sql.side_effect = Exception("does not exist")
+        self.assertFalse(ddl_status(broken, path)[0])
+
+    def test_runner_01_cell_logs_skip_and_records_success(self):
+        nb = json.loads((ROOT / "python" / "00.run_pipeline.ipynb").read_text())
+        cell = next("".join(c["source"]) for c in nb["cells"]
+                    if c.get("cell_type") == "code" and "01.ddls.sql" in "".join(c["source"]))
+        self.assertIn("ddl_status(session, DDL_FILE)", cell)
+        self.assertIn("SKIPPED (schema up to date)", cell)
+        self.assertIn("STEP_LOG.append", cell)
+        self.assertLess(cell.index('run_step("01 ddls"'), cell.index("record_ddl_applied(session, DDL_FILE)"))
+
+    def test_sec_value_is_chosen_in_one_place_with_recorded_fallbacks(self):
+        ddl = (ROOT / "sql" / "01.ddls.sql").read_text()
+        self.assertIn("CREATE TABLE IF NOT EXISTS metric_sec_concepts", ddl)
+        self.assertIn("SELECT 'revenue', 'Revenues', 2,", ddl)
+        readiness = (ROOT / "sql" / "06.check_readiness.sql").read_text()
+        evaluate = (ROOT / "sql" / "09.evaluate_results.sql").read_text()
+        self.assertIn("CREATE OR REPLACE VIEW metric_ground_truth", readiness)
+        for sql in (readiness.split("CREATE OR REPLACE VIEW metric_ground_truth")[1].split(";", 1)[1], evaluate):
+            # outside the one view, no step matches sec_facts to a metric concept itself
+            self.assertNotIn("s.concept = c.sec_concept", sql.split("CREATE OR REPLACE VIEW heading_pattern_usage")[0])
+        self.assertIn("LEFT JOIN metric_ground_truth g", evaluate)
+        validation = (ROOT / "sql" / "10.validation.sql").read_text()
+        self.assertIn("a fallback concept is used only when the own 10-K has no primary value", validation)
+
+    def test_report_status_covers_every_year_and_is_built_after_evaluation(self):
+        evaluate = (ROOT / "sql" / "09.evaluate_results.sql").read_text()
+        self.assertLess(evaluate.index("CREATE OR REPLACE VIEW metric_evaluation"),
+                        evaluate.index("CREATE OR REPLACE VIEW report_status"))
+        status = evaluate.split("CREATE OR REPLACE VIEW report_status")[1]
+        for source in ("FROM report_manifest", "FROM ingest_log", "DIRECTORY(@annual_report_pdfs)", "FROM lab_settings"):
+            self.assertIn(source, status.split("last_pdf_attempt AS")[0])
+        self.assertIn("'02 PDF not found'", status)
+        nb = json.loads((ROOT / "workspace_export.ipynb").read_text())
+        export = "".join("".join(c["source"]) for c in nb["cells"] if c.get("cell_type") == "code")
+        self.assertIn('session.sql("SELECT * FROM report_status ORDER BY ticker, report_year")', export)
 
     def test_new_scripts_compile(self):
         for name in ("load_starter.py", "build_starter_fixture.py"):

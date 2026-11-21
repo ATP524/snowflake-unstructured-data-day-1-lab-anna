@@ -29,3 +29,15 @@ TSLA,2024,PDF,,MISSING,No valid PDF found at tested URLs,2026-11-20 07:29:52.691
 TSLA,2023,PDF,https://www.annualreports.com/HostedData/AnnualReportArchive/t/NASDAQ_TSLA_2023.pdf,SUCCESS,984581 bytes,2026-11-20 07:30:59.115000-08:00
 TSLA,2024,PDF,https://www.annualreports.com/HostedData/AnnualReportArchive/t/NASDAQ_TSLA_2024.pdf,SUCCESS,1720174 bytes,2026-11-20 07:31:03.385000-08:00
 TSLA,-1,SEC_XBRL,https://data.sec.gov/api/xbrl/companyfacts/CIK0001318605.json,SUCCESS,99 facts loaded,2026-11-20 07:31:10.896000-08:00
+MSFT,2021,PDF,https://www.annualreports.com/HostedData/AnnualReportArchive/m/NASDAQ_MSFT_2021.pdf,SUCCESS,1639019 bytes,2026-11-20 13:17:54.916000-08:00
+MSFT,2022,PDF,https://www.annualreports.com/HostedData/AnnualReportArchive/m/NASDAQ_MSFT_2022.pdf,SUCCESS,1547825 bytes,2026-11-20 13:17:58.458000-08:00
+MSFT,2023,PDF,https://www.annualreports.com/HostedData/AnnualReportArchive/m/NASDAQ_MSFT_2023.pdf,SUCCESS,2434632 bytes,2026-11-20 13:18:02.122000-08:00
+MSFT,2024,PDF,https://www.annualreports.com/HostedData/AnnualReportArchive/m/NASDAQ_MSFT_2024.pdf,SUCCESS,1394318 bytes,2026-11-20 13:18:05.620000-08:00
+MSFT,2025,PDF,https://www.annualreports.com/HostedData/AnnualReports/PDF/NASDAQ_MSFT_2025.pdf,SUCCESS,586537 bytes,2026-11-20 13:18:08.285000-08:00
+MSFT,-1,SEC_XBRL,https://data.sec.gov/api/xbrl/companyfacts/CIK0000789019.json,SUCCESS,168 facts loaded,2026-11-20 13:18:18.849000-08:00
+TSLA,2021,PDF,,MISSING,No valid PDF found at tested URLs,2026-11-20 13:23:45.576000-08:00
+TSLA,2022,PDF,https://www.annualreports.com/HostedData/AnnualReportArchive/t/NASDAQ_TSLA_2022.pdf,SUCCESS,1650825 bytes,2026-11-20 13:23:48.740000-08:00
+TSLA,2023,PDF,https://www.annualreports.com/HostedData/AnnualReportArchive/t/NASDAQ_TSLA_2023.pdf,SUCCESS,984581 bytes,2026-11-20 13:23:52.707000-08:00
+TSLA,2024,PDF,https://www.annualreports.com/HostedData/AnnualReportArchive/t/NASDAQ_TSLA_2024.pdf,SUCCESS,1720174 bytes,2026-11-20 13:23:56.439000-08:00
+TSLA,2025,PDF,https://www.annualreports.com/HostedData/AnnualReports/PDF/NASDAQ_TSLA_2025.pdf,SUCCESS,1028642 bytes,2026-11-20 13:23:59.197000-08:00
+TSLA,-1,SEC_XBRL,https://data.sec.gov/api/xbrl/companyfacts/CIK0001318605.json,SUCCESS,153 facts loaded,2026-11-20 13:24:05.727000-08:00

@@ -4,9 +4,11 @@ USE WAREHOUSE compute_wh;
 USE SCHEMA atp524;
 
 -- Step 09: score every extraction against SEC ground truth. Run after 08.extract_reports.
--- Inputs:  lab_runs, extraction_results, parse_results (08), sec_facts, metric_catalog.
+-- Inputs:  lab_runs, extraction_results, parse_results (08), metric_ground_truth (06),
+--          metric_catalog; for report_status also report_manifest, ingest_log, the stage, lab_settings.
 -- Outputs: function lab_number; views extracted_fields -> normalized_extractions ->
---          sec_reference -> compared_values -> metric_evaluation; result queries.
+--          sec_reference -> compared_values -> metric_evaluation; report_status (every
+--          ticker-year ever touched, all companies); result queries.
 -- Calls AI: no. Changes data: no. The views cover ALL runs (history is kept);
 -- the result queries below show the LATEST batch from 08, i.e. every report that
 -- batch extracted. To review an older batch, SET batch_id = '<batch id>' instead.
@@ -79,24 +81,25 @@ FROM extracted_fields;
 
 -- SEC duplicates with identical values are harmless; conflicting values are
 -- ambiguous and MUST NOT be resolved by comparing to the AI's answer.
+-- The SEC value is chosen in ONE place, metric_ground_truth (06): the run's own 10-K and
+-- period, the primary concept first, a recorded fallback only when the primary is absent.
 CREATE OR REPLACE VIEW sec_reference AS
-SELECT r.run_id, c.metric_id, COUNT(s.fact_value) AS sec_rows,
-       COUNT(DISTINCT s.fact_value) AS distinct_sec_values,
-       MIN(s.fact_value) AS candidate_value,
-       MIN(s.filed_date) AS sec_filed_date
+SELECT r.run_id, c.metric_id,
+       COALESCE(g.sec_rows, 0)            AS sec_rows,
+       COALESCE(g.distinct_sec_values, 0) AS distinct_sec_values,
+       g.candidate_value,
+       g.sec_filed_date,
+       g.concept_used                     AS sec_concept_used
 FROM lab_runs r CROSS JOIN metric_catalog c
-LEFT JOIN sec_facts s
-  ON s.ticker = r.ticker AND s.accession = r.sec_accession
- AND s.concept = c.sec_concept AND s.unit = c.expected_unit
- AND s.form = '10-K' AND s.end_date = r.period_end
- AND ((c.period_type = 'instant' AND s.start_date IS NULL)
-      OR (c.period_type = 'duration' AND s.start_date = r.period_start))
-WHERE GET(r.response_format, c.metric_id || '__raw_value') IS NOT NULL
-GROUP BY r.run_id, c.metric_id;
+LEFT JOIN metric_ground_truth g
+  ON g.ticker = r.ticker AND g.sec_accession = r.sec_accession
+ AND g.period_start = r.period_start AND g.period_end = r.period_end
+ AND g.metric_id = c.metric_id
+WHERE GET(r.response_format, c.metric_id || '__raw_value') IS NOT NULL;
 
 -- 3. Join each extracted answer to its independently matched SEC reference.
 CREATE OR REPLACE VIEW compared_values AS
-    SELECT n.*, s.sec_rows, s.distinct_sec_values, s.sec_filed_date,
+    SELECT n.*, s.sec_rows, s.distinct_sec_values, s.sec_filed_date, s.sec_concept_used,
            IFF(s.distinct_sec_values = 1, s.candidate_value, NULL) AS sec_value,
            ABS(n.extracted_value - sec_value) AS absolute_error,
            absolute_error / NULLIF(ABS(sec_value), 0) AS relative_error,
@@ -204,3 +207,101 @@ SELECT c.ticker, c.report_year, c.readiness, c.latest_run_id,
 FROM pipeline_coverage c
 LEFT JOIN latest_eval e ON e.run_id = c.latest_run_id
 ORDER BY c.report_year;
+
+-- STATUS: one row for EVERY annual report the lab has ever touched, across all
+-- companies (not just the scope): a ticker-year that was in the scope, attempted by 02
+-- (ingest_log), staged, or in the manifest. A year whose PDF was never found still has a
+-- row. Read by the export (SUMMARY.md) and by people. pipeline_coverage (06) stays
+-- scope-only because the runner and 08 use the scope to choose their work. Defined here,
+-- after metric_evaluation, because it shows each report's latest scores.
+-- ground_truth_metrics counts all catalog metrics with an SEC value from the report's own
+-- 10-K (metric_ground_truth); readiness uses the same rule as report_readiness.
+CREATE OR REPLACE VIEW report_status AS
+WITH years AS (
+    SELECT ticker, report_year FROM report_manifest
+    UNION SELECT ticker, fiscal_year FROM ingest_log WHERE source = 'PDF' AND fiscal_year > 0
+    UNION SELECT SPLIT_PART(relative_path, '/', 1),
+                 TO_NUMBER(REGEXP_SUBSTR(relative_path, '/([0-9]{4})[.]pdf$', 1, 1, 'e', 1))
+          FROM DIRECTORY(@annual_report_pdfs)
+          WHERE REGEXP_LIKE(relative_path, '[A-Z.]+/[0-9]{4}[.]pdf')
+    UNION SELECT ls.ticker, ls.first_year + g.n
+          FROM lab_settings ls
+          JOIN (SELECT ROW_NUMBER() OVER (ORDER BY SEQ4()) - 1 AS n
+                FROM TABLE(GENERATOR(ROWCOUNT => 50))) g
+            ON g.n <= ls.last_year - ls.first_year
+), last_pdf_attempt AS (
+    SELECT ticker, fiscal_year, status AS attempt_status, detail AS attempt_detail
+    FROM ingest_log WHERE source = 'PDF' AND fiscal_year > 0
+    QUALIFY ROW_NUMBER() OVER (PARTITION BY ticker, fiscal_year ORDER BY logged_at DESC) = 1
+), staged AS (
+    SELECT relative_path FROM DIRECTORY(@annual_report_pdfs)
+), truth AS (
+    SELECT m.relative_path,
+           COUNT_IF(g.sec_rows > 0)                                        AS ground_truth_metrics,
+           COUNT(*)                                                        AS catalog_metrics,
+           COUNT_IF(g.sec_rows > 0 AND g.metric_id IN ('assets', 'revenue', 'eps_diluted')) AS core_metrics,
+           LISTAGG(IFF(COALESCE(g.sec_rows, 0) = 0, c.metric_id, NULL), ', ')
+               WITHIN GROUP (ORDER BY c.metric_id)                         AS missing_metrics,
+           LISTAGG(IFF(g.preference_used > 1, c.metric_id || ' via ' || g.concept_used, NULL), ', ')
+               WITHIN GROUP (ORDER BY c.metric_id)                         AS fallback_concepts
+    FROM report_manifest m
+    CROSS JOIN metric_catalog c
+    LEFT JOIN metric_ground_truth g
+      ON g.ticker = m.ticker AND g.sec_accession = m.sec_accession
+     AND g.period_start = m.period_start AND g.period_end = m.period_end
+     AND g.metric_id = c.metric_id
+    GROUP BY m.relative_path
+), latest_run AS (
+    SELECT * FROM lab_runs
+    QUALIFY ROW_NUMBER() OVER (PARTITION BY relative_path ORDER BY created_at DESC) = 1
+), scores AS (
+    SELECT run_id,
+           COUNT_IF(method = 'DIRECT_PDF' AND evaluation_status = 'PASS')          AS direct_pass,
+           COUNT_IF(method = 'DIRECT_PDF')                                         AS direct_n,
+           COUNT_IF(method = 'PARSE_THEN_EXTRACT' AND evaluation_status = 'PASS')  AS parse_pass,
+           COUNT_IF(method = 'PARSE_THEN_EXTRACT')                                 AS parse_n
+    FROM metric_evaluation GROUP BY run_id
+)
+SELECT y.ticker, y.report_year,
+       y.ticker || '/' || y.report_year::STRING || '.pdf'       AS relative_path,
+       st.relative_path IS NOT NULL                             AS pdf_on_stage,
+       a.attempt_status                                         AS last_pdf_attempt,
+       m.sec_accession,
+       t.ground_truth_metrics, t.catalog_metrics, t.missing_metrics, t.fallback_concepts,
+       m.page_ranges[0]:start::INT                              AS page_start,
+       m.page_ranges[0]:"end"::INT                              AS page_end,
+       m.locator_method,
+       COALESCE(m.approved, FALSE)                              AS approved,
+       lr.created_at                                            AS latest_run_at,
+       lr.metric_count, LEFT(lr.prompt_version, 8)              AS prompt_version,
+       sc.direct_pass, sc.direct_n, sc.parse_pass, sc.parse_n,
+       CASE
+           WHEN st.relative_path IS NULL THEN 'Stopped at 02'
+           WHEN m.relative_path IS NULL OR m.sec_accession IS NULL THEN 'Stopped at 04'
+           WHEN NOT COALESCE(m.approved, FALSE) THEN 'Stopped at 05'
+           WHEN COALESCE(t.core_metrics, 0) < 3 THEN 'Stopped at 06'
+           WHEN lr.run_id IS NULL THEN 'Ready, not extracted'
+           WHEN sc.run_id IS NULL THEN 'Extracted, not evaluated'
+           ELSE 'Evaluated'
+       END AS status,
+       CASE status
+           WHEN 'Stopped at 02' THEN '02 PDF not found'
+                || IFF(a.attempt_detail IS NOT NULL, ' (' || a.attempt_detail || ')', ' (not attempted yet)')
+           WHEN 'Stopped at 04' THEN IFF(m.relative_path IS NULL, '04 prepare manifest',
+                                         '04 no matching 10-K in SEC facts (run 03)')
+           WHEN 'Stopped at 05' THEN '05 locate pages (see report_manifest.review_notes)'
+           WHEN 'Stopped at 06' THEN '06 ground truth missing: ' || t.missing_metrics
+           WHEN 'Ready, not extracted' THEN '08 extract (scope this ticker-year and run)'
+           WHEN 'Extracted, not evaluated' THEN '09 evaluate'
+           ELSE 'complete'
+       END AS next_step
+FROM years y
+LEFT JOIN staged st          ON st.relative_path = y.ticker || '/' || y.report_year::STRING || '.pdf'
+LEFT JOIN last_pdf_attempt a ON a.ticker = y.ticker AND a.fiscal_year = y.report_year
+LEFT JOIN report_manifest m  ON m.relative_path = y.ticker || '/' || y.report_year::STRING || '.pdf'
+LEFT JOIN truth t            ON t.relative_path = m.relative_path
+LEFT JOIN latest_run lr      ON lr.relative_path = m.relative_path
+LEFT JOIN scores sc          ON sc.run_id = lr.run_id;
+
+SELECT ticker, report_year, status, next_step, ground_truth_metrics, fallback_concepts
+FROM report_status ORDER BY ticker, report_year;

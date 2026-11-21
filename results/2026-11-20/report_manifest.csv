@@ -1,4 +1,34 @@
 RELATIVE_PATH,TICKER,REPORT_YEAR,PERIOD_START,PERIOD_END,SEC_ACCESSION,PAGE_RANGES,APPROVED,REVIEW_NOTES,LOCATOR_METHOD
+TSLA/2025.pdf,TSLA,2025,2025-01-01,2025-12-31,0001628280-26-003952,"[
+  {
+    ""end"": 57,
+    ""start"": 51
+  }
+]",True,"AUTO-APPROVED 2026-11-20: locator TEXT+INDEX. Item 8 heading p.47, index ""Financial Statements"" printed p.45 -> p.47 (offset 2). Headings: Operations p.52, Comprehensive Income p.53, Balance Sheets p.51, Equity p.54, Cash Flows p.55, first Notes p.56. Range [51,57).",TEXT+INDEX
+TSLA/2022.pdf,TSLA,2022,2022-01-01,2022-12-31,0000950170-23-001409,"[
+  {
+    ""end"": 53,
+    ""start"": 47
+  }
+]",True,"AUTO-APPROVED 2026-11-20: locator TEXT+INDEX. Item 8 heading p.44, index ""Financial Statements"" printed p.45 -> p.44 (offset -1). Headings: Operations p.48, Comprehensive Income p.49, Balance Sheets p.47, Equity p.50, Cash Flows p.51, first Notes p.52. Range [47,53).",TEXT+INDEX
+MSFT/2022.pdf,MSFT,2022,2021-07-01,2022-06-30,0001564590-22-026876,"[
+  {
+    ""end"": 54,
+    ""start"": 48
+  }
+]",True,"AUTO-APPROVED 2026-11-20: locator TEXT. Item 8 heading p.48, index ""Financial Statements"" printed p.NOT FOUND -> p.NOT FOUND (offset NOT FOUND). Headings: Operations p.48, Comprehensive Income p.49, Balance Sheets p.50, Equity p.52, Cash Flows p.51, first Notes p.53. Range [48,54).",TEXT
+MSFT/2021.pdf,MSFT,2021,2020-07-01,2021-06-30,0001564590-21-039151,"[
+  {
+    ""end"": 53,
+    ""start"": 47
+  }
+]",True,"AUTO-APPROVED 2026-11-20: locator TEXT. Item 8 heading p.47, index ""Financial Statements"" printed p.NOT FOUND -> p.NOT FOUND (offset NOT FOUND). Headings: Operations p.47, Comprehensive Income p.48, Balance Sheets p.49, Equity p.51, Cash Flows p.50, first Notes p.52. Range [47,53).",TEXT
+MSFT/2025.pdf,MSFT,2025,2024-07-01,2025-06-30,0000950170-25-100235,"[
+  {
+    ""end"": 45,
+    ""start"": 39
+  }
+]",True,"AUTO-APPROVED 2026-11-20: locator TEXT. Item 8 heading p.39, index ""Financial Statements"" printed p.NOT FOUND -> p.NOT FOUND (offset NOT FOUND). Headings: Operations p.39, Comprehensive Income p.40, Balance Sheets p.41, Equity p.43, Cash Flows p.42, first Notes p.44. Range [39,45).",TEXT
 TSLA/2023.pdf,TSLA,2023,2023-01-01,2023-12-31,0001628280-24-002390,"[
   {
     ""end"": 56,
@@ -16,31 +46,31 @@ AAPL/2024.pdf,AAPL,2024,2023-10-01,2024-09-28,0000320193-24-000123,"[
     ""end"": 37,
     ""start"": 31
   }
-]",True,"AUTO-APPROVED 2026-11-19: TOC ""Financial Statements"" -> printed p.28, offset +2 (footers). Headings: Operations p.31, Comprehensive Income p.32, Balance Sheets p.33, Shareholders' Equity p.34, Cash Flows p.35, first Notes p.36. Range [31,37).",
+]",True,"AUTO-APPROVED 2026-11-19: TOC ""Financial Statements"" -> printed p.28, offset +2 (footers). Headings: Operations p.31, Comprehensive Income p.32, Balance Sheets p.33, Shareholders' Equity p.34, Cash Flows p.35, first Notes p.36. Range [31,37).",TEXT+INDEX
 AAPL/2023.pdf,AAPL,2023,2022-09-25,2023-09-30,0000320193-23-000106,"[
   {
     ""end"": 36,
     ""start"": 30
   }
-]",True,"HUMAN-REVIEWED (before note format, by ATP524): Checked proposed period/accession against the PDF cover and statement headers",
+]",True,"HUMAN-REVIEWED (before note format, by ATP524): Checked proposed period/accession against the PDF cover and statement headers",TEXT+INDEX
 AAPL/2022.pdf,AAPL,2022,2021-09-26,2022-09-24,0000320193-22-000108,"[
   {
     ""end"": 37,
     ""start"": 31
   }
-]",True,"AUTO-APPROVED 2026-11-20: TOC ""Financial Statements"" -> printed p.28, offset +2 (footers). Headings: Operations p.31, Comprehensive Income p.32, Balance Sheets p.33, Shareholders' Equity p.34, Cash Flows p.35, first Notes p.36. Range [31,37).",
+]",True,"AUTO-APPROVED 2026-11-20: TOC ""Financial Statements"" -> printed p.28, offset +2 (footers). Headings: Operations p.31, Comprehensive Income p.32, Balance Sheets p.33, Shareholders' Equity p.34, Cash Flows p.35, first Notes p.36. Range [31,37).",TEXT+INDEX
 AAPL/2021.pdf,AAPL,2021,2020-09-27,2021-09-25,0000320193-21-000105,"[
   {
     ""end"": 37,
     ""start"": 31
   }
-]",True,"AUTO-APPROVED 2026-11-20: TOC ""Financial Statements"" -> printed p.28, offset +2 (footers). Headings: Operations p.31, Comprehensive Income p.32, Balance Sheets p.33, Shareholders' Equity p.34, Cash Flows p.35, first Notes p.36. Range [31,37).",
+]",True,"AUTO-APPROVED 2026-11-20: TOC ""Financial Statements"" -> printed p.28, offset +2 (footers). Headings: Operations p.31, Comprehensive Income p.32, Balance Sheets p.33, Shareholders' Equity p.34, Cash Flows p.35, first Notes p.36. Range [31,37).",TEXT+INDEX
 AAPL/2025.pdf,AAPL,2025,2024-09-29,2025-09-27,0000320193-25-000079,"[
   {
     ""end"": 37,
     ""start"": 31
   }
-]",True,"AUTO-APPROVED 2026-11-20: TOC ""Financial Statements"" -> printed p.28, offset +2 (footers). Headings: Operations p.31, Comprehensive Income p.32, Balance Sheets p.33, Shareholders' Equity p.34, Cash Flows p.35, first Notes p.36. Range [31,37).",
+]",True,"AUTO-APPROVED 2026-11-20: TOC ""Financial Statements"" -> printed p.28, offset +2 (footers). Headings: Operations p.31, Comprehensive Income p.32, Balance Sheets p.33, Shareholders' Equity p.34, Cash Flows p.35, first Notes p.36. Range [31,37).",TEXT+INDEX
 MSFT/2023.pdf,MSFT,2023,2022-07-01,2023-06-30,0000950170-23-035122,"[
   {
     ""end"": 49,
