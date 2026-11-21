@@ -103,7 +103,7 @@ The hosted SQL/notebook flow has not been executed in this environment. Before c
 4. Run `01.ddls.sql`, set the scope to AAPL 2023-2023 in `00.set_session_variables.ipynb`, then `load_starter(session)`; confirm the stage and approved manifest.
 5. Run `04.prepare_manifest.sql`, `05.locate_statement_pages.sql` and `06.check_readiness.sql`; `pipeline_coverage` should show 2023 as READY.
 6. Run `07.first_extraction.sql`, then the `08.extract_reports.ipynb` notebook with defaults and `09.evaluate_results.sql`; expect three metrics per method.
-7. Repeat 08 with `include_all_metrics = TRUE` (a new `prompt_version`, so it re-extracts even with `only_new_reports = TRUE`); expect ten metrics per method.
+7. Set `include_all_metrics = TRUE` in step 00, rerun 06 (readiness now requires all ten metrics' ground truth) and repeat 08 (a new `prompt_version`, so it re-extracts even with `only_new_reports = TRUE`); expect ten metrics per method. Set it back to `FALSE` afterwards.
 8. Run `10.validation.sql` and check for duplicate run outputs.
 9. Widen the scope to several years with live ingestion and confirm `pipeline_coverage` lists every year with a sensible `next_step`.
 10. Confirm students can inspect intermediate Markdown and explain differences.

@@ -9,6 +9,12 @@ USE SCHEMA atp524;
 -- Run after 11.generate_synthetic_batch.py uploads five PDFs and the batch manifest.
 -- Select the same database, student schema, and query warehouse as the lab.
 -- This worksheet is independent of 08.extract_reports.ipynb/09.evaluate_results.sql.
+
+-- Which pages the model sees. Page 0 is a "Full-year results" summary that restates revenue
+-- and net income ROUNDED (USD billions, 2 decimals); pages 1-4 are the exact statements.
+--   0 = the whole report, summary included (default): tests picking the exact figure.
+--   1 = statements only (control).
+SET first_page = 0;
 CREATE FILE FORMAT IF NOT EXISTS synthetic_json_format TYPE = JSON;
 
 CREATE OR REPLACE TEMP TABLE synthetic_reference AS
@@ -66,7 +72,7 @@ SELECT q.relative_path,
        AI_EXTRACT(
            file => FL_FILTER_PAGES(
                TO_FILE('@annual_report_pdfs', q.relative_path),
-               ARRAY_CONSTRUCT(OBJECT_CONSTRUCT('start', 1, 'end', 5))),
+               ARRAY_CONSTRUCT(OBJECT_CONSTRUCT('start', $first_page, 'end', 5))),
            responseFormat => q.response_format,
            scores => TRUE
        ) AS raw_result
@@ -103,6 +109,11 @@ SELECT *,
     CASE
         WHEN extraction_error IS NOT NULL THEN 'EXTRACTION_ERROR'
         WHEN printed_value IS NULL OR scale IS NULL THEN 'MISSING_OR_INVALID_VALUE'
+        -- Checked before scale: a value read from the page-0 summary (billions) would
+        -- otherwise show only as SCALE_MISMATCH and hide that the summary was used.
+        WHEN NOT IS_NULL_VALUE(expected:summary_value)
+             AND ABS(extracted_value - expected:summary_value::FLOAT) <= 0.5
+             AND ABS(extracted_value - expected:value::FLOAT) > 0.5 THEN 'USED_ROUNDED_SUMMARY'
         WHEN scale <> expected:scale::FLOAT THEN 'SCALE_MISMATCH'
         WHEN unit IS NULL OR unit <> expected:unit::STRING THEN 'UNIT_MISMATCH'
         WHEN period_end IS NULL OR period_end <> expected:end::DATE THEN 'PERIOD_MISMATCH'
@@ -129,3 +140,12 @@ SELECT COUNT(*) AS expected_metrics,
        COUNT_IF(evaluation_status = 'PASS') AS passed_metrics,
        COUNT_IF(evaluation_status = 'PASS')::FLOAT / NULLIF(COUNT(*), 0) AS pass_rate
 FROM synthetic_metric_evaluation;
+
+-- Rounding trap: the 10 answers (revenue and net income x 5 reports) whose page-0 summary
+-- differs from the exact statement figure. With first_page = 1 this is the control.
+SELECT $first_page AS first_page, COUNT(*) AS trap_answers,
+       COUNT_IF(evaluation_status = 'PASS') AS picked_exact_statement,
+       COUNT_IF(evaluation_status = 'USED_ROUNDED_SUMMARY') AS picked_rounded_summary,
+       COUNT_IF(evaluation_status NOT IN ('PASS', 'USED_ROUNDED_SUMMARY')) AS other_errors
+FROM synthetic_metric_evaluation
+WHERE NOT IS_NULL_VALUE(expected:summary_value) AND expected:summary_value IS NOT NULL;

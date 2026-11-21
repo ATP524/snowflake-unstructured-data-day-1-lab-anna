@@ -6,9 +6,9 @@
   "relative_path": "synthetic/batch/SYN_ELM/2025.pdf",
   "period_start": "2024-09-29",
   "period_end": "2025-09-27",
-  "template_version": "earnings-v1",
-  "source_sha256": "2a30a3462d1568a1648ac027833ed8e070e0362cb2ca6a8c710659cfff54677e",
-  "pdf_sha256": "499c7c91aa34f6472d8415360c08c1ea0f71f3c9f8c8ac582884b5200ec28db1",
+  "template_version": "earnings-v2",
+  "source_sha256": "853eee57ffec1e210e73a7d9c35a6785c1a1a841eb8b0f62e01fc8fb9cfc0545",
+  "pdf_sha256": "176748eba08ee6449d560b58be5bab9879733810dd07850e48537cbe31997d5a",
   "page_ranges": [
     {
       "start": 1,
@@ -17,64 +17,70 @@
   ],
   "expected": {
     "revenue": {
-      "raw_value": "1660000",
+      "raw_value": "1660853",
       "scale": 1000000,
-      "value": 1660000000000.0,
+      "value": 1660853000000.0,
       "unit": "USD",
       "start": "2024-09-29",
       "end": "2025-09-27",
       "label": "Total net sales",
-      "page_index": 1
+      "page_index": 1,
+      "summary_value": 1660850000000.0
     },
     "gross_profit": {
-      "raw_value": "781400",
+      "raw_value": "782253",
       "scale": 1000000,
-      "value": 781400000000.0,
+      "value": 782253000000.0,
       "unit": "USD",
       "start": "2024-09-29",
       "end": "2025-09-27",
       "label": "Gross profit",
-      "page_index": 1
+      "page_index": 1,
+      "summary_value": null
     },
     "operating_income": {
-      "raw_value": "516400",
+      "raw_value": "517253",
       "scale": 1000000,
-      "value": 516400000000.0,
+      "value": 517253000000.0,
       "unit": "USD",
       "start": "2024-09-29",
       "end": "2025-09-27",
       "label": "Operating income",
-      "page_index": 1
+      "page_index": 1,
+      "summary_value": null
     },
     "net_income": {
-      "raw_value": "418600",
+      "raw_value": "419453",
       "scale": 1000000,
-      "value": 418600000000.0,
+      "value": 419453000000.0,
       "unit": "USD",
       "start": "2024-09-29",
       "end": "2025-09-27",
       "label": "Net income",
-      "page_index": 1
+      "page_index": 1,
+      "summary_value": 419450000000.0
     },
     "eps_basic": {
-      "raw_value": "29.48",
+      "raw_value": "29.54",
       "scale": 1,
-      "value": 29.48,
+      "value": 29.54,
       "unit": "USD/shares",
       "start": "2024-09-29",
       "end": "2025-09-27",
       "label": "Basic earnings per share",
-      "page_index": 1
+      "page_index": 1,
+      "summary_value": null
     },
     "eps_diluted": {
-      "raw_value": "29.17",
+      "raw_value": "29.23",
       "scale": 1,
-      "value": 29.17,
+      "value": 29.23,
       "unit": "USD/shares",
       "start": "2024-09-29",
       "end": "2025-09-27",
       "label": "Diluted earnings per share",
-      "page_index": 1
+      "page_index": 1,
+      "summary_value": null
     },
     "assets": {
       "raw_value": "1600000",
@@ -84,7 +90,8 @@
       "start": null,
       "end": "2025-09-27",
       "label": "Total assets",
-      "page_index": 2
+      "page_index": 2,
+      "summary_value": null
     },
     "liabilities": {
       "raw_value": "1450000",
@@ -94,7 +101,8 @@
       "start": null,
       "end": "2025-09-27",
       "label": "Total liabilities",
-      "page_index": 2
+      "page_index": 2,
+      "summary_value": null
     },
     "equity": {
       "raw_value": "150000",
@@ -104,17 +112,19 @@
       "start": null,
       "end": "2025-09-27",
       "label": "Total stockholders' equity",
-      "page_index": 2
+      "page_index": 2,
+      "summary_value": null
     },
     "operating_cash_flow": {
-      "raw_value": "524000",
+      "raw_value": "524853",
       "scale": 1000000,
-      "value": 524000000000.0,
+      "value": 524853000000.0,
       "unit": "USD",
       "start": "2024-09-29",
       "end": "2025-09-27",
       "label": "Net cash provided by operating activities",
-      "page_index": 3
+      "page_index": 3,
+      "summary_value": null
     }
   }
 }

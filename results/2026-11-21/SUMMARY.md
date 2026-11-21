@@ -1,7 +1,7 @@
 # Lab results exported 2026-11-21
 
 Contains: 3 companies (AAPL, MSFT, TSLA), 15 ticker-years (14 evaluated, 1 not complete), 30 extraction runs in 12 batches, 25 staged files.  
-Next run is set to: AAPL 2021-2025 (`lab_settings`; change it in step 00). This does not filter anything below.
+Next run is set to: AAPL 2021-2025, 3 metrics (starter set) (`lab_settings`; change it in step 00). This does not filter anything below.
 
 ## 1. Every annual report: status and latest result
 
@@ -35,7 +35,22 @@ One row per ticker-year the lab has touched (`report_status`). Scores are metric
 
 Every metric in every report's latest run passed.
 
-## 4. Run history (one row per 08 batch, oldest first)
+## 4. Method comparison (latest runs)
+
+From `method_comparison`: each report's latest run, by company and overall. Confidence is the model's own `value_score` for the printed number; low confidence = below 0.9. Parsed characters = text produced by the extra AI_PARSE_DOCUMENT step.
+
+| Company | Method | Reports | Passed | Avg confidence | Min confidence | Low confidence (of which passed) | Avg parsed characters |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| AAPL | DIRECT_PDF | 5 | 50/50 | 0.953 | 0.87 | 3 (3) | - |
+| AAPL | PARSE_THEN_EXTRACT | 5 | 50/50 | 0.957 | 0.92 | 0 (0) | 12,769 |
+| MSFT | DIRECT_PDF | 5 | 50/50 | 0.956 | 0.92 | 0 (0) | - |
+| MSFT | PARSE_THEN_EXTRACT | 5 | 50/50 | 0.956 | 0.89 | 1 (1) | 11,296 |
+| TSLA | DIRECT_PDF | 4 | 40/40 | 0.949 | 0.78 | 4 (4) | - |
+| TSLA | PARSE_THEN_EXTRACT | 4 | 40/40 | 0.952 | 0.78 | 4 (4) | 16,574 |
+| **All** | DIRECT_PDF | 14 | 140/140 | 0.953 | 0.78 | 7 (7) | - |
+| **All** | PARSE_THEN_EXTRACT | 14 | 140/140 | 0.955 | 0.78 | 5 (5) | 13,330 |
+
+## 5. Run history (one row per 08 batch, oldest first)
 
 Includes earlier runs that section 1 replaces with a newer run (e.g. the 3-metric AAPL runs).
 
@@ -54,7 +69,7 @@ Includes earlier runs that section 1 replaces with a newer run (e.g. the 3-metri
 | 2026-11-20 13:26 | `c3c07e23` | TSLA | 1 | 10 | 20/20 |
 | 2026-11-21 05:13 | `ebb07191` | TSLA | 1 | 10 | 20/20 |
 
-## 5. Files in this export
+## 6. Files in this export
 
 | File | Rows |
 | --- | --- |
@@ -72,7 +87,9 @@ Includes earlier runs that section 1 replaces with a newer run (e.g. the 3-metri
 | report_manifest.csv | 14 |
 | lab_runs.csv | 30 |
 | report_status.csv | 15 |
+| method_comparison.csv | 28 |
 | metric_ground_truth.csv | 140 |
+| scope_metrics.csv | 3 |
 | report_readiness.csv | 5 |
 | pipeline_coverage.csv | 5 |
 | heading_pattern_usage.csv | 15 |

@@ -5,13 +5,13 @@
     "ticker": "SYN_ORCH",
     "currency": "USD",
     "amount_scale": 1000000,
-    "template_version": "earnings-v1",
+    "template_version": "earnings-v2",
     "years": [
       {
         "fiscal_year": 2025,
         "period_start": "2024-09-29",
         "period_end": "2025-09-27",
-        "products_revenue": 245600,
+        "products_revenue": 246037,
         "services_revenue": 86400,
         "products_cost": 149800,
         "services_cost": 25920,
@@ -36,7 +36,7 @@
         "working_capital_change": -3120,
         "capital_expenditure": -13200,
         "other_investing_cash_flow": 9200,
-        "financing_cash_flow": -97800,
+        "financing_cash_flow": -98237,
         "beginning_cash": 28200
       },
       {
@@ -111,13 +111,13 @@
     "ticker": "SYN_CEDAR",
     "currency": "USD",
     "amount_scale": 1000000,
-    "template_version": "earnings-v1",
+    "template_version": "earnings-v2",
     "years": [
       {
         "fiscal_year": 2025,
         "period_start": "2024-09-29",
         "period_end": "2025-09-27",
-        "products_revenue": 491200,
+        "products_revenue": 491463,
         "services_revenue": 172800,
         "products_cost": 299600,
         "services_cost": 51840,
@@ -142,7 +142,7 @@
         "working_capital_change": -6240,
         "capital_expenditure": -26400,
         "other_investing_cash_flow": 18400,
-        "financing_cash_flow": -195600,
+        "financing_cash_flow": -195863,
         "beginning_cash": 56400
       },
       {
@@ -217,13 +217,13 @@
     "ticker": "SYN_MAPLE",
     "currency": "USD",
     "amount_scale": 1000000,
-    "template_version": "earnings-v1",
+    "template_version": "earnings-v2",
     "years": [
       {
         "fiscal_year": 2025,
         "period_start": "2024-09-29",
         "period_end": "2025-09-27",
-        "products_revenue": 736800,
+        "products_revenue": 737381,
         "services_revenue": 259200,
         "products_cost": 449400,
         "services_cost": 77760,
@@ -248,7 +248,7 @@
         "working_capital_change": -9360,
         "capital_expenditure": -39600,
         "other_investing_cash_flow": 27600,
-        "financing_cash_flow": -293400,
+        "financing_cash_flow": -293981,
         "beginning_cash": 84600
       },
       {
@@ -323,13 +323,13 @@
     "ticker": "SYN_BIRCH",
     "currency": "USD",
     "amount_scale": 1000000,
-    "template_version": "earnings-v1",
+    "template_version": "earnings-v2",
     "years": [
       {
         "fiscal_year": 2025,
         "period_start": "2024-09-29",
         "period_end": "2025-09-27",
-        "products_revenue": 982400,
+        "products_revenue": 983119,
         "services_revenue": 345600,
         "products_cost": 599200,
         "services_cost": 103680,
@@ -354,7 +354,7 @@
         "working_capital_change": -12480,
         "capital_expenditure": -52800,
         "other_investing_cash_flow": 36800,
-        "financing_cash_flow": -391200,
+        "financing_cash_flow": -391919,
         "beginning_cash": 112800
       },
       {
@@ -429,13 +429,13 @@
     "ticker": "SYN_ELM",
     "currency": "USD",
     "amount_scale": 1000000,
-    "template_version": "earnings-v1",
+    "template_version": "earnings-v2",
     "years": [
       {
         "fiscal_year": 2025,
         "period_start": "2024-09-29",
         "period_end": "2025-09-27",
-        "products_revenue": 1228000,
+        "products_revenue": 1228853,
         "services_revenue": 432000,
         "products_cost": 749000,
         "services_cost": 129600,
@@ -460,7 +460,7 @@
         "working_capital_change": -15600,
         "capital_expenditure": -66000,
         "other_investing_cash_flow": 46000,
-        "financing_cash_flow": -489000,
+        "financing_cash_flow": -489853,
         "beginning_cash": 141000
       },
       {

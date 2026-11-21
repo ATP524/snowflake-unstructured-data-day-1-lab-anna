@@ -88,12 +88,41 @@ class StarterTests(unittest.TestCase):
     def test_starter_scope_and_evaluation_match(self):
         from sql_runner import notebook_sql_text
         extraction = notebook_sql_text(ROOT / "sql" / "08.extract_reports.ipynb")
-        self.assertIn("SET include_all_metrics = FALSE;", extraction)
-        self.assertIn("c.metric_id IN ('assets', 'revenue', 'eps_diluted')", extraction)
+        # The metric set is part of the scope (00 -> lab_settings), read through scope_metrics.
+        self.assertNotIn("SET include_all_metrics", extraction)
+        self.assertIn("CROSS JOIN scope_metrics c", extraction)
+        self.assertIn("(SELECT include_all_metrics FROM lab_settings)", extraction)
+        ddl = (ROOT / "sql" / "01.ddls.sql").read_text()
+        self.assertIn("UPDATE metric_catalog SET is_starter = metric_id IN ('assets', 'revenue', 'eps_diluted')", ddl)
         evaluation = (ROOT / "sql" / "09.evaluate_results.sql").read_text()
         self.assertEqual(evaluation.count(
             "WHERE GET(r.response_format, c.metric_id || '__raw_value') IS NOT NULL"
         ), 2)
+
+    def test_metric_set_is_chosen_once_and_read_through_one_view(self):
+        from sql_runner import notebook_sql_text
+        readiness = (ROOT / "sql" / "06.check_readiness.sql").read_text()
+        self.assertIn("CREATE OR REPLACE VIEW scope_metrics", readiness)
+        self.assertIn("WHERE ls.include_all_metrics OR c.is_starter", readiness)
+        self.assertNotIn("remove it for all ten", readiness)
+        ready_view = readiness.split("CREATE OR REPLACE VIEW report_readiness")[1].split(";", 1)[0]
+        self.assertIn("CROSS JOIN scope_metrics c", ready_view)
+        evaluation = (ROOT / "sql" / "09.evaluate_results.sql").read_text()
+        self.assertIn("LEFT JOIN scope_metrics s ON s.metric_id = c.metric_id",
+                      evaluation.split("CREATE OR REPLACE VIEW report_status")[1])
+        # The starter list is data in 01 only: no step names the metrics in its SQL.
+        sources = {
+            "06": readiness, "09": evaluation,
+            "08": notebook_sql_text(ROOT / "sql" / "08.extract_reports.ipynb"),
+            "10": (ROOT / "sql" / "10.validation.sql").read_text(),
+        }
+        for step, sql in sources.items():
+            self.assertNotIn("'assets', 'revenue', 'eps_diluted'", sql, step)
+        settings = json.loads((ROOT / "python" / "00.set_session_variables.ipynb").read_text())
+        scope_cell = next("".join(c["source"]) for c in settings["cells"]
+                          if "MERGE INTO bootcamp.atp524.lab_settings" in "".join(c["source"]))
+        self.assertIn("FALSE AS include_all_metrics", scope_cell)
+        self.assertIn("include_all_metrics = s.include_all_metrics", scope_cell)
 
     def test_pipeline_steps_process_the_whole_scope(self):
         # Steps 04-09 must read the scope (lab_settings) or the readiness view built
@@ -202,7 +231,7 @@ class StarterTests(unittest.TestCase):
         from sql_runner import notebook_sql_text
         sql = notebook_sql_text(ROOT / "sql" / "08.extract_reports.ipynb")
         self.assertIn("SET only_new_reports = TRUE;", sql)
-        self.assertIn("SET include_all_metrics = FALSE;", sql)
+        self.assertNotIn("$include_all_metrics", sql)
         for column in ("prompt_version", "include_all_metrics", "metric_count", "metric_ids"):
             self.assertIn(column, sql)
         self.assertIn("NOT ($only_new_reports AND EXISTS", sql)
@@ -304,6 +333,30 @@ class StarterTests(unittest.TestCase):
         nb = json.loads((ROOT / "workspace_export.ipynb").read_text())
         export = "".join("".join(c["source"]) for c in nb["cells"] if c.get("cell_type") == "code")
         self.assertIn('session.sql("SELECT * FROM report_status ORDER BY ticker, report_year")', export)
+
+    def test_method_comparison_covers_latest_runs_and_is_exported(self):
+        evaluate = (ROOT / "sql" / "09.evaluate_results.sql").read_text()
+        self.assertLess(evaluate.index("CREATE OR REPLACE VIEW metric_evaluation"),
+                        evaluate.index("CREATE OR REPLACE VIEW method_comparison"))
+        view = evaluate.split("CREATE OR REPLACE VIEW method_comparison")[1].split(";", 1)[0]
+        self.assertIn("PARTITION BY relative_path ORDER BY created_at DESC", view)
+        for column in ("pass_rate", "avg_value_score", "low_confidence_answers", "parsed_characters"):
+            self.assertIn(column, view)
+        validation = (ROOT / "sql" / "10.validation.sql").read_text()
+        self.assertIn("'unique', 'method_comparison', 'ticker, report_year, method'", validation)
+        nb = json.loads((ROOT / "workspace_export.ipynb").read_text())
+        export = "".join("".join(c["source"]) for c in nb["cells"] if c.get("cell_type") == "code")
+        self.assertIn('"method_comparison"', export)
+        self.assertIn("Method comparison (latest runs)", export)
+
+    def test_synthetic_step_12_runs_end_to_end(self):
+        # Three defects that stopped 12 before 2026-11-21; each failed only at run time.
+        sql = (ROOT / "sql" / "12.evaluate_synthetic_simple.sql").read_text()
+        self.assertIn("OBJECT_AGG(metric_id, question::VARIANT)", sql)        # OBJECT_AGG needs VARIANT
+        self.assertIn("'DIRECT_PDF'::STRING AS method", sql)                 # column must fit PARSE_THEN_EXTRACT
+        code = "\n".join(line.split("--")[0] for line in sql.splitlines())
+        self.assertNotIn("'page_split', FALSE", code)                         # page_filter needs page_split TRUE
+        self.assertIn("LATERAL FLATTEN(INPUT => p.parsed_result:value:pages, OUTER => TRUE)", sql)
 
     def test_new_scripts_compile(self):
         for name in ("load_starter.py", "build_starter_fixture.py"):

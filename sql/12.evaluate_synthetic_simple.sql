@@ -12,6 +12,13 @@ USE SCHEMA atp524;
 -- This lesson checks numeric accuracy only.
 -- For unit, period, and evidence checks, use 13.evaluate_synthetic.sql.
 
+-- Which pages the model sees. Page 0 is a "Full-year results" summary that restates revenue
+-- and net income ROUNDED (USD billions, 2 decimals); pages 1-4 are the exact statements.
+--   0 = the whole report, summary included: tests whether each path picks the exact
+--       statement figure over the rounded one (the default).
+--   1 = statements only (control): the summary is never shown.
+SET first_page = 0;
+
 -- 1. Look at the correct answers.
 -- Expect 50 rows: five reports with ten metrics each.
 SELECT ticker, metric_id, expected_value, expected_unit
@@ -40,8 +47,9 @@ FROM synthetic_ground_truth;
 SELECT * FROM student_question_list ORDER BY relative_path, metric_id;
 
 -- Bundle each PDF's ten questions into one dictionary.
+-- OBJECT_AGG needs a VARIANT value, so the text question is cast with ::VARIANT.
 CREATE OR REPLACE TEMP TABLE student_questions AS
-SELECT relative_path, OBJECT_AGG(metric_id, question) AS questions
+SELECT relative_path, OBJECT_AGG(metric_id, question::VARIANT) AS questions
 FROM student_question_list
 GROUP BY relative_path;
 
@@ -54,33 +62,38 @@ SELECT * FROM student_questions;
 CREATE OR REPLACE TEMP TABLE student_answers AS
 SELECT
     relative_path,
-    'DIRECT_PDF' AS method,
+    'DIRECT_PDF'::STRING AS method,   -- ::STRING: a bare literal would size the column to 10 characters
     AI_EXTRACT(
         file => FL_FILTER_PAGES(TO_FILE('@annual_report_pdfs', relative_path),
-                    ARRAY_CONSTRUCT(OBJECT_CONSTRUCT('start', 1, 'end', 5))),
+                    ARRAY_CONSTRUCT(OBJECT_CONSTRUCT('start', $first_page, 'end', 5))),
         responseFormat => questions
     ) AS result
 FROM student_questions;
 
 -- Path B: PDF -> Markdown -> structured answers.
--- page_split=FALSE returns one content field instead of a pages array.
+-- page_filter requires page_split=TRUE (AI_PARSE_DOCUMENT rejects page_split=FALSE with a
+-- page filter), so pages come back as an array and are joined below, as 08 does.
 CREATE OR REPLACE TEMP TABLE student_parsed AS
 SELECT relative_path,
        AI_PARSE_DOCUMENT(
            TO_FILE('@annual_report_pdfs', relative_path),
-           OBJECT_CONSTRUCT('mode', 'LAYOUT', 'page_split', FALSE,
-               'page_filter', ARRAY_CONSTRUCT(OBJECT_CONSTRUCT('start', 1, 'end', 5))),
+           OBJECT_CONSTRUCT('mode', 'LAYOUT', 'page_split', TRUE,
+               'page_filter', ARRAY_CONSTRUCT(OBJECT_CONSTRUCT('start', $first_page, 'end', 5))),
            TRUE
        ) AS parsed_result
 FROM student_questions;
 
 -- Inspect content and errors BEFORE running text extraction.
+-- One Markdown text per PDF: its pages in order, each labelled with its page index.
 CREATE OR REPLACE TEMP TABLE student_markdown AS
-SELECT relative_path,
-       parsed_result:value:content::STRING AS markdown,
-       parsed_result:error::STRING AS parse_error,
-       parsed_result:value:error::STRING AS document_error
-FROM student_parsed;
+SELECT p.relative_path,
+       LISTAGG('[PDF page index ' || f.value:index::STRING || ']\n' || f.value:content::STRING, '\n\n')
+           WITHIN GROUP (ORDER BY f.value:index::INT) AS markdown,
+       ANY_VALUE(p.parsed_result:error::STRING) AS parse_error,
+       ANY_VALUE(p.parsed_result:value:error::STRING) AS document_error
+FROM student_parsed p,
+LATERAL FLATTEN(INPUT => p.parsed_result:value:pages, OUTER => TRUE) f
+GROUP BY p.relative_path;
 
 SELECT *, LENGTH(markdown) AS characters FROM student_markdown;
 
@@ -112,6 +125,7 @@ SELECT
     truth.metric_id,
     truth.expected_unit,
     truth.expected_value,
+    truth.summary_value,        -- the rounded page-0 figure (revenue, net income only)
     TRY_TO_DOUBLE(
         GET(answers.result:response, truth.metric_id)::STRING
     ) AS extracted_value,
@@ -137,6 +151,9 @@ SELECT
         WHEN ABS(extracted_value - expected_value) <=
              CASE WHEN expected_unit = 'USD/shares' THEN 0.005 ELSE 0.5 END
             THEN 'PASS'
+        -- Wrong, but equal to the rounded summary on page 0: the model read the summary.
+        WHEN summary_value IS NOT NULL AND ABS(extracted_value - summary_value) <= 0.5
+            THEN 'USED_ROUNDED_SUMMARY'
         ELSE 'FAIL'
     END AS status
 FROM student_comparison;
@@ -166,6 +183,21 @@ SELECT
     ROUND(100.0 * SUM(CASE WHEN status = 'PASS' THEN 1 ELSE 0 END)
           / NULLIF(COUNT(*), 0), 1) AS accuracy_percent
 FROM student_scores
+GROUP BY method
+ORDER BY method;
+
+-- Rounding trap: the 10 answers per method (revenue and net income x 5 reports) whose page-0
+-- summary differs from the exact statement figure. With first_page = 1 the summary is not
+-- shown, so this is the control.
+SELECT
+    $first_page AS first_page,
+    method,
+    COUNT(*) AS trap_answers,
+    SUM(CASE WHEN status = 'PASS' THEN 1 ELSE 0 END) AS picked_exact_statement,
+    SUM(CASE WHEN status = 'USED_ROUNDED_SUMMARY' THEN 1 ELSE 0 END) AS picked_rounded_summary,
+    SUM(CASE WHEN status NOT IN ('PASS', 'USED_ROUNDED_SUMMARY') THEN 1 ELSE 0 END) AS other_errors
+FROM student_scores
+WHERE summary_value IS NOT NULL
 GROUP BY method
 ORDER BY method;
 

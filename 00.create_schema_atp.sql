@@ -50,3 +50,20 @@ SELECT "privilege", "grantee_name"
 FROM TABLE(RESULT_SCAN(LAST_QUERY_ID()))
 WHERE "grantee_name" = CURRENT_ROLE()
   AND "privilege" IN ('CREATE STAGE', 'OWNERSHIP');
+
+
+SELECT * FROM report_status;
+
+SELECT * FROM DDL_APPLIED;
+
+SELECT * FROM metric_ground_truth;
+
+
+SELECT * FROM scope_metrics;
+
+
+SELECT * FROM metric_catalog;
+
+SELECT * FROM report_readiness;
+
+SELECT * FROM compared_values;

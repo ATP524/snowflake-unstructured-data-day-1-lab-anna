@@ -1,0 +1,4 @@
+METRIC_ID,METRIC_DESCRIPTION,SEC_CONCEPT,EXPECTED_UNIT,PERIOD_TYPE,ABSOLUTE_TOLERANCE,RELATIVE_TOLERANCE,IS_STARTER
+assets,Total consolidated assets,Assets,USD,instant,1000000.0,0.0001,True
+eps_diluted,Diluted earnings per share attributable to parent common shareholders; not adjusted EPS,EarningsPerShareDiluted,USD/shares,duration,0.01,0.0,True
+revenue,Revenue from contracts with customers excluding assessed tax,RevenueFromContractWithCustomerExcludingAssessedTax,USD,duration,1000000.0,0.0001,True

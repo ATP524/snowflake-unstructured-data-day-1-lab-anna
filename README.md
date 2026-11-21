@@ -17,7 +17,7 @@ Files are numbered in the order they run. You set **one scope**, a ticker and a 
 | 06 | `sql/06.check_readiness.sql` | `metric_ground_truth` (the one SEC-value rule), `report_readiness` (READY / NOT READY) and `pipeline_coverage` (per-year step status) | No |
 | 07 | `sql/07.first_extraction.sql` | First hands-on `AI_EXTRACT`: three metrics per READY report | Yes (one call per new report) |
 | 08 | `sql/08.extract_reports.ipynb` | Run both extraction paths for every READY report, as one batch (export a `.sql` copy with `python/export_notebook_sql.py`) | Yes |
-| 09 | `sql/09.evaluate_results.sql` | Compare the latest batch with SEC ground truth; per-year coverage check; `report_status` (every ticker-year, all companies) | No |
+| 09 | `sql/09.evaluate_results.sql` | Compare the latest batch with SEC ground truth; per-year coverage check; `report_status` (every ticker-year, all companies); `method_comparison` (both paths across all reports) | No |
 | 10 | `sql/10.validation.sql` | Data-quality tests: unique keys, not-null, relationships, accepted values | No |
 | 11 | `python/11.generate_synthetic_batch.py` | If time: generate synthetic PDFs and ground truth | No |
 | 12 | `sql/12.evaluate_synthetic_simple.sql` | Compare the two paths on the synthetic batch | Yes |
@@ -102,11 +102,12 @@ In [python/00.set_session_variables.ipynb](python/00.set_session_variables.ipynb
 
 ```sql
 MERGE INTO bootcamp.atp524.lab_settings t
-USING (SELECT 'AAPL' AS ticker, 2023 AS first_year, 2024 AS last_year) s ON TRUE
+USING (SELECT 1 AS setting_id, 'AAPL' AS ticker, 2023 AS first_year, 2024 AS last_year,
+              FALSE AS include_all_metrics) s
 ...
 ```
 
-This is the only place the ticker and years are written. Use `first_year = last_year` for a single report; a range covers at most six years.
+This is the only place the ticker, years and metric set are written. Use `first_year = last_year` for a single report; a range covers at most six years. `include_all_metrics = FALSE` (the default) uses the starter metrics (assets, revenue, diluted EPS, flagged `is_starter` in `metric_catalog`); `TRUE` uses all ten. Readiness (06), extraction (08) and `report_status` (09) all read it through one view, `scope_metrics`, so they always agree: with `TRUE` a report is READY only when SEC has a value for all ten, and any missing metric is named.
 
 If source sites are unavailable or the instructor wants to avoid class-wide downloads, use the bundled snapshot alternatives in steps 1 and 2. These preserve the same learning sequence and need no HTTP access, but cover AAPL 2023 only.
 
@@ -184,10 +185,10 @@ Optionally, run [sql/07.first_extraction.sql](sql/07.first_extraction.sql) for a
 
 ## 3. Run AI extraction using both paths
 
-Open [sql/08.extract_reports.ipynb](sql/08.extract_reports.ipynb), the only source of step 08's SQL (`python/export_notebook_sql.py` writes a generated `build/08.extract_reports.sql` copy if you need a worksheet). It processes **every READY report in scope** as one batch; you do not edit report paths or years here. Every insert skips rows that already exist, so re-running a cell never duplicates or pays twice. Keep its defaults:
+Open [sql/08.extract_reports.ipynb](sql/08.extract_reports.ipynb), the only source of step 08's SQL (`python/export_notebook_sql.py` writes a generated `build/08.extract_reports.sql` copy if you need a worksheet). It processes **every READY report in scope** as one batch; you do not edit report paths or years here. Every insert skips rows that already exist, so re-running a cell never duplicates or pays twice. Keep its defaults (which metrics to ask is not set here; it comes from the scope in step 00):
 
 ```sql
-SET include_all_metrics = FALSE;
+SET only_new_reports = TRUE;
 SET batch_id = (SELECT UUID_STRING());
 ```
 
@@ -203,13 +204,13 @@ Both methods ask for printed value, scale, unit, fiscal dates, and evidence for 
 
 This step incurs inference charges. For each successful report it calls direct extraction once, parsing once, and text extraction once. The text path skips empty, failed, or oversized parses instead of silently truncating them; such a report shows "a path did not finish" in `pipeline_coverage`. The 60,000-character guardrail is a lab choice, not a documented model limit.
 
-Rerun the whole worksheet (a new `batch_id`) to repeat the experiment. Do not rerun individual inserts under an existing batch. By default (`only_new_reports = TRUE`) a new batch only extracts reports that have not already been extracted with the same questions, so a rerun costs nothing for finished years; changing the questions or `include_all_metrics` re-extracts automatically. Set `only_new_reports = FALSE` for a deliberate full re-extraction.
+Rerun the whole worksheet (a new `batch_id`) to repeat the experiment. Do not rerun individual inserts under an existing batch. By default (`only_new_reports = TRUE`) a new batch only extracts reports that have not already been extracted with the same questions, so a rerun costs nothing for finished years; changing the questions or the metric set (`include_all_metrics` in step 00) re-extracts automatically. Set `only_new_reports = FALSE` for a deliberate full re-extraction.
 
 Each run records its provenance in `lab_runs`: `prompt_version` (a hash of the question template with fiscal dates masked, so identical wording has the same version in every year), `include_all_metrics` (the setting used), `metric_count` (how many metrics were asked, e.g. 3 or 10) and `metric_ids` (exactly which). Step 09 reports the pass rate by `prompt_version`.
 
 ## 4. Evaluate and compare the methods
 
-Run [sql/09.evaluate_results.sql](sql/09.evaluate_results.sql). This step reads saved outputs and does not call AI. It sets `$batch_id` to the latest batch from step 08, so its results cover every report that batch extracted. It ends with a per-year coverage check: each year in scope shows `EVALUATED` with its pass counts, or the step it still needs.
+Run [sql/09.evaluate_results.sql](sql/09.evaluate_results.sql). This step reads saved outputs and does not call AI. It sets `$batch_id` to the latest batch from step 08, so its results cover every report that batch extracted. It ends with a per-year coverage check: each year in scope shows `EVALUATED` with its pass counts, or the step it still needs. To compare the two paths across **every** report rather than one batch, query `method_comparison` (pass rate, the model's confidence and parsed text size per company, year and method); the export's `SUMMARY.md` shows its rollup.
 
 Follow its intermediate views:
 
@@ -303,9 +304,9 @@ Run [sql/12.evaluate_synthetic_simple.sql](sql/12.evaluate_synthetic_simple.sql)
 
 1. Inspect the correct answers.
 2. Build and inspect the shared questions.
-3. Run direct extraction and parse-then-extract on the same statement pages.
+3. Run direct extraction and parse-then-extract on the same pages. By default (`SET first_page = 0;` at the top) that is the **whole report**, including page 0, a "Full-year results" summary that restates revenue and net income **rounded** to USD 0.01 billion. The statement values are deliberately not round, so the summary differs from the exact figure by $1-3 million: a model that reads the summary instead of the statement is caught. Set `first_page = 1` to send only the statements (the control).
 4. Join each method's answers to ground truth.
-5. Compare per-company and overall accuracy by method.
+5. Compare per-company and overall accuracy by method, then the rounding-trap result: for the 10 trap answers per method, how many took the exact statement figure and how many the rounded summary.
 
 There are **50 expected answers per method**, or 100 comparison rows. Each answer receives one status:
 
@@ -314,6 +315,7 @@ There are **50 expected answers per method**, or 100 comparison rows. Each answe
 | `ERROR` | The extraction result contains an error. |
 | `MISSING` | The answer is absent or cannot be converted to a number. |
 | `PASS` | The absolute difference from ground truth is at most $0.005 per share for EPS or $0.50 for other amounts. |
+| `USED_ROUNDED_SUMMARY` | The answer is wrong but equals the rounded page-0 summary figure (revenue and net income only): the model read the summary, not the statement. |
 | `FAIL` | A numeric answer is present but falls outside that tolerance. |
 
 The evaluator applies these checks in the order shown. Answers must already be in base units; the comparison does not apply a scale multiplier.
@@ -326,7 +328,7 @@ The five reports vary company names and financial values but share a layout. The
 
 ## Further experiments
 
-- Set `include_all_metrics = TRUE` in `08.extract_reports` for ten metrics, then rerun evaluation.
+- Set `include_all_metrics = TRUE` in step 00 for ten metrics, rerun 06 and 08, then rerun evaluation; set it back to `FALSE` afterwards.
 - Widen the year range in `00.set_session_variables.ipynb` (for example AAPL 2021-2025), run 02 and 03, then 04-06; `pipeline_coverage` shows each year's progress, and 08 extracts every year that reaches `READY`.
 - Choose another US-GAAP, USD-denominated original `10-K` company: change the ticker in step 00 and run the same steps. Never reuse AAPL's accession, dates, or page ranges.
 - Use [sql/10.validation.sql](sql/10.validation.sql) to investigate duplicate rows and reference gaps.

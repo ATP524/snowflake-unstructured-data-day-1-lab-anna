@@ -79,6 +79,15 @@ def number(value, eps=False):
     return f"({text})" if value < 0 else text
 
 
+def summary_billions(millions):
+    """How the page-0 summary prints an amount: USD billions, rounded to 2 decimals."""
+    return f"{Decimal(millions) / 1000:,.2f}"
+
+
+# Metrics the page-0 summary restates (rounded). Their summary_value is the decoy answer.
+SUMMARY_METRICS = ("revenue", "net_income")
+
+
 def render_report(source):
     """Return (PDF bytes, manifest); no network or model calls."""
     from reportlab.lib import colors
@@ -133,12 +142,12 @@ def render_report(source):
     heading("Full-year results")
     growth = (latest["revenue"] / prior["revenue"] - 1) * 100
     para(f"For the fiscal year ended {latest['period_end']}, {company} reported "
-         f"net sales of ${latest['revenue'] / 1000:,.2f} billion, compared with "
-         f"${prior['revenue'] / 1000:,.2f} billion in the preceding year "
-         f"({growth:+.1f}%). Net income was ${latest['net_income'] / 1000:,.2f} billion "
+         f"net sales of ${summary_billions(latest['revenue'])} billion, compared with "
+         f"${summary_billions(prior['revenue'])} billion in the preceding year "
+         f"({growth:+.1f}%). Net income was ${summary_billions(latest['net_income'])} billion "
          f"and diluted earnings per share were ${latest['eps_diluted']:.2f}.")
-    para(f"Products generated ${latest['products_revenue'] / 1000:,.2f} billion "
-         f"of net sales. Services generated ${latest['services_revenue'] / 1000:,.2f} billion. "
+    para(f"Products generated ${summary_billions(latest['products_revenue'])} billion "
+         f"of net sales. Services generated ${summary_billions(latest['services_revenue'])} billion. "
          "The statements that follow contain the full-year consolidated amounts; "
          "summary figures on this page are rounded.")
     para("Reporting basis", "Heading2")
@@ -240,6 +249,10 @@ def render_report(source):
             "unit": "USD/shares" if eps else "USD",
             "start": None if metric in {"assets", "liabilities", "equity"} else latest["period_start"],
             "end": latest["period_end"], "label": label, "page_index": page,
+            # The rounded figure page 0 states for this metric (base units), or None. An
+            # answer equal to it means the model read the summary instead of the statement.
+            "summary_value": (float(Decimal(summary_billions(latest[metric]).replace(",", ""))
+                                    * 1000000000) if metric in SUMMARY_METRICS else None),
         }
     manifest = {
         "synthetic": True, "reference_source": "STRUCTURED_SYNTHETIC",
@@ -269,24 +282,34 @@ def generate_in_snowflake(session, source):
 
 
 def build_batch_sources(source):
-    """Five deterministic financial scenarios; preserve accounting identities."""
+    """Five deterministic financial scenarios; preserve accounting identities.
+
+    Rounding trap (template earnings-v2): each company's latest year gets an odd offset (in
+    USD millions) on products revenue, so revenue and net income are no longer whole
+    multiples of $10 million and the page-0 summary (billions, 2 decimals) differs from the
+    exact statement figure. Financing cash flow absorbs the same amount, so year-end cash and
+    every reconciliation still hold; prior years are unchanged.
+    """
     companies = [
-        ("SYN_ORCH", "Orchard Devices, Inc."),
-        ("SYN_CEDAR", "Cedar Systems, Inc."),
-        ("SYN_MAPLE", "Maple Computing, Inc."),
-        ("SYN_BIRCH", "Birch Electronics, Inc."),
-        ("SYN_ELM", "Elm Technologies, Inc."),
+        ("SYN_ORCH", "Orchard Devices, Inc.", 437),
+        ("SYN_CEDAR", "Cedar Systems, Inc.", 263),
+        ("SYN_MAPLE", "Maple Computing, Inc.", 581),
+        ("SYN_BIRCH", "Birch Electronics, Inc.", 719),
+        ("SYN_ELM", "Elm Technologies, Inc.", 853),
     ]
     sources = []
-    for factor, (ticker, company) in enumerate(companies, start=1):
+    for factor, (ticker, company, offset) in enumerate(companies, start=1):
         item = deepcopy(source)
-        item.update(ticker=ticker, company=company)
+        item.update(ticker=ticker, company=company, template_version="earnings-v2")
         for record in item["years"]:
             for key, value in record.items():
                 if isinstance(value, (int, float)) and key not in {
                     "fiscal_year", "shares_basic", "shares_diluted"
                 }:
                     record[key] = value * factor
+        latest = item["years"][0]
+        latest["products_revenue"] += offset
+        latest["financing_cash_flow"] -= offset
         prepare(item)
         sources.append(item)
     return sources
@@ -344,6 +367,7 @@ def save_batch_ground_truth(session, batch):
                TRY_TO_DATE(m.value:start::STRING) AS period_start,
                m.value:end::DATE AS period_end,
                m.value:page_index::INT AS page_index,
+               m.value:summary_value::NUMBER(38, 2) AS summary_value,
                r.value:source_sha256::STRING AS source_sha256,
                r.value:pdf_sha256::STRING AS pdf_sha256,
                'STRUCTURED_SYNTHETIC' AS reference_source

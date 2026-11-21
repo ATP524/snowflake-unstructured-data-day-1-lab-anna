@@ -58,9 +58,11 @@ WITH checks AS (
            COUNT(*) - COUNT(DISTINCT batch_id, relative_path) FROM lab_runs
 
     -- not_null: key columns (COUNT(DISTINCT) above ignores NULLs, so test them separately)
-    UNION ALL SELECT 'not_null', 'lab_settings', 'ticker, first_year, last_year, max_statement_pages, ai_fallback_page_cap',
-           COUNT_IF(ticker IS NULL OR first_year IS NULL OR last_year IS NULL
+    UNION ALL SELECT 'not_null', 'lab_settings', 'ticker, first_year, last_year, include_all_metrics, max_statement_pages, ai_fallback_page_cap',
+           COUNT_IF(ticker IS NULL OR first_year IS NULL OR last_year IS NULL OR include_all_metrics IS NULL
                     OR max_statement_pages IS NULL OR ai_fallback_page_cap IS NULL) FROM lab_settings
+    UNION ALL SELECT 'not_null', 'metric_catalog.is_starter', 'set on every metric; at least one starter metric',
+           COUNT_IF(is_starter IS NULL) + IFF(COUNT_IF(is_starter) = 0, 1, 0) FROM metric_catalog
     UNION ALL SELECT 'not_null', 'statement_heading_patterns', 'statement_type, pattern, added_for (one report, e.g. MSFT 2023)',
            COUNT_IF(statement_type IS NULL OR pattern IS NULL OR added_for IS NULL
                     OR NOT REGEXP_LIKE(added_for, '[A-Z.]+ [0-9]{4}')) FROM statement_heading_patterns
@@ -132,6 +134,30 @@ WITH checks AS (
                 UNION SELECT ticker, report_year FROM report_manifest) w
             WHERE NOT EXISTS (SELECT 1 FROM report_status r
                               WHERE r.ticker = w.ticker AND r.report_year = w.report_year))
+    UNION ALL SELECT 'relationships', 'report_readiness', 'every READY report has ground truth for every metric in play (scope_metrics)',
+           COUNT(*) FROM report_readiness r
+           JOIN report_manifest m ON m.relative_path = r.relative_path
+           CROSS JOIN scope_metrics c
+           WHERE r.status = 'READY'
+             AND NOT EXISTS (SELECT 1 FROM metric_ground_truth g
+                             WHERE g.ticker = m.ticker AND g.sec_accession = m.sec_accession
+                               AND g.period_start = m.period_start AND g.period_end = m.period_end
+                               AND g.metric_id = c.metric_id AND g.sec_rows > 0)
+    UNION ALL SELECT 'accepted_values', 'lab_runs.metric_ids', 'exactly the starter metrics, or every catalog metric when include_all_metrics',
+           COUNT_IF(NOT EQUAL_NULL(r.metric_ids, IFF(r.include_all_metrics,
+                    (SELECT ARRAY_SORT(ARRAY_AGG(metric_id)) FROM metric_catalog),
+                    (SELECT ARRAY_SORT(ARRAY_AGG(metric_id)) FROM metric_catalog WHERE is_starter))))
+           FROM lab_runs r
+    UNION ALL SELECT 'unique', 'method_comparison', 'ticker, report_year, method',
+           COUNT(*) - COUNT(DISTINCT ticker, report_year, method) FROM method_comparison
+    UNION ALL SELECT 'relationships', 'method_comparison', 'exactly 2 rows (one per method) per Evaluated report_status row',
+           (SELECT COUNT(*) FROM report_status r
+            WHERE r.status = 'Evaluated'
+              AND (SELECT COUNT(*) FROM method_comparison m
+                   WHERE m.ticker = r.ticker AND m.report_year = r.report_year) <> 2)
+           + (SELECT COUNT(*) FROM method_comparison m
+              WHERE NOT EXISTS (SELECT 1 FROM report_status r WHERE r.ticker = m.ticker
+                                AND r.report_year = m.report_year AND r.status = 'Evaluated'))
     UNION ALL SELECT 'accepted_values', 'metric_catalog.period_type', 'instant, duration',
            COUNT_IF(period_type NOT IN ('instant', 'duration')) FROM metric_catalog
     UNION ALL SELECT 'accepted_values', 'report_manifest.review_notes', 'AUTO-APPROVED / AUTO-REJECTED / HUMAN-REVIEWED prefix when approved',

@@ -4,11 +4,13 @@ USE WAREHOUSE compute_wh;
 USE SCHEMA atp524;
 
 -- Step 09: score every extraction against SEC ground truth. Run after 08.extract_reports.
--- Inputs:  lab_runs, extraction_results, parse_results (08), metric_ground_truth (06),
+-- Inputs:  lab_runs, extraction_results, parse_results (08), metric_ground_truth and
+--          scope_metrics (06),
 --          metric_catalog; for report_status also report_manifest, ingest_log, the stage, lab_settings.
 -- Outputs: function lab_number; views extracted_fields -> normalized_extractions ->
 --          sec_reference -> compared_values -> metric_evaluation; report_status (every
---          ticker-year ever touched, all companies); result queries.
+--          ticker-year ever touched, all companies); method_comparison (both paths across
+--          all reports' latest runs); result queries.
 -- Calls AI: no. Changes data: no. The views cover ALL runs (history is kept);
 -- the result queries below show the LATEST batch from 08, i.e. every report that
 -- batch extracted. To review an older batch, SET batch_id = '<batch id>' instead.
@@ -215,7 +217,8 @@ ORDER BY c.report_year;
 -- scope-only because the runner and 08 use the scope to choose their work. Defined here,
 -- after metric_evaluation, because it shows each report's latest scores.
 -- ground_truth_metrics counts all catalog metrics with an SEC value from the report's own
--- 10-K (metric_ground_truth); readiness uses the same rule as report_readiness.
+-- 10-K (metric_ground_truth). 'Stopped at 06' uses report_readiness's rule: every metric in
+-- play (scope_metrics, 06) must have ground truth; next_step names the ones that do not.
 CREATE OR REPLACE VIEW report_status AS
 WITH years AS (
     SELECT ticker, report_year FROM report_manifest
@@ -239,13 +242,17 @@ WITH years AS (
     SELECT m.relative_path,
            COUNT_IF(g.sec_rows > 0)                                        AS ground_truth_metrics,
            COUNT(*)                                                        AS catalog_metrics,
-           COUNT_IF(g.sec_rows > 0 AND g.metric_id IN ('assets', 'revenue', 'eps_diluted')) AS core_metrics,
+           COUNT_IF(s.metric_id IS NOT NULL)                               AS in_play_metrics,
+           COUNT_IF(s.metric_id IS NOT NULL AND g.sec_rows > 0)            AS in_play_with_truth,
+           LISTAGG(IFF(s.metric_id IS NOT NULL AND COALESCE(g.sec_rows, 0) = 0, c.metric_id, NULL), ', ')
+               WITHIN GROUP (ORDER BY c.metric_id)                         AS missing_in_play,
            LISTAGG(IFF(COALESCE(g.sec_rows, 0) = 0, c.metric_id, NULL), ', ')
                WITHIN GROUP (ORDER BY c.metric_id)                         AS missing_metrics,
            LISTAGG(IFF(g.preference_used > 1, c.metric_id || ' via ' || g.concept_used, NULL), ', ')
                WITHIN GROUP (ORDER BY c.metric_id)                         AS fallback_concepts
     FROM report_manifest m
     CROSS JOIN metric_catalog c
+    LEFT JOIN scope_metrics s ON s.metric_id = c.metric_id
     LEFT JOIN metric_ground_truth g
       ON g.ticker = m.ticker AND g.sec_accession = m.sec_accession
      AND g.period_start = m.period_start AND g.period_end = m.period_end
@@ -279,7 +286,7 @@ SELECT y.ticker, y.report_year,
            WHEN st.relative_path IS NULL THEN 'Stopped at 02'
            WHEN m.relative_path IS NULL OR m.sec_accession IS NULL THEN 'Stopped at 04'
            WHEN NOT COALESCE(m.approved, FALSE) THEN 'Stopped at 05'
-           WHEN COALESCE(t.core_metrics, 0) < 3 THEN 'Stopped at 06'
+           WHEN COALESCE(t.in_play_with_truth, 0) < COALESCE(t.in_play_metrics, 1) THEN 'Stopped at 06'
            WHEN lr.run_id IS NULL THEN 'Ready, not extracted'
            WHEN sc.run_id IS NULL THEN 'Extracted, not evaluated'
            ELSE 'Evaluated'
@@ -290,7 +297,7 @@ SELECT y.ticker, y.report_year,
            WHEN 'Stopped at 04' THEN IFF(m.relative_path IS NULL, '04 prepare manifest',
                                          '04 no matching 10-K in SEC facts (run 03)')
            WHEN 'Stopped at 05' THEN '05 locate pages (see report_manifest.review_notes)'
-           WHEN 'Stopped at 06' THEN '06 ground truth missing: ' || t.missing_metrics
+           WHEN 'Stopped at 06' THEN '06 ground truth missing: ' || t.missing_in_play
            WHEN 'Ready, not extracted' THEN '08 extract (scope this ticker-year and run)'
            WHEN 'Extracted, not evaluated' THEN '09 evaluate'
            ELSE 'complete'
@@ -305,3 +312,68 @@ LEFT JOIN scores sc          ON sc.run_id = lr.run_id;
 
 SELECT ticker, report_year, status, next_step, ground_truth_metrics, fallback_concepts
 FROM report_status ORDER BY ticker, report_year;
+
+-- METHOD COMPARISON: the analyst view of the lab's question, "which extraction path should we
+-- use?", across ALL reports (not just the latest batch). Grain: one row per ticker x report
+-- year x method, for each report's LATEST run (same rule as report_status). Beyond pass rate
+-- it shows the model's own confidence (value_score) and, for parse then extract, how much
+-- text the extra AI_PARSE_DOCUMENT step produced. AI credits per method need ACCOUNT_USAGE
+-- (see docs/PRODUCTION.md); this view uses only lab tables.
+CREATE OR REPLACE VIEW method_comparison AS
+WITH latest_run AS (
+    SELECT run_id, relative_path, prompt_version FROM lab_runs
+    QUALIFY ROW_NUMBER() OVER (PARTITION BY relative_path ORDER BY created_at DESC) = 1
+), parsed AS (
+    SELECT run_id, COUNT(*) AS parsed_pages, SUM(LENGTH(content)) AS parsed_characters
+    FROM parsed_pages GROUP BY run_id
+)
+SELECT e.ticker, e.report_year, e.method, e.run_id, LEFT(lr.prompt_version, 8) AS prompt_version,
+       COUNT(*)                                                       AS metrics_asked,
+       COUNT_IF(e.evaluation_status = 'PASS')                         AS metrics_passed,
+       metrics_passed / NULLIF(metrics_asked, 0)                      AS pass_rate,
+       AVG(e.value_score)                                             AS avg_value_score,
+       MIN(e.value_score)                                             AS min_value_score,
+       COUNT_IF(e.value_score < 0.9)                                  AS low_confidence_answers,
+       COUNT_IF(e.value_score < 0.9 AND e.evaluation_status = 'PASS') AS low_confidence_but_passed,
+       IFF(e.method = 'PARSE_THEN_EXTRACT', MAX(p.parsed_pages), NULL)      AS parsed_pages,
+       IFF(e.method = 'PARSE_THEN_EXTRACT', MAX(p.parsed_characters), NULL) AS parsed_characters
+FROM metric_evaluation e
+JOIN latest_run lr ON lr.run_id = e.run_id
+LEFT JOIN parsed p ON p.run_id = e.run_id
+GROUP BY e.ticker, e.report_year, e.method, e.run_id, lr.prompt_version;
+
+-- Rollup by method (all companies), then by company and method.
+SELECT method, COUNT(*) AS reports, SUM(metrics_asked) AS answers, SUM(metrics_passed) AS passed,
+       SUM(metrics_passed) / NULLIF(SUM(metrics_asked), 0) AS pass_rate,
+       ROUND(SUM(avg_value_score * metrics_asked) / NULLIF(SUM(metrics_asked), 0), 4) AS avg_value_score,
+       MIN(min_value_score) AS min_value_score,
+       SUM(low_confidence_answers) AS low_confidence_answers,
+       SUM(low_confidence_but_passed) AS low_confidence_but_passed,
+       ROUND(AVG(parsed_characters), 0) AS avg_parsed_characters
+FROM method_comparison GROUP BY method ORDER BY method;
+
+SELECT ticker, method, COUNT(*) AS reports, SUM(metrics_passed) || '/' || SUM(metrics_asked) AS passed,
+       ROUND(SUM(avg_value_score * metrics_asked) / NULLIF(SUM(metrics_asked), 0), 4) AS avg_value_score,
+       SUM(low_confidence_answers) AS low_confidence_answers
+FROM method_comparison GROUP BY ticker, method ORDER BY ticker, method;
+
+-- Agreement: on each report's latest run, how often both paths returned the same base-unit
+-- value, and whether a disagreement was resolved in favour of either path by SEC.
+WITH latest AS (
+    SELECT DISTINCT run_id FROM method_comparison
+), pairs AS (
+    SELECT e.ticker, e.run_id, e.metric_id,
+           MAX(IFF(e.method = 'DIRECT_PDF', e.extracted_value, NULL))         AS direct_value,
+           MAX(IFF(e.method = 'PARSE_THEN_EXTRACT', e.extracted_value, NULL)) AS parsed_value,
+           MAX(IFF(e.method = 'DIRECT_PDF', e.evaluation_status, NULL))         AS direct_status,
+           MAX(IFF(e.method = 'PARSE_THEN_EXTRACT', e.evaluation_status, NULL)) AS parsed_status
+    FROM metric_evaluation e JOIN latest l ON l.run_id = e.run_id
+    GROUP BY e.ticker, e.run_id, e.metric_id
+)
+SELECT ticker, COUNT(*) AS report_metrics,
+       COUNT_IF(EQUAL_NULL(direct_value, parsed_value)) AS same_value,
+       COUNT_IF(direct_status = 'PASS' AND parsed_status = 'PASS') AS both_pass,
+       COUNT_IF(direct_status = 'PASS' AND parsed_status <> 'PASS') AS only_direct_pass,
+       COUNT_IF(parsed_status = 'PASS' AND direct_status <> 'PASS') AS only_parsed_pass
+FROM pairs GROUP BY ROLLUP (ticker) ORDER BY ticker NULLS LAST;
+

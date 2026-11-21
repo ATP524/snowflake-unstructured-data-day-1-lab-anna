@@ -140,7 +140,11 @@ class SyntheticBatchTests(SyntheticEarningsTests):
 
     def test_simple_sql_keeps_scoring_readable_and_answers_private(self):
         sql = (ROOT / "sql/12.evaluate_synthetic_simple.sql").read_text()
-        self.assertNotIn("LATERAL FLATTEN", sql)
+        # One FLATTEN only: AI_PARSE_DOCUMENT requires page_split=TRUE with a page_filter, so the
+        # parsed pages must be joined back into one text. Scoring itself stays FLATTEN-free.
+        self.assertEqual(sql.count("LATERAL FLATTEN"), 1)
+        self.assertIn("LATERAL FLATTEN(INPUT => p.parsed_result:value:pages", sql)
+        self.assertNotIn("LATERAL FLATTEN", sql.split("-- 4. Match each answer to its ground truth.")[1])
         self.assertNotIn("REGEXP", sql)
         self.assertEqual(sql.count("AI_EXTRACT("), 2)
         self.assertEqual(sql.count("AI_PARSE_DOCUMENT("), 1)
@@ -160,7 +164,7 @@ class SyntheticBatchTests(SyntheticEarningsTests):
         from generate_synthetic_batch import main
         from unittest.mock import patch
         saved_sources = json.loads((ROOT / "fixtures/synthetic_batch/sources.json").read_text())
-        self.assertEqual(self.source, saved_sources[0])
+        self.assertEqual(build_batch_sources(self.source), saved_sources)
         session = MagicMock()
         expected = {"reports": [{"relative_path": "example.pdf"}]}
         with patch("generate_synthetic_batch.generate_batch_in_snowflake",
@@ -174,6 +178,37 @@ class SyntheticBatchTests(SyntheticEarningsTests):
         self.assertIn("ON e.relative_path = r.manifest:relative_path::STRING", sql)
         self.assertNotIn("CROSS JOIN synthetic_extraction", sql)
         self.assertIn("GROUP BY relative_path ORDER BY relative_path", sql)
+
+    def test_rounding_trap_summary_differs_from_exact_statement(self):
+        # The batch must contain a decoy: page 0 restates revenue and net income rounded to
+        # USD 0.01 billion, and that rounded value must NOT equal the exact statement value,
+        # otherwise an answer read from the summary would still score PASS.
+        for source in build_batch_sources(self.source):
+            prepare(source)
+            pdf, manifest = render_report(source)
+            self.assertEqual(manifest["template_version"], "earnings-v2")
+            summary_page = PdfReader(io.BytesIO(pdf)).pages[0].extract_text()
+            with_summary = {k for k, e in manifest["expected"].items() if e["summary_value"] is not None}
+            self.assertEqual(with_summary, {"revenue", "net_income"})
+            for metric in with_summary:
+                e = manifest["expected"][metric]
+                self.assertNotEqual(Decimal(e["raw_value"]) % 10, 0, (source["ticker"], metric))
+                self.assertGreater(abs(e["summary_value"] - e["value"]), 0.5)
+                billions = f"{e['summary_value'] / 1e9:,.2f}"
+                self.assertIn(f"${billions} billion", summary_page)
+                self.assertNotIn(number(Decimal(e["raw_value"])), summary_page)
+
+    def test_rounding_trap_is_shown_and_scored_in_12_and_13(self):
+        for name in ("12.evaluate_synthetic_simple.sql", "13.evaluate_synthetic.sql"):
+            sql = (ROOT / "sql" / name).read_text()
+            with self.subTest(file=name):
+                self.assertIn("SET first_page = 0;", sql)
+                self.assertNotIn("OBJECT_CONSTRUCT('start', 1, 'end', 5)", sql)
+                self.assertIn("'start', $first_page, 'end', 5", sql)
+                self.assertIn("'USED_ROUNDED_SUMMARY'", sql)
+                self.assertIn("picked_rounded_summary", sql)
+        detailed = (ROOT / "sql/13.evaluate_synthetic.sql").read_text()
+        self.assertLess(detailed.index("THEN 'USED_ROUNDED_SUMMARY'"), detailed.index("THEN 'SCALE_MISMATCH'"))
 
 
 if __name__ == "__main__":

@@ -69,6 +69,22 @@ BEGIN
     RETURN 'lab_settings locator limits present';
 END;
 $$;
+-- Metric set, part of the scope (set in 00 with the ticker and years):
+--   include_all_metrics  FALSE = the starter metrics (metric_catalog.is_starter),
+--                        TRUE  = every catalog metric.
+-- Read through the scope_metrics view (06) by readiness (06), extraction (08) and
+-- report_status (09), so all three always use the same metric set.
+EXECUTE IMMEDIATE $$
+BEGIN
+    IF (NOT EXISTS (SELECT 1 FROM information_schema.columns
+                    WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'LAB_SETTINGS'
+                      AND column_name = 'INCLUDE_ALL_METRICS')) THEN
+        ALTER TABLE lab_settings ADD COLUMN include_all_metrics BOOLEAN DEFAULT FALSE;
+    END IF;
+    UPDATE lab_settings SET include_all_metrics = COALESCE(include_all_metrics, FALSE);
+    RETURN 'lab_settings.include_all_metrics present';
+END;
+$$;
 
 -- Grain: one heading wording per statement type. Key: (statement_type, pattern).
 -- 05 matches these ILIKE patterns against the TOP of each page (first 200 characters),
@@ -166,6 +182,22 @@ WHEN NOT MATCHED THEN INSERT (
     s.metric_id, s.metric_description, s.sec_concept, s.expected_unit,
     s.period_type, s.absolute_tolerance, s.relative_tolerance
 );
+
+-- is_starter: the starter metric set (used when lab_settings.include_all_metrics = FALSE).
+-- This is the ONLY place the starter metrics are named; no step lists them in its SQL.
+-- Added once and filled only where NULL, so a deliberate later change is kept.
+EXECUTE IMMEDIATE $$
+BEGIN
+    IF (NOT EXISTS (SELECT 1 FROM information_schema.columns
+                    WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'METRIC_CATALOG'
+                      AND column_name = 'IS_STARTER')) THEN
+        ALTER TABLE metric_catalog ADD COLUMN is_starter BOOLEAN;
+    END IF;
+    UPDATE metric_catalog SET is_starter = metric_id IN ('assets', 'revenue', 'eps_diluted')
+    WHERE is_starter IS NULL;
+    RETURN 'metric_catalog.is_starter present';
+END;
+$$;
 
 -- Grain: one accepted SEC XBRL concept per metric. Key: (metric_id, concept).
 -- preference 1 is the metric's own concept (metric_catalog.sec_concept). A higher
@@ -327,7 +359,7 @@ CREATE TABLE IF NOT EXISTS lab_runs (
     page_ranges ARRAY,
     response_format VARIANT,
     prompt_version STRING,       -- SHA2 of the question template (fiscal dates masked): same wording = same version across years
-    include_all_metrics BOOLEAN, -- the 08 setting: FALSE = starter 3 metrics, TRUE = every catalog metric
+    include_all_metrics BOOLEAN, -- copied from lab_settings at run time: FALSE = starter metrics, TRUE = every catalog metric
     metric_count INT,            -- how many metrics this run actually asked (e.g. 3 or 10)
     metric_ids ARRAY,            -- exactly which metrics, sorted; authoritative even if the catalog changes
     created_at TIMESTAMP_LTZ DEFAULT CURRENT_TIMESTAMP()
@@ -460,9 +492,9 @@ $$;
 -- =====================================================================================
 -- DOCUMENTATION: layer + grain on each table (visible in Snowsight > table details).
 -- =====================================================================================
-COMMENT ON TABLE lab_settings IS 'CONFIG. Grain: exactly one row (setting_id = 1): ticker + year range every step processes, plus page-locator limits. Set in python/00.set_session_variables.ipynb.';
+COMMENT ON TABLE lab_settings IS 'CONFIG. Grain: exactly one row (setting_id = 1): ticker + year range + metric set (include_all_metrics) every step processes, plus page-locator limits. Set in python/00.set_session_variables.ipynb.';
 COMMENT ON TABLE statement_heading_patterns IS 'CONFIG. Grain: one heading wording per statement type. Key: statement_type, pattern. Read by 05.';
-COMMENT ON TABLE metric_catalog IS 'CONFIG. Grain: one row per extractable metric. Key: metric_id.';
+COMMENT ON TABLE metric_catalog IS 'CONFIG. Grain: one row per extractable metric. Key: metric_id. is_starter = in the starter set (used when lab_settings.include_all_metrics = FALSE).';
 COMMENT ON TABLE metric_sec_concepts IS 'CONFIG. Grain: one accepted SEC concept per metric. Key: metric_id, concept. preference 1 = primary; higher = recorded fallback used only when the primary is absent from the report''s own 10-K.';
 COMMENT ON TABLE sec_facts IS 'RAW. Grain: one SEC XBRL observation (concept, unit, period, filing). Unique key: ticker, accession, concept, unit, start_date, end_date, form, fiscal_year, fiscal_period, frame. Loaded by 03.';
 COMMENT ON TABLE ingest_log IS 'RAW. Grain: one download/load attempt (event log, no natural key). Written by 02 and 03.';

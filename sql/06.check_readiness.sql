@@ -5,11 +5,12 @@ USE SCHEMA atp524;
 
 -- Step 06: confirm every report in scope is READY before spending AI credits in
 -- 07.first_extraction and 08.extract_reports, and show exactly where any year stopped.
--- Scope = lab_settings (ticker + year range), set in python/00.set_session_variables.ipynb.
+-- Scope = lab_settings (ticker + year range + metric set), set in python/00.set_session_variables.ipynb.
 -- Inputs:  lab_settings, report_manifest, sec_facts, metric_catalog, metric_sec_concepts, stage,
 --          lab_runs, extraction_results,
 --          statement_page_scan and statement_heading_patterns (for heading_pattern_usage).
 -- Outputs: views metric_ground_truth (the one SEC-value rule, also used by 09),
+--          scope_metrics (the one metric-set rule, also used by 08 and 09),
 --          report_readiness, pipeline_coverage and heading_pattern_usage.
 -- Calls AI: no. Changes data: no. Run after 05.locate_statement_pages.sql.
 
@@ -58,9 +59,25 @@ JOIN candidates ca
  AND ca.metric_id = ch.metric_id
 GROUP BY ch.ticker, ch.sec_accession, ch.period_start, ch.period_end, ch.metric_id, ch.preference_used;
 
+-- METRICS IN PLAY: the ONE rule for which metrics this scope uses, read by readiness
+-- (below), the 08 lab_runs insert and report_status (09), so they cannot disagree.
+-- lab_settings.include_all_metrics (set in 00): FALSE = the starter metrics
+-- (metric_catalog.is_starter), TRUE = every catalog metric. No step names metrics itself.
+CREATE OR REPLACE VIEW scope_metrics AS
+SELECT c.*
+FROM metric_catalog c
+CROSS JOIN lab_settings ls
+WHERE ls.include_all_metrics OR c.is_starter;
+
+SELECT ls.include_all_metrics, COUNT(*) AS metrics_in_play,
+       LISTAGG(s.metric_id, ', ') WITHIN GROUP (ORDER BY s.metric_id) AS metric_ids
+FROM scope_metrics s CROSS JOIN lab_settings ls
+GROUP BY ls.include_all_metrics;
+
 -- READINESS per in-scope report. Uses the same conditions as the lab_runs insert
--- in 08, plus ground-truth coverage (from metric_ground_truth). Only READY reports
--- produce a run. The metric filter matches include_all_metrics = FALSE; remove it for all ten.
+-- in 08, plus ground-truth coverage (from metric_ground_truth) for EVERY metric 08 will
+-- ask (scope_metrics). Only READY reports produce a run, so no credits are spent on a
+-- metric that has no SEC value to score against; missing_metrics names any such metric.
 CREATE OR REPLACE VIEW report_readiness AS
 SELECT m.relative_path, m.ticker, m.report_year,
        COALESCE(m.approved, FALSE)                      AS approved,
@@ -70,6 +87,8 @@ SELECT m.relative_path, m.ticker, m.report_year,
        COALESCE(ARRAY_SIZE(m.page_ranges), 0) > 0       AS pages_ok,
        COUNT(DISTINCT c.metric_id)                      AS metrics_expected,
        COUNT(DISTINCT IFF(g.sec_rows > 0, c.metric_id, NULL)) AS metrics_with_ground_truth,
+       LISTAGG(IFF(COALESCE(g.sec_rows, 0) = 0, c.metric_id, NULL), ', ')
+           WITHIN GROUP (ORDER BY c.metric_id)          AS missing_metrics,
        IFF(approved AND period_ok AND accession_ok AND pages_ok
            AND metrics_with_ground_truth = metrics_expected,
            'READY', 'NOT READY') AS status,
@@ -77,12 +96,11 @@ SELECT m.relative_path, m.ticker, m.report_year,
 FROM report_manifest m
 JOIN lab_settings ls
   ON m.ticker = ls.ticker AND m.report_year BETWEEN ls.first_year AND ls.last_year
-CROSS JOIN metric_catalog c
+CROSS JOIN scope_metrics c
 LEFT JOIN metric_ground_truth g
   ON g.ticker = m.ticker AND g.sec_accession = m.sec_accession
  AND g.period_start = m.period_start AND g.period_end = m.period_end
  AND g.metric_id = c.metric_id
-WHERE c.metric_id IN ('assets', 'revenue', 'eps_diluted')
 GROUP BY m.relative_path, m.ticker, m.report_year, m.approved, m.period_start,
          m.period_end, m.sec_accession, m.page_ranges, m.review_notes;
 
@@ -139,7 +157,8 @@ SELECT y.ticker, y.report_year, y.relative_path,
            WHEN NOT manifest_row      THEN '04 prepare manifest'
            WHEN NOT period_proposed   THEN '04 prepare manifest (no matching 10-K period)'
            WHEN NOT COALESCE(m.approved, FALSE) THEN '05 locate pages (see review_notes)'
-           WHEN readiness <> 'READY'  THEN '06 check readiness (ground truth incomplete)'
+           WHEN readiness <> 'READY'  THEN '06 check readiness (ground truth missing: '
+                                           || COALESCE(NULLIF(r.missing_metrics, ''), 'see report_readiness') || ')'
            WHEN lr.run_id IS NULL     THEN '08 extract reports'
            WHEN NOT direct_pdf_done OR NOT parse_then_extract_done
                                       THEN '08 extract reports (a path did not finish)'
